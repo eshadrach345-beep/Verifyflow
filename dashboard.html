@@ -25,7 +25,45 @@
 .catalog-footnote{font-size:9px;line-height:1.7;color:#98a2b1;margin-top:17px}
 @media(max-width:800px){.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.catalog-grid{grid-template-columns:1fr}.catalog-toolbar{align-items:start;flex-direction:column}.catalog-toolbar h2{font-size:20px}}
-</style></head><body><header class="vf-store-header"><div class="vf-topbar">
+</style>
+<style>
+/* Dashboard readability pass */
+.dash-crumb{font-size:13px}
+.dash-heading h1{font-size:42px}
+.dash-heading p{font-size:15px;line-height:1.6}
+.preview-pill{font-size:12px}
+.dash-notice{font-size:14px;line-height:1.65;padding:18px 20px}
+.catalog-eyebrow{font-size:11px}
+.catalog-toolbar h2{font-size:26px}
+.catalog-refresh{font-size:13px;padding:11px 15px}
+.catalog-tab{font-size:13px;padding:10px 16px}
+.catalog-status{font-size:13px}
+.catalog-item-visual{height:130px}
+.catalog-item-copy{padding:17px}
+.catalog-item-tag{font-size:11px}
+.catalog-item h3{font-size:17px;line-height:1.35}
+.catalog-item p{font-size:14px;line-height:1.5}
+.catalog-item small{font-size:12px;line-height:1.6}
+.catalog-empty{font-size:14px}
+.catalog-footnote{font-size:12px;line-height:1.65}
+.dash-card h2{font-size:18px}
+.dash-card p{font-size:14px;line-height:1.65}
+.dash-card small{font-size:11px}
+.dash-bottom h2{font-size:20px}
+.dash-bottom p{font-size:13px;line-height:1.6}
+.dash-bottom a{font-size:13px}
+@media(max-width:600px){
+ .dash-heading h1{font-size:34px}
+ .dash-heading p{font-size:14px}
+ .dash-notice{font-size:13px}
+ .catalog-toolbar h2{font-size:23px}
+ .catalog-tab{font-size:12px}
+ .catalog-item h3{font-size:17px}
+ .catalog-item p{font-size:14px}
+ .catalog-item small{font-size:12px}
+}
+</style>
+</head><body><header class="vf-store-header"><div class="vf-topbar">
 <a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
 <a class="vf-location" href="/#services"><small>Explore</small><strong>All services</strong></a>
 <form class="vf-search" action="/#services" role="search"><label class="sr-only" for="vf-dash-search">Search VerifyFlow services</label><input id="vf-dash-search" type="search" placeholder="Search SMS, eSIM, numbers, proxies..." autocomplete="off"><button type="submit" aria-label="Search services">⌕</button></form>
