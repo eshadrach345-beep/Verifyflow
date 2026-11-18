@@ -14,13 +14,13 @@ module.exports = async function handler(req, res) {
   try { body = await readJson(req); }
   catch { return sendJson(res, 400, { ok: false, error: "Please submit a valid form." }); }
 
-  const fullName = String(body.fullName || "").trim().replace(/\\s+/g, " ");
+  const fullName = String(body.fullName || "").trim().replace(/\s+/g, " ");
   const email = String(body.email || "").trim().toLowerCase();
   const password = typeof body.password === "string" ? body.password : "";
   if (fullName.length < 2 || fullName.length > 80) {
     return sendJson(res, 400, { ok: false, error: "Enter your name (2–80 characters)." });
   }
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || email.length > 254) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
     return sendJson(res, 400, { ok: false, error: "Enter a valid email address." });
   }
   if (password.length < 10 || password.length > 128) {
