@@ -773,3 +773,163 @@ a:hover{color:#c7511f}
  .marketplace-grid,.catalog-grid{grid-template-columns:1fr}
  .market-card-copy p{min-height:0}
 }
+
+
+/* ===== VerifyFlow visual balance + stronger typography pass ===== */
+html{scroll-behavior:smooth}
+body{
+  font-family:Inter,Roboto,Arial,sans-serif;
+  font-size:15px;
+  font-weight:500;
+  line-height:1.55;
+  -webkit-font-smoothing:auto;
+  text-rendering:optimizeLegibility;
+}
+h1,h2,h3,h4,strong,b,.brand,.vf-store-brand{
+  font-weight:750;
+}
+.announcement{font-size:12px;font-weight:700;min-height:36px}
+.vf-topbar{min-height:70px}
+.vf-store-brand{font-size:22px}
+.vf-location strong,.vf-account strong{font-size:14px;font-weight:750}
+.vf-search input{font-size:15px;font-weight:500}
+.vf-subnav a{font-size:13px;font-weight:650}
+.hero{min-height:390px;padding-top:42px;padding-bottom:38px}
+.hero h1{font-size:clamp(34px,3.4vw,44px);font-weight:800;letter-spacing:-1.25px;line-height:1.08}
+.hero-intro{font-size:16px;font-weight:500;line-height:1.65;color:#e1e6ec}
+.hero .eyebrow{font-size:11px;font-weight:800}
+.hero-buttons .button,.hero-buttons .text-link{font-weight:750}
+.hero-proof{font-size:12px;font-weight:700}
+.ticker{padding:14px 0}
+.ticker div{font-size:12px;font-weight:800}
+
+/* Keep the carousel proportionate and visually connected to the catalogue. */
+.spotlight-section{padding:26px 18px 25px;background:#eaeded}
+.spotlight-heading,.spotlight-viewport,.spotlight-footer{max-width:1080px}
+.spotlight-heading{margin-bottom:13px}
+.spotlight-heading h2{font-size:27px;font-weight:800;letter-spacing:-.45px}
+.spotlight-controls{gap:7px}
+.spot-arrow{width:38px;height:38px;border-radius:6px;font-weight:800}
+.spotlight-viewport{width:100%;border-radius:9px;box-shadow:0 2px 7px rgba(15,17,17,.12)}
+.spotlight-slide{min-height:245px;grid-template-columns:1.08fr .92fr}
+.spotlight-copy{padding:25px 34px}
+.spotlight-tag{font-size:11px;font-weight:800}
+.spotlight-copy h3{font-size:31px;font-weight:800;line-height:1.1;letter-spacing:-.65px;margin:15px 0 10px}
+.spotlight-copy p{font-size:14px;font-weight:500;line-height:1.55;color:#f0f2f6;margin-bottom:17px}
+.spotlight-cta{font-size:13px;font-weight:800;padding:13px 17px}
+.spotlight-art{min-height:245px}
+.phone-frame{width:190px;min-height:220px;padding:18px 13px 12px;border-radius:23px}
+.art-sticker{width:57px;height:57px;font-size:9px}
+.travel-sun{width:190px;height:190px;top:27px}
+.travel-globe{width:155px;height:155px}
+.travel-globe b{font-size:23px}
+.network-hub{width:88px;height:88px}
+.network-point{width:42px;height:42px}
+.spotlight-footer{margin-top:12px}
+.spotlight-note{font-size:10px;font-weight:800}
+
+/* Give the catalogue enough visual weight without adding new copy. */
+.marketplace-section{padding:30px 18px 42px}
+.marketplace-wrap{width:min(1200px,100%);max-width:1200px}
+.marketplace-heading{margin-bottom:20px}
+.marketplace-heading h2{font-size:30px;font-weight:800;letter-spacing:-.55px}
+.marketplace-heading p{font-size:15px;font-weight:500;line-height:1.55}
+.marketplace-kicker{font-size:12px;font-weight:800}
+.marketplace-search input{font-size:14px;font-weight:500}
+.marketplace-grid{gap:15px}
+.market-card{min-height:315px;border-radius:9px}
+.market-card-top{font-size:10px;font-weight:800;padding:12px 13px 0}
+.market-card-top b{font-size:10px;font-weight:800}
+.market-card .market-art{height:164px;margin:8px 10px 0}
+.market-card-copy{padding:14px 14px 16px;min-height:112px}
+.market-card-copy h3{font-size:17px;font-weight:800;line-height:1.25}
+.market-card-copy p{font-size:14px;font-weight:500;line-height:1.5;min-height:0;color:#444b50}
+.market-arrow{flex:0 0 30px;width:30px;height:30px;background:#f4f6f6;border:1px solid #d5d9d9;border-radius:50%}
+.marketplace-foot{font-size:12px;font-weight:600}
+
+/* Strengthen section headings and supporting text throughout the page. */
+.manifesto{padding-top:48px;padding-bottom:48px}
+.manifesto h2{font-size:38px;font-weight:800}
+.manifesto-left>p{font-size:15px;font-weight:500;line-height:1.7}
+.manifesto-point{padding:23px 0}
+.manifesto-point h3{font-size:17px;font-weight:800}
+.manifesto-point p{font-size:14px;font-weight:500;line-height:1.6}
+.how-section{padding-top:45px;padding-bottom:48px}
+.how-heading h2{font-size:32px;font-weight:800}
+.how-heading p{font-size:15px;font-weight:500;line-height:1.65}
+.step{min-height:190px;padding:23px}
+.step h3{font-size:17px;font-weight:800}
+.step p{font-size:14px;font-weight:500;line-height:1.6}
+.closing-cta{padding-top:50px;padding-bottom:55px}
+.closing-cta h2{font-size:40px;font-weight:800}
+.closing-cta>p{font-size:15px;font-weight:500}
+.footer-links,.footer-main>p{font-size:13px;font-weight:600}
+.footer-bottom{font-size:11px;font-weight:500}
+
+/* Mobile: tighter banner, readable copy and fuller two-column product cards. */
+@media(max-width:650px){
+  body{font-size:14px}
+  .vf-topbar{min-height:0;padding:10px 12px;gap:9px}
+  .vf-store-brand{font-size:20px}
+  .vf-account strong{font-size:12px}
+  .vf-search{height:40px}
+  .vf-search input{font-size:14px}
+  .vf-subnav{min-height:40px;gap:17px}
+  .vf-subnav a{font-size:12px;font-weight:700}
+  .hero{padding:38px 18px 34px;gap:2px}
+  .hero h1{font-size:35px;letter-spacing:-1px;line-height:1.1}
+  .hero-intro{font-size:14px;line-height:1.6}
+  .hero-visual{height:325px}
+  .spotlight-section{padding:21px 12px 20px}
+  .spotlight-heading{gap:8px;margin-bottom:11px}
+  .spotlight-heading h2{font-size:23px;line-height:1.2}
+  .spot-arrow{width:34px;height:34px;font-size:16px}
+  .spotlight-viewport{border-radius:8px}
+  .spotlight-slide{grid-template-columns:1fr;min-height:0}
+  .spotlight-copy{padding:21px 19px 7px}
+  .spotlight-copy h3{font-size:27px;line-height:1.12;margin:12px 0 9px}
+  .spotlight-copy p{font-size:13px;line-height:1.5;margin-bottom:13px}
+  .spotlight-cta{font-size:12px;padding:12px 15px}
+  .spotlight-art{min-height:175px;height:175px}
+  .phone-frame{transform:scale(.75) rotate(4deg);transform-origin:center}
+  .art-sticker{right:10%;bottom:15px;transform:scale(.82) rotate(10deg)}
+  .travel-sun{width:145px;height:145px;top:16px}
+  .travel-globe{width:130px;height:130px}
+  .travel-globe b{font-size:20px}
+  .travel-stamp{right:8%;bottom:16px;transform:scale(.85) rotate(8deg)}
+  .network-hub{width:74px;height:74px}
+  .network-point{width:36px;height:36px}
+  .spotlight-footer{margin-top:10px}
+  .spotlight-note{font-size:8px;letter-spacing:.35px}
+  .marketplace-section{padding:23px 12px 30px}
+  .marketplace-heading h2{font-size:27px}
+  .marketplace-heading p{font-size:14px}
+  .marketplace-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .market-card{min-height:0;border-radius:8px}
+  .market-card-top{font-size:9px;padding:10px 9px 0}
+  .market-card-top b{font-size:9px}
+  .market-card .market-art{height:126px;margin:7px 7px 0}
+  .market-card-copy{padding:11px 10px 13px;min-height:118px;gap:5px}
+  .market-card-copy h3{font-size:15px;line-height:1.25}
+  .market-card-copy p{font-size:12px;line-height:1.45;min-height:0}
+  .market-arrow{width:25px;height:25px;flex-basis:25px;font-size:13px}
+  .marketplace-foot{font-size:10px;line-height:1.5;gap:8px}
+  .manifesto{padding:39px 18px}
+  .manifesto h2{font-size:34px}
+  .manifesto-left>p,.manifesto-point p{font-size:14px}
+  .manifesto-point{padding:19px 0}
+  .manifesto-point h3{font-size:16px}
+  .how-section{padding:38px 16px 40px}
+  .how-heading h2{font-size:29px}
+  .how-heading p{font-size:14px}
+  .step{min-height:160px;padding:20px}
+  .step h3{font-size:16px}
+  .step p{font-size:13px}
+  .closing-cta{padding:43px 16px 46px}
+  .closing-cta h2{font-size:34px}
+}
+@media(max-width:370px){
+  .marketplace-grid{grid-template-columns:1fr}
+  .market-card .market-art{height:150px}
+  .market-card-copy{min-height:0}
+}
