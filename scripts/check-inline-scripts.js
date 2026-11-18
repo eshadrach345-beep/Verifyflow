@@ -6,12 +6,25 @@ let checked = 0;
 
 for (const file of htmlFiles) {
   const html = fs.readFileSync(file, "utf8");
-  const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)];
-  for (let index = 0; index < scripts.length; index += 1) {
-    const source = scripts[index][1].trim();
-    if (!source) continue;
-    new vm.Script(source, { filename: file + "#inline-script-" + (index + 1) });
-    checked += 1;
+  let cursor = 0;
+
+  while (true) {
+    const start = html.indexOf("<script", cursor);
+    if (start === -1) break;
+
+    const openEnd = html.indexOf(">", start);
+    const closeStart = html.indexOf("</script>", openEnd + 1);
+    if (openEnd === -1 || closeStart === -1) {
+      throw new Error("Unclosed script element in " + file);
+    }
+
+    const openingTag = html.slice(start, openEnd + 1);
+    const source = html.slice(openEnd + 1, closeStart).trim();
+    if (!openingTag.includes("src=") && source) {
+      new vm.Script(source, { filename: file + "#inline-script-" + (checked + 1) });
+      checked += 1;
+    }
+    cursor = closeStart + "</script>".length;
   }
 }
 
