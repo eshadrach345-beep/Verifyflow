@@ -6,7 +6,7 @@ let checked = 0;
 
 for (const file of htmlFiles) {
   const html = fs.readFileSync(file, "utf8");
-  const scripts = [...html.matchAll(/<script(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>/gi)];
+  const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)];
   for (let index = 0; index < scripts.length; index += 1) {
     const source = scripts[index][1].trim();
     if (!source) continue;
