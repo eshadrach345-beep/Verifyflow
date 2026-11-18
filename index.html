@@ -35,6 +35,28 @@
 <div class="hero-bottom-note">SCROLL TO DISCOVER <span>↓</span></div>
 </section>
 <section class="ticker" aria-label="Platform services"><div>SMS VERIFICATION <i>✳</i> NUMBER RENTALS <i>✳</i> ESIM DATA <i>✳</i> MOBILE PROXIES <i>✳</i> ONE ACCOUNT <i>✳</i> SMS VERIFICATION <i>✳</i></div></section>
+
+<section class="spotlight-section" aria-label="VerifyFlow product spotlight">
+  <div class="spotlight-heading"><div><div class="eyebrow eyebrow-dark">THE VERIFYFLOW SPOTLIGHT</div><h2>Find your next <span>connection.</span></h2></div><div class="spotlight-controls"><button class="spot-arrow" type="button" data-slide-prev aria-label="Previous slide">←</button><button class="spot-arrow" type="button" data-slide-next aria-label="Next slide">→</button></div></div>
+  <div class="spotlight-viewport">
+    <div class="spotlight-track" data-spotlight-track aria-live="polite">
+      <article class="spotlight-slide spotlight-verify is-active" data-slide="0">
+        <div class="spotlight-copy"><span class="spotlight-tag">01 / VERIFY</span><h3>Make verification<br>feel effortless.</h3><p>Explore SMS verification options for services you use. Find supported countries and availability in one place.</p><a href="/dashboard.html" class="spotlight-cta">Explore SMS services <b>↗</b></a></div>
+        <div class="spotlight-art spotlight-art-sms"><div class="art-orbit art-orbit-one"></div><div class="art-orbit art-orbit-two"></div><div class="phone-frame"><div class="phone-speaker"></div><small>VERIFYFLOW MESSAGE</small><strong>Your code is ready</strong><div class="code-digits"><i>4</i><i>8</i><i>2</i><i>9</i><i>1</i><i>6</i></div><span class="phone-status">Message preview · Illustration</span></div><span class="art-sticker">SMS<br>READY</span></div>
+      </article>
+      <article class="spotlight-slide spotlight-travel" data-slide="1">
+        <div class="spotlight-copy"><span class="spotlight-tag">02 / TRAVEL CONNECTED</span><h3>Take your data<br>places.</h3><p>Discover eSIM data options for supported destinations and compatible devices, without the plastic SIM swap.</p><a href="/dashboard.html" class="spotlight-cta">Explore eSIM data <b>↗</b></a></div>
+        <div class="spotlight-art spotlight-art-travel"><div class="travel-sun"></div><div class="travel-globe"><span>eSIM</span><b>WORLD<br>MODE</b><i>⌁</i></div><div class="travel-route route-a"></div><div class="travel-route route-b"></div><span class="travel-stamp">GO<br>FURTHER</span></div>
+      </article>
+      <article class="spotlight-slide spotlight-network" data-slide="2">
+        <div class="spotlight-copy"><span class="spotlight-tag">03 / NETWORK TOOLS</span><h3>Your tools.<br>One dashboard.</h3><p>Explore mobile proxy and number rental categories, then keep your services organised as features become available.</p><a href="/dashboard.html" class="spotlight-cta">View the platform <b>↗</b></a></div>
+        <div class="spotlight-art spotlight-art-network"><div class="network-grid"></div><div class="network-hub">VF</div><div class="network-point point-a">01</div><div class="network-point point-b">02</div><div class="network-point point-c">03</div><div class="network-line line-a"></div><div class="network-line line-b"></div><div class="network-line line-c"></div><span class="network-caption">ONE ACCOUNT<br>MORE POSSIBILITIES</span></div>
+      </article>
+    </div>
+  </div>
+  <div class="spotlight-footer"><div class="spotlight-dots" role="tablist" aria-label="Choose spotlight slide"><button class="spot-dot is-active" type="button" data-slide-to="0" aria-label="Show SMS verification slide" aria-selected="true"></button><button class="spot-dot" type="button" data-slide-to="1" aria-label="Show eSIM slide" aria-selected="false"></button><button class="spot-dot" type="button" data-slide-to="2" aria-label="Show network tools slide" aria-selected="false"></button></div><span class="spotlight-note">PRODUCT SPOTLIGHT <i>·</i> SWIPE OR USE ARROWS TO EXPLORE</span></div>
+</section>
+
 <section class="services-section section-wrap" id="services"><div class="section-top"><div><div class="eyebrow eyebrow-dark">THE VERIFYFLOW TOOLKIT</div><h2>Everything you need.<br><span>Nothing you don't.</span></h2></div><p class="section-description">A growing collection of digital connectivity services, brought together with a clear and consistent experience.</p></div>
 <div class="product-grid">
 <a class="product-card card-sms" href="/dashboard.html"><div class="product-card-head"><span class="product-icon">✳</span><span class="product-index">01 / VERIFY</span></div><div class="product-art art-sms"><div class="sms-bubble">Your code is <b>••••••</b><span>Message received <i>✓</i></span></div><div class="art-ring"></div></div><div class="product-copy"><div class="product-kicker">ON-DEMAND ACCESS</div><h3>SMS verification</h3><p>Receive verification messages for supported services with available virtual numbers.</p><span class="product-link">Explore SMS <b>↗</b></span></div></a>
@@ -48,4 +70,48 @@
 </main>
 <footer class="site-footer"><div class="footer-main"><a class="brand brand-footer" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><p>One flow. Every connection.</p><div class="footer-links"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/acceptable-use.html">Acceptable use</a></div></div><div class="footer-bottom"><span>© <span id="year"></span> VerifyFlow. All rights reserved.</span><span>Designed for a world that never stands still.</span></div></footer>
 <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+
+<script>
+(() => {
+  const track = document.querySelector('[data-spotlight-track]');
+  if (!track) return;
+  const slides = [...track.querySelectorAll('[data-slide]')];
+  const dots = [...document.querySelectorAll('[data-slide-to]')];
+  const prev = document.querySelector('[data-slide-prev]');
+  const next = document.querySelector('[data-slide-next]');
+  const viewport = document.querySelector('.spotlight-viewport');
+  let active = 0, timer;
+  const show = (index) => {
+    active = (index + slides.length) % slides.length;
+    track.style.transform = 'translateX(-' + (active * 100) + '%)';
+    slides.forEach((slide, i) => slide.classList.toggle('is-active', i === active));
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('is-active', i === active);
+      dot.setAttribute('aria-selected', String(i === active));
+    });
+  };
+  const stop = () => { if (timer) window.clearInterval(timer); };
+  const start = () => {
+    stop();
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      timer = window.setInterval(() => show(active + 1), 6500);
+    }
+  };
+  prev?.addEventListener('click', () => { show(active - 1); start(); });
+  next?.addEventListener('click', () => { show(active + 1); start(); });
+  dots.forEach(dot => dot.addEventListener('click', () => { show(Number(dot.dataset.slideTo)); start(); }));
+  viewport?.addEventListener('mouseenter', stop);
+  viewport?.addEventListener('mouseleave', start);
+  viewport?.addEventListener('focusin', stop);
+  viewport?.addEventListener('focusout', start);
+  let touchStart = 0;
+  viewport?.addEventListener('touchstart', e => { touchStart = e.changedTouches[0].clientX; }, {passive:true});
+  viewport?.addEventListener('touchend', e => {
+    const delta = e.changedTouches[0].clientX - touchStart;
+    if (Math.abs(delta) > 45) { show(active + (delta < 0 ? 1 : -1)); start(); }
+  }, {passive:true});
+  show(0); start();
+})();
+</script>
+
 </body></html>
