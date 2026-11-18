@@ -330,7 +330,7 @@
    const orders=result.orders||[];
    ordersCount.textContent=orders.length+" order"+(orders.length===1?"":"s");
    if(!orders.length){ordersList.innerHTML='<p class="orders-empty">You have no orders yet. Your purchases will appear here.</p>';return;}
-   ordersList.innerHTML=orders.map(order=>'<article class="order-row"><div><strong>'+esc(order.product_name)+'</strong><small>'+esc(order.order_number)+' · '+new Date(order.created_at).toLocaleDateString()</small></div><span class="order-status order-'+esc(order.status)+'">'+esc(order.status.replaceAll("_"," "))+'</span></article>').join("");
+   ordersList.innerHTML=orders.map(order=>'<article class="order-row"><div><strong>'+esc(order.product_name)+'</strong><small>'+esc(order.order_number)+' · '+new Date(order.created_at).toLocaleDateString()+'</small></div><span class="order-status order-'+esc(order.status)+'">'+esc(order.status.replaceAll("_"," "))+'</span></article>').join("");
   }catch{}
  }
  load();loadAccount();
