@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
   // Database diagnostics are administrative only. The public storefront
   // never receives supplier, schema, or environment readiness information.
   const expected = process.env.VERIFYFLOW_ADMIN_SECRET || "";
-  const supplied = String(req.headers.authorization || "").replace(/^Bearer\\s+/i, "");
+  const supplied = String(req.headers.authorization || "").startsWith("Bearer ") ? String(req.headers.authorization).slice(7) : "";
   const expectedBuffer = Buffer.from(expected);
   const suppliedBuffer = Buffer.from(supplied);
   if (!expected || expectedBuffer.length !== suppliedBuffer.length ||
