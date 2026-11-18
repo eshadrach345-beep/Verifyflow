@@ -408,3 +408,114 @@ h1,h2,h3,.brand,.visual-title,.visual-metric strong{font-family:"Outfit","Manrop
  .market-arrow{width:24px;height:24px;flex-basis:24px;font-size:12px}
  .marketplace-foot{flex-direction:column;font-size:9px;gap:8px}
 }
+
+
+/* ===== Image-led VerifyFlow hero ===== */
+.hero-visual-photo{
+  height:540px;min-width:0;position:relative;display:block;perspective:1400px;
+}
+.hero-photo-frame{
+  position:absolute;inset:20px 18px 20px 0;overflow:hidden;border-radius:34px;
+  border:1px solid rgba(226,231,255,.42);
+  background:linear-gradient(145deg,#202354,#14182f);
+  box-shadow:0 36px 100px rgba(0,0,0,.42),0 1px 0 rgba(255,255,255,.28) inset;
+}
+.hero-photo-frame img{
+  display:block;width:100%;height:100%;object-fit:cover;object-position:50% 45%;
+  filter:saturate(1.08) contrast(1.04);transform:scale(1.015);
+}
+.hero-photo-shade{
+  position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,rgba(10,13,37,.38),transparent 45%,rgba(8,12,35,.12)),
+    linear-gradient(0deg,rgba(9,12,34,.42),transparent 36%);
+}
+.photo-badge{
+  position:absolute;left:20px;bottom:20px;display:flex;align-items:center;gap:11px;
+  max-width:270px;padding:13px 16px;border-radius:15px;color:#fff;
+  background:linear-gradient(135deg,rgba(255,255,255,.23),rgba(255,255,255,.09));
+  border:1px solid rgba(255,255,255,.34);backdrop-filter:blur(22px) saturate(170%);
+  box-shadow:0 14px 35px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.24);
+}
+.photo-badge-icon{
+  display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:10px;
+  color:#dfffb1;background:rgba(194,255,137,.14);font-size:16px;
+}
+.photo-badge b,.photo-badge small{display:block}
+.photo-badge b{font-size:10px;line-height:1.35;color:#fff}
+.photo-badge small{margin-top:4px;font-size:8px;color:#d7def5}
+.hero-phone-mock{
+  position:absolute;z-index:3;right:-12px;top:50%;width:194px;height:382px;
+  padding:8px;border-radius:34px;transform:translateY(-50%) rotate(5deg);
+  background:linear-gradient(145deg,#ecf2ff,#6472a4 26%,#111933 45%,#d6dcf8 100%);
+  border:1px solid rgba(255,255,255,.76);
+  box-shadow:0 35px 75px rgba(0,0,0,.5),0 0 36px rgba(126,115,255,.27),inset 0 1px 2px #fff;
+}
+.phone-screen{
+  height:100%;width:100%;overflow:hidden;border-radius:27px;padding:17px 13px 13px;
+  color:#f9faff;background:
+    radial-gradient(ellipse at 80% 0%,rgba(108,93,230,.32),transparent 46%),
+    linear-gradient(160deg,#111a3c,#080f26 75%);
+  border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.18);
+}
+.phone-glass-top{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:-.2px}
+.phone-brand-mark{
+  display:grid;place-items:center;width:19px;height:19px;border-radius:6px;
+  color:#eaffb7;background:linear-gradient(135deg,#8a70ff,#2bcbef);font:900 12px Outfit;
+}
+.phone-glass-top i{margin-left:auto;font-style:normal;letter-spacing:2px;color:#8994b5;font-size:9px}
+.phone-screen-copy{padding:21px 1px 14px}
+.phone-screen-copy small{font-size:6px;letter-spacing:1.3px;font-weight:800;color:#a6a0ff}
+.phone-screen-copy h3{margin:8px 0 7px;font:800 21px/1.04 Outfit;letter-spacing:-.7px;color:#fff}
+.phone-screen-copy p{margin:0;color:#b8c3e0;font-size:8px;line-height:1.55}
+.phone-app-item{
+  display:flex;align-items:center;gap:7px;padding:9px 7px;margin-top:7px;
+  border:1px solid rgba(255,255,255,.14);border-radius:10px;
+  background:linear-gradient(115deg,rgba(255,255,255,.12),rgba(255,255,255,.045));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+}
+.phone-icon{display:grid;place-items:center;flex:0 0 25px;height:25px;border-radius:8px;font-style:normal;font-size:12px}
+.phone-icon-violet{color:#e4d9ff;background:#8b6dff37}
+.phone-icon-cyan{color:#b7f7ff;background:#30c9df2e}
+.phone-icon-lime{color:#e1ffb3;background:#b6f16a23}
+.phone-app-item span{min-width:0;display:block}
+.phone-app-item b,.phone-app-item small{display:block;white-space:nowrap}
+.phone-app-item b{font-size:7px;color:#fff}
+.phone-app-item small{margin-top:3px;font-size:6px;color:#aeb9d7}
+.phone-app-item em{margin-left:auto;color:#9aabff;font-size:10px;font-style:normal}
+.phone-app-button{
+  display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:10px 11px;
+  border-radius:9px;background:linear-gradient(100deg,#9b55ff,#287eff 60%,#20d3d1);
+  color:#fff;font-size:8px;font-weight:800;box-shadow:0 7px 19px rgba(78,106,255,.28);
+}
+.phone-screen-footer{display:flex;align-items:center;gap:5px;margin-top:12px;font-size:5px;letter-spacing:1px;color:#91a0c5}
+.phone-screen-footer span{width:5px;height:5px;border-radius:50%;background:#8af4cc;box-shadow:0 0 7px #8af4cc}
+.phone-float-chip{
+  position:absolute;z-index:4;right:4px;top:13%;display:flex;align-items:center;gap:7px;
+  border:1px solid rgba(255,255,255,.42);border-radius:999px;padding:9px 12px;
+  background:rgba(17,25,59,.72);color:#f5f7ff;font-size:8px;font-weight:700;
+  backdrop-filter:blur(18px);box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+.phone-float-chip span{
+  width:17px;height:17px;display:grid;place-items:center;border-radius:50%;
+  color:#0d2340;background:#bdfb87;font-size:10px;
+}
+@media(max-width:1000px){
+  .hero-visual-photo{height:490px}
+  .hero-phone-mock{right:-5px;transform:translateY(-50%) rotate(4deg) scale(.92);transform-origin:center right}
+}
+@media(max-width:700px){
+  .hero-visual-photo{height:440px;margin:16px 5px 0 0;overflow:visible}
+  .hero-photo-frame{inset:4px 0 4px 0;border-radius:25px}
+  .hero-photo-frame img{object-position:58% 50%}
+  .hero-phone-mock{width:176px;height:347px;right:-5px;top:auto;bottom:0;transform:rotate(4deg) scale(.88);transform-origin:bottom right}
+  .photo-badge{left:11px;bottom:14px;max-width:175px;padding:10px 11px;gap:7px}
+  .photo-badge-icon{width:27px;height:27px;flex-basis:27px}
+  .photo-badge b{font-size:8px}.photo-badge small{font-size:7px}
+  .phone-float-chip{top:16px;right:8px;font-size:7px;padding:7px 9px}
+}
+@media(max-width:390px){
+  .hero-visual-photo{height:405px}
+  .hero-phone-mock{width:158px;height:318px;transform:rotate(4deg) scale(.86)}
+  .phone-screen{padding:15px 11px 10px}
+}
+@media(prefers-reduced-motion:reduce){.hero-photo-frame img{transform:none}}
