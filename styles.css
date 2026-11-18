@@ -656,3 +656,120 @@ body{font-size:16px}
 @media(max-width:380px){
  .product-copy p{font-size:13px;min-height:0}
 }
+
+
+/* ===== Final Amazon-inspired storefront system ===== */
+:root{
+ --vf-ink:#0f1111;--vf-navy:#131921;--vf-subnav:#232f3e;
+ --vf-yellow:#ffd814;--vf-orange:#ffa41c;--vf-teal:#007185;
+ --vf-page:#eaeded;--vf-card:#fff;--vf-border:#d5d9d9;
+ --vf-muted:#565959;--vf-meta:#66727b;
+}
+html{scroll-padding-top:120px}
+body{font-family:Inter,Roboto,Arial,sans-serif;background:var(--vf-page);color:var(--vf-ink);font-size:14px}
+a{color:var(--vf-teal)}
+a:hover{color:#c7511f}
+.announcement{background:var(--vf-subnav);color:#fff;font-size:12px;min-height:34px;padding:7px 14px}
+.announcement a{color:#fff}
+.announce-pulse{background:var(--vf-orange);box-shadow:0 0 0 4px #ffa41c28}
+.vf-store-header{background:var(--vf-navy);color:#fff}
+.vf-topbar{min-height:72px}
+.vf-location small,.vf-account small{font-size:11px}
+.vf-location strong,.vf-account strong{font-size:13px}
+.vf-search{height:44px;border-radius:7px}
+.vf-search input{font:400 14px Inter,Roboto,Arial,sans-serif}
+.vf-search button{background:var(--vf-orange);font-size:24px}
+.vf-subnav{background:var(--vf-subnav);min-height:42px}
+.vf-subnav a{font-size:13px;color:#fff}
+.hero h1{font-size:clamp(30px,3.1vw,40px);line-height:1.12;letter-spacing:-1.1px}
+.hero-intro{font-size:15px;line-height:1.6}
+.hero .eyebrow{font-size:11px;letter-spacing:1.3px}
+.hero-buttons .button,.spotlight-cta,.marketplace-viewall,.closing-cta .button{
+ background:var(--vf-yellow);color:#0f1111;border:1px solid #f0c400;border-radius:20px
+}
+.hero-buttons .button{font-size:13px}
+.hero-buttons .text-link{font-size:13px;color:#fff}
+.spotlight-section{background:var(--vf-page)}
+.spotlight-heading h2{font:700 28px/1.2 Inter,Roboto,Arial,sans-serif;letter-spacing:-.35px;color:var(--vf-ink)}
+.spotlight-heading h2 span{color:var(--vf-teal)}
+.spotlight-copy h3{font:700 28px/1.15 Inter,Roboto,Arial,sans-serif;letter-spacing:-.4px}
+.spotlight-copy p{font:400 14px/1.55 Inter,Roboto,Arial,sans-serif}
+.spotlight-tag{font-size:11px}
+.spotlight-cta{font-size:13px}
+.marketplace-section{background:var(--vf-page);padding-top:30px}
+.marketplace-kicker{font-size:12px;letter-spacing:.6px;color:var(--vf-meta)}
+.marketplace-heading h2{font:700 28px/1.2 Inter,Roboto,Arial,sans-serif;letter-spacing:-.35px;color:var(--vf-ink)}
+.marketplace-heading h2 span{color:var(--vf-teal)}
+.marketplace-heading p{font:400 14px/1.45 Inter,Roboto,Arial,sans-serif;color:var(--vf-muted)}
+.marketplace-search{height:42px;background:#fff;border:1px solid var(--vf-border);border-radius:6px}
+.marketplace-search input{font:400 14px Inter,Roboto,Arial,sans-serif}
+.marketplace-viewall{font-size:13px;padding:12px 17px}
+.marketplace-grid{gap:14px}
+.market-card{background:var(--vf-card);border:1px solid var(--vf-border);border-radius:8px;box-shadow:0 2px 5px #0000000a}
+.market-card:hover{border-color:#b7c1c1;box-shadow:0 5px 14px #00000016}
+.market-card-top{font-size:11px;color:var(--vf-meta);padding:12px 13px 0}
+.market-card-top b{font-size:11px;color:var(--vf-teal)}
+.market-card .market-art{background:#fff!important;border-radius:4px}
+.market-card-copy{padding:13px 14px 16px}
+.market-card-copy h3{font:700 16px/1.3 Inter,Roboto,Arial,sans-serif;color:var(--vf-ink);margin:0 0 7px}
+.market-card-copy p{font:400 14px/1.45 Inter,Roboto,Arial,sans-serif;color:var(--vf-muted);min-height:58px}
+.market-arrow{color:var(--vf-teal);font-size:18px}
+.marketplace-foot{font-size:12px;color:var(--vf-meta)}
+.manifesto{background:#fff;color:var(--vf-ink)}
+.manifesto h2{font-size:34px;letter-spacing:-.5px}
+.manifesto-left>p{font-size:14px;line-height:1.6;color:var(--vf-muted)}
+.manifesto-point h3{font-size:17px;color:var(--vf-ink)}
+.manifesto-point p{font-size:14px;line-height:1.55;color:var(--vf-muted)}
+.manifesto-point>span{color:var(--vf-teal)}
+.how-section{background:var(--vf-page)}
+.how-heading h2{font-size:30px;letter-spacing:-.4px}
+.how-heading p{font-size:14px;color:var(--vf-muted)}
+.step{background:#fff;border:1px solid var(--vf-border);border-radius:8px}
+.step h3{font-size:17px}
+.step p{font-size:14px;line-height:1.55;color:var(--vf-muted)}
+.step-number{font-size:12px;color:var(--vf-teal)}
+.closing-cta{background:#fff;border-top:1px solid var(--vf-border)}
+.closing-cta h2{font-size:36px;letter-spacing:-.5px}
+.closing-cta>p{font-size:14px;color:var(--vf-muted)}
+.site-footer{background:var(--vf-navy)}
+.footer-links a:hover{color:var(--vf-orange)}
+.dash-shell{background:var(--vf-page)}
+.dash-card,.catalog-item{background:#fff;border-color:var(--vf-border);border-radius:8px}
+.catalog-item-visual{background:#fff!important}
+.catalog-item-tag{font-size:12px;color:var(--vf-teal)}
+.catalog-item h3{font:700 16px/1.3 Inter,Roboto,Arial,sans-serif;color:var(--vf-ink)}
+.catalog-item p{font:400 14px/1.45 Inter,Roboto,Arial,sans-serif;color:var(--vf-muted)}
+.catalog-item small{font-size:12px;line-height:1.5;color:var(--vf-meta)}
+.catalog-tab{font-size:13px;border-radius:20px}
+.catalog-tab.is-active{background:var(--vf-subnav);border-color:var(--vf-subnav);color:#fff}
+.catalog-refresh{font-size:13px;border-radius:20px}
+.catalog-status{font-size:13px}
+.catalog-footnote{font-size:12px;line-height:1.6}
+.dash-bottom{background:var(--vf-subnav);border-radius:8px}
+@media(max-width:950px){
+ .marketplace-grid,.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){
+ .vf-subnav a{font-size:12px}
+ .vf-search input{font-size:14px}
+ .hero h1{font-size:32px;letter-spacing:-.8px}
+ .hero-intro{font-size:14px}
+ .spotlight-heading h2{font-size:24px}
+ .spotlight-copy h3{font-size:25px}
+ .spotlight-copy p{font-size:14px}
+ .marketplace-heading h2{font-size:25px}
+ .marketplace-heading p{font-size:14px}
+ .market-card-top,.market-card-top b{font-size:10px}
+ .market-card-copy h3{font-size:15px}
+ .market-card-copy p{font-size:13px;line-height:1.45;min-height:64px}
+ .manifesto-left>p,.manifesto-point p,.step p{font-size:14px}
+ .manifesto-point h3,.step h3{font-size:16px}
+ .catalog-item h3{font-size:15px}
+ .catalog-item p{font-size:13px}
+ .catalog-item small{font-size:12px}
+ .catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:380px){
+ .marketplace-grid,.catalog-grid{grid-template-columns:1fr}
+ .market-card-copy p{min-height:0}
+}
