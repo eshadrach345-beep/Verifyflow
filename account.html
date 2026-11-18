@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#131921">
+<title>Your account — VerifyFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+<style>
+.account-page{min-height:calc(100vh - 120px);padding:42px 18px 64px;background:#eaeded}
+.account-wrap{width:min(1040px,100%);margin:0 auto}
+.account-back{display:inline-flex;align-items:center;gap:8px;color:#007185;font-weight:700;font-size:14px;margin-bottom:18px}
+.account-card{display:grid;grid-template-columns:.95fr 1.05fr;overflow:hidden;background:#fff;border:1px solid #d5d9d9;border-radius:16px;box-shadow:0 12px 36px rgba(15,17,17,.10)}
+.account-aside{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;min-height:610px;padding:44px 40px;color:#fff;background:radial-gradient(circle at 78% 15%,rgba(113,202,255,.4),transparent 32%),radial-gradient(circle at 18% 88%,rgba(130,104,255,.45),transparent 40%),linear-gradient(145deg,#111d37 0%,#1c3151 50%,#174b60 100%)}
+.account-aside:after{content:"";position:absolute;width:420px;height:420px;border:1px solid rgba(255,255,255,.22);border-radius:50%;right:-210px;bottom:-170px;box-shadow:0 0 0 38px rgba(255,255,255,.035),0 0 0 78px rgba(255,255,255,.025)}
+.account-aside>*{position:relative;z-index:1}
+.account-brand{font-size:22px;font-weight:800;letter-spacing:-.7px;color:#fff}
+.account-brand span{color:#ffd814}
+.account-aside h1{font-size:clamp(34px,4vw,48px);line-height:1.08;letter-spacing:-1.5px;margin:64px 0 16px;color:#fff}
+.account-aside p{max-width:360px;color:#d5e0ef;font-size:16px;line-height:1.75;margin:0}
+.account-perks{display:grid;gap:14px;margin-top:34px}
+.account-perk{display:flex;align-items:center;gap:12px;color:#e7eef9;font-size:14px;font-weight:600}
+.account-perk i{display:grid;place-items:center;width:29px;height:29px;border-radius:9px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);font-style:normal;color:#d8f98a}
+.account-main{padding:42px 44px 38px}
+.account-main h2{font-size:30px;letter-spacing:-.8px;margin:0 0 7px;color:#0f1111}
+.account-lead{font-size:15px;color:#565959;line-height:1.6;margin:0 0 24px}
+.account-mode{display:flex;gap:7px;padding:5px;background:#f2f4f4;border-radius:9px;margin-bottom:24px}
+.account-mode button{flex:1;border:0;background:transparent;border-radius:7px;padding:12px 8px;font:700 14px Inter,Arial;color:#56616b;cursor:pointer}
+.account-mode button.active{background:#fff;color:#0f1111;box-shadow:0 1px 5px rgba(15,17,17,.12)}
+.account-form{display:grid;gap:15px}
+.account-field{display:grid;gap:7px}
+.account-field label{font-size:13px;font-weight:750;color:#303a42}
+.account-field input{height:48px;width:100%;border:1px solid #bfc8cc;border-radius:7px;padding:0 13px;font:500 15px Inter,Arial;color:#0f1111;background:#fff;outline:none}
+.account-field input:focus{border:2px solid #e99d24;box-shadow:0 0 0 3px rgba(255,164,28,.16)}
+.account-submit{height:49px;border:1px solid #e2ba00;border-radius:24px;background:#ffd814;color:#111;font:800 15px Inter,Arial;cursor:pointer;margin-top:5px;box-shadow:0 2px 4px rgba(15,17,17,.08)}
+.account-submit:hover{background:#f7ca00}
+.account-submit:disabled{opacity:.65;cursor:wait}
+.account-message{min-height:23px;margin:0;font-size:13px;line-height:1.5;color:#b42318}
+.account-terms{font-size:12px;color:#737b81;line-height:1.55;margin:4px 0 0}
+.account-secure{display:flex;align-items:center;gap:8px;border-top:1px solid #e7e9e9;margin-top:26px;padding-top:18px;color:#66727b;font-size:12px}
+.account-secure i{font-style:normal;color:#1f7a46}
+@media(max-width:760px){.account-page{padding:22px 12px 38px}.account-card{grid-template-columns:1fr}.account-aside{min-height:0;padding:24px 23px 26px}.account-aside h1{font-size:32px;margin:27px 0 9px}.account-aside p{font-size:14px}.account-perks{grid-template-columns:1fr 1fr;margin-top:20px;gap:10px}.account-perk{font-size:12px}.account-perk i{width:25px;height:25px;flex-basis:25px}.account-main{padding:28px 22px 25px}.account-main h2{font-size:26px}}
+@media(max-width:380px){.account-perks{grid-template-columns:1fr}.account-main{padding-inline:17px}}
+</style>
+</head>
+<body>
+<div class="announcement">Your VerifyFlow account <span class="announce-divider">/</span> Everything connected in one place</div>
+<header class="vf-store-header"><div class="vf-topbar">
+<a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
+<a class="vf-location" href="/#services"><small>Explore</small><strong>All services</strong></a>
+<form class="vf-search" action="/#services" role="search"><label class="sr-only" for="account-search">Search services</label><input id="account-search" type="search" placeholder="Search SMS, eSIM, numbers, proxies..."><button type="submit" aria-label="Search services">⌕</button></form>
+<a class="vf-account" href="/dashboard.html"><small>Already exploring?</small><strong>Open dashboard</strong></a>
+</div><nav class="vf-subnav"><a href="/">☰ <b>Home</b></a><a href="/#services">SMS verification</a><a href="/#services">Number rentals</a><a href="/#services">eSIM data</a><a href="/#services">Mobile proxies</a></nav></header>
+<main class="account-page"><div class="account-wrap">
+<a class="account-back" href="/">← Back to VerifyFlow</a>
+<div class="account-card">
+<section class="account-aside">
+<div class="account-brand">verify<span>flow</span></div>
+<div><h1>One account.<br>Every connection.</h1><p>Sign in to keep your services and account activity together in one simple space.</p>
+<div class="account-perks"><div class="account-perk"><i>✓</i> Your service workspace</div><div class="account-perk"><i>✓</i> Order activity</div><div class="account-perk"><i>✓</i> A clearer way to stay connected</div></div></div>
+<div style="font-size:12px;color:#c0cde0">VerifyFlow · Your world, connected</div>
+</section>
+<section class="account-main">
+<h2 id="form-title">Welcome back</h2><p class="account-lead" id="form-lead">Sign in to continue to your dashboard.</p>
+<div class="account-mode" role="tablist" aria-label="Choose account action"><button class="active" id="login-tab" type="button" role="tab" aria-selected="true">Sign in</button><button id="register-tab" type="button" role="tab" aria-selected="false">Create account</button></div>
+<form class="account-form" id="login-form" novalidate>
+<div class="account-field"><label for="login-email">Email address</label><input id="login-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+<div class="account-field"><label for="login-password">Password</label><input id="login-password" name="password" type="password" autocomplete="current-password" required placeholder="Your password"></div>
+<button class="account-submit" type="submit">Sign in to your account</button><p class="account-message" id="login-message" role="status" aria-live="polite"></p>
+</form>
+<form class="account-form" id="register-form" hidden novalidate>
+<div class="account-field"><label for="register-name">Full name</label><input id="register-name" name="fullName" autocomplete="name" required minlength="2" maxlength="80" placeholder="Your full name"></div>
+<div class="account-field"><label for="register-email">Email address</label><input id="register-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+<div class="account-field"><label for="register-password">Create password</label><input id="register-password" name="password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required placeholder="At least 10 characters"></div>
+<button class="account-submit" type="submit">Create my account</button><p class="account-message" id="register-message" role="status" aria-live="polite"></p>
+<p class="account-terms">By creating an account, you agree to use VerifyFlow in line with our <a href="/terms.html">Terms</a> and <a href="/privacy.html">Privacy Policy</a>.</p>
+</form>
+<div class="account-secure"><i>●</i> Your password is protected and your session stays private.</div>
+</section>
+</div></div></main>
+<footer class="site-footer"><div class="footer-main"><a class="brand brand-footer" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><p>One flow. Every connection.</p><div class="footer-links"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/acceptable-use.html">Acceptable use</a></div></div><div class="footer-bottom"><span>© 2026 VerifyFlow. All rights reserved.</span><span>Designed for a world that never stands still.</span></div></footer>
+<script>
+(() => {
+ const loginForm=document.getElementById("login-form");
+ const registerForm=document.getElementById("register-form");
+ const loginTab=document.getElementById("login-tab");
+ const registerTab=document.getElementById("register-tab");
+ const title=document.getElementById("form-title");
+ const lead=document.getElementById("form-lead");
+ let mode="login";
+ function show(next){
+  mode=next;
+  const login=next==="login";
+  loginForm.hidden=!login;registerForm.hidden=login;
+  loginTab.classList.toggle("active",login);registerTab.classList.toggle("active",!login);
+  loginTab.setAttribute("aria-selected",String(login));registerTab.setAttribute("aria-selected",String(!login));
+  title.textContent=login?"Welcome back":"Create your account";
+  lead.textContent=login?"Sign in to continue to your dashboard.":"Set up your VerifyFlow account in a few simple steps.";
+  document.getElementById("login-message").textContent="";
+  document.getElementById("register-message").textContent="";
+ }
+ loginTab.addEventListener("click",()=>show("login"));
+ registerTab.addEventListener("click",()=>show("register"));
+ async function submit(form,endpoint,messageId,buttonText){
+  const message=document.getElementById(messageId);
+  const button=form.querySelector("button[type=submit]");
+  message.textContent="";
+  if(!form.reportValidity())return;
+  const values=Object.fromEntries(new FormData(form).entries());
+  button.disabled=true;button.textContent="Please wait…";
+  try{
+   const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},credentials:"same-origin",body:JSON.stringify(values)});
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok||!data.ok)throw new Error(data.error||"We couldn't complete that request. Please try again.");
+   window.location.assign("/dashboard.html");
+  }catch(error){message.textContent=error.message||"Something went wrong. Please try again."}
+  finally{button.disabled=false;button.textContent=buttonText}
+ }
+ loginForm.addEventListener("submit",event=>{event.preventDefault();submit(loginForm,"/api/auth/login","login-message","Sign in to your account")});
+ registerForm.addEventListener("submit",event=>{event.preventDefault();submit(registerForm,"/api/auth/register","register-message","Create my account")});
+ fetch("/api/auth/me",{credentials:"same-origin",cache:"no-store"}).then(r=>r.json()).then(data=>{if(data.ok&&data.user){title.textContent="You're already signed in";lead.textContent="Your VerifyFlow account is ready.";loginForm.hidden=true;registerForm.hidden=true;document.querySelector(".account-mode").hidden=true;const link=document.createElement("a");link.className="account-submit";link.href="/dashboard.html";link.textContent="Open my dashboard";link.style.display="grid";link.style.placeItems="center";link.style.textDecoration="none";document.querySelector(".account-main").insertBefore(link,document.querySelector(".account-secure"));}}).catch(()=>{});
+})();
+</script>
+</body></html>
