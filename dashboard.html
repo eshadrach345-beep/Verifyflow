@@ -274,6 +274,12 @@
    }).join("");
   }else if(active==="dedicated"){
    grid.innerHTML=rows.map(x=>card("dedicated",x.name||x.country||"Dedicated number",x.country||"Country option",x.inStock?"Monthly number · available":"Monthly number · not currently available",x.inStock?"IN STOCK":"OUT OF STOCK")).join("");
+  }else if(active==="rentals"){
+   grid.innerHTML=rows.map(x=>{
+    const durations=Array.isArray(x.durations)?x.durations:[];
+    const detail=durations.length?durations.map(days=>days+" days").join(" · ")+" available":"No rental durations currently listed";
+    return card("rentals",x.name||"Long-term number",x.country||"United States",detail,x.available&&durations.length?"AVAILABLE":"LIMITED");
+   }).join("");
   }else{
    empty(section.message||"Number rental options are being updated.");
   }
