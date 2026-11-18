@@ -63,6 +63,53 @@
  .catalog-item small{font-size:12px}
 }
 </style>
+
+<style>
+/* Final Amazon-inspired dashboard styling */
+.dash-shell{background:#eaeded;padding:30px max(4vw,18px) 55px}
+.dash-wrap{max-width:1280px}
+.dash-crumb{font-size:12px;color:#007185}
+.dash-heading h1{font:700 30px/1.2 Inter,Roboto,Arial,sans-serif;letter-spacing:-.35px;color:#0f1111}
+.dash-heading p{font:400 14px/1.5 Inter,Roboto,Arial,sans-serif;color:#565959}
+.preview-pill{font-size:12px}
+.dash-notice{font:400 14px/1.55 Inter,Roboto,Arial,sans-serif;color:#4b4637;border-radius:8px}
+.catalog-eyebrow{font-size:12px;color:#007185}
+.catalog-toolbar h2{font:700 25px/1.2 Inter,Roboto,Arial,sans-serif;color:#0f1111}
+.catalog-refresh{font:600 13px Inter,Roboto,Arial,sans-serif;border-radius:20px}
+.catalog-tabs{gap:9px}
+.catalog-tab{font:500 13px Inter,Roboto,Arial,sans-serif;padding:10px 15px;border-radius:20px}
+.catalog-tab.is-active{background:#232f3e;border-color:#232f3e;color:#fff}
+.catalog-status{font:400 13px Inter,Roboto,Arial,sans-serif;color:#565959}
+.catalog-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.catalog-item{border:1px solid #d5d9d9;border-radius:8px;background:#fff;box-shadow:0 2px 5px #0000000a}
+.catalog-item-visual{height:130px;background:#fff!important}
+.catalog-item-copy{padding:15px}
+.catalog-item-tag{font:600 12px Inter,Roboto,Arial,sans-serif;color:#007185}
+.catalog-item h3{font:700 16px/1.3 Inter,Roboto,Arial,sans-serif;color:#0f1111}
+.catalog-item p{font:400 14px/1.45 Inter,Roboto,Arial,sans-serif;color:#565959}
+.catalog-item small{font:400 12px/1.55 Inter,Roboto,Arial,sans-serif;color:#66727b}
+.catalog-empty{font:400 14px/1.5 Inter,Roboto,Arial,sans-serif}
+.catalog-footnote{font:400 12px/1.6 Inter,Roboto,Arial,sans-serif;color:#66727b}
+.dash-bottom{background:#232f3e;border-radius:8px}
+.dash-bottom h2{font:700 20px Inter,Roboto,Arial,sans-serif}
+.dash-bottom p{font:400 13px/1.5 Inter,Roboto,Arial,sans-serif}
+.dash-bottom a{font:700 13px Inter,Roboto,Arial,sans-serif;color:#ffd814}
+@media(max-width:950px){.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){
+ .dash-shell{padding:28px 14px 45px}
+ .dash-heading h1{font-size:28px}
+ .dash-heading p,.dash-notice{font-size:14px}
+ .catalog-toolbar h2{font-size:22px}
+ .catalog-tabs{gap:7px}
+ .catalog-tab{font-size:12px;padding:9px 12px}
+ .catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .catalog-item-copy{padding:11px}
+ .catalog-item h3{font-size:14px}
+ .catalog-item p{font-size:13px}
+ .catalog-item small{font-size:12px}
+}
+@media(max-width:360px){.catalog-grid{grid-template-columns:1fr}}
+</style>
 </head><body><header class="vf-store-header"><div class="vf-topbar">
 <a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
 <a class="vf-location" href="/#services"><small>Explore</small><strong>All services</strong></a>
