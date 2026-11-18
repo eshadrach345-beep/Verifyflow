@@ -18,31 +18,28 @@ async function supplierGet(path, headers) {
       signal: controller.signal
     });
     const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      const error = new Error("Supplier request failed");
+    if (!response.ok || payload.success === false) {
+      const error = new Error("Catalogue request failed");
       error.status = response.status;
-      error.code = payload.code || payload.error || "SUPPLIER_ERROR";
+      error.code = payload.error?.code || payload.code || "CATALOGUE_ERROR";
       throw error;
     }
-    return payload;
+    return payload.data ?? payload;
   } finally {
     clearTimeout(timer);
   }
 }
 
-async function safeRead(label, task, map) {
+async function safeRead(task, map) {
   try {
-    const payload = await task();
-    return { ok: true, items: map(payload), error: null };
+    const data = await task();
+    return { ok: true, items: map(data), message: null };
   } catch (error) {
-    console.error("[catalog] " + label + ":", error.code || error.message);
+    console.error("[catalog]", error.code || error.message);
     return {
       ok: false,
       items: [],
-      error: error.status === 401 ? "VoidMob API key was rejected" :
-        error.status === 429 ? "Supplier rate limit reached; retry shortly" :
-        error.name === "AbortError" ? "Supplier catalogue request timed out" :
-        "Supplier catalogue temporarily unavailable"
+      message: "This collection is temporarily unavailable. Please refresh in a little while."
     };
   }
 }
@@ -50,36 +47,33 @@ async function safeRead(label, task, map) {
 module.exports = async function handler(req, res) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
-    return json(res, 405, { ok: false, error: "Method not allowed" });
+    return json(res, 405, { ok: false, error: "Method not allowed." });
   }
 
-  // HeroSMS is the selected primary OTP supplier. The Account API key is not
-  // assumed to be a customer-facing reseller purchase/catalogue credential.
-  // Keep SMS unavailable until HeroSMS confirms the correct partner flow.
+  // HeroSMS remains the planned primary SMS source. The Account API key is
+  // not a number-purchase integration; do not present it as a live catalogue.
   const sms = {
     ok: false,
     items: [],
-    provider: "HeroSMS",
-    error: process.env.HEROSMS_API_KEY
-      ? "HeroSMS credentials are present. The reseller catalogue and purchase API still need supplier confirmation."
-      : "HeroSMS connection is not configured."
+    message: "SMS options are being prepared. Please check back shortly."
   };
 
   if (!process.env.VOIDMOB_API_KEY) {
+    const unavailable = {
+      ok: false,
+      items: [],
+      message: "This collection is temporarily unavailable. Please refresh in a little while."
+    };
     return json(res, 200, {
       ok: false,
       updatedAt: new Date().toISOString(),
-      providers: {
-        herosms: Boolean(process.env.HEROSMS_API_KEY),
-        voidmob: false
-      },
       sections: {
         sms,
-        esim: { ok: false, items: [], error: "VoidMob connection is not configured." },
-        proxies: { ok: false, items: [], error: "VoidMob connection is not configured." },
-        dedicated: { ok: false, items: [], error: "VoidMob connection is not configured." }
+        esim: unavailable,
+        proxies: unavailable,
+        dedicated: unavailable
       },
-      summary: { sms: 0, esim: 0, proxies: 0, dedicatedCountries: 0 }
+      summary: { sms: 0, esim: 0, proxies: 0, dedicated: 0 }
     });
   }
 
@@ -89,30 +83,38 @@ module.exports = async function handler(req, res) {
   };
 
   const [esim, proxies, dedicated] = await Promise.all([
-    safeRead("eSIM plans", () => supplierGet("/v1/esim_products?limit=20", headers), p =>
-      (p.products || []).map(x => ({
+    safeRead(
+      () => supplierGet("/esim_products?limit=100", headers),
+      data => (data.products || []).map(x => ({
         id: x.id,
-        title: x.title,
-        countries: x.countries || [],
+        title: x.full_title || x.title,
+        countries: Array.isArray(x.countries) ? x.countries : [],
         dataGb: x.data_limit_gb,
         unlimited: Boolean(x.data_unlimited),
         validityDays: x.validity_days,
+        networkType: x.network_type,
+        routingLocation: x.routing_location,
         features: x.features || {}
       }))
     ),
-    safeRead("proxy plans", () => supplierGet("/v1/proxy_plans?type=all", headers), p =>
-      (p.plans || []).map(x => ({
+    safeRead(
+      () => supplierGet("/proxy_plans?type=all&limit=100", headers),
+      data => (data.plans || []).map(x => ({
         id: x.id,
         name: x.name,
         type: x.type,
         country: x.country_name || x.country || "Global",
+        carrier: x.carrier || null,
+        region: x.region || null,
         dataGb: x.data_gb,
         durationDays: x.duration_days,
+        period: x.period,
         available: x.available !== false
       }))
     ),
-    safeRead("dedicated-number countries", () => supplierGet("/v1/dedicated/countries", headers), p =>
-      (Array.isArray(p) ? p : []).map(x => ({
+    safeRead(
+      () => supplierGet("/dedicated/countries", headers),
+      data => (Array.isArray(data) ? data : []).map(x => ({
         country: x.country,
         name: x.name,
         inStock: Boolean(x.in_stock)
@@ -125,16 +127,12 @@ module.exports = async function handler(req, res) {
   return json(res, 200, {
     ok: availableSections > 0,
     updatedAt: new Date().toISOString(),
-    providers: {
-      herosms: Boolean(process.env.HEROSMS_API_KEY),
-      voidmob: true
-    },
     sections,
     summary: {
       sms: 0,
       esim: esim.items.length,
       proxies: proxies.items.length,
-      dedicatedCountries: dedicated.items.length
+      dedicated: dedicated.items.length
     }
   });
 };
