@@ -1,5 +1,4 @@
 const VOIDMOB_BASE = "https://dashboard.voidmob.com/api/v1";
-const HERO_BASE = "https://partners-api.hero-sms.com";
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -9,11 +8,11 @@ function json(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
-async function supplierGet(base, path, headers) {
+async function supplierGet(path, headers) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 12000);
   try {
-    const response = await fetch(base + path, {
+    const response = await fetch(VOIDMOB_BASE + path, {
       method: "GET",
       headers,
       signal: controller.signal
@@ -40,9 +39,9 @@ async function safeRead(label, task, map) {
     return {
       ok: false,
       items: [],
-      error: error.status === 401 ? "Supplier API key rejected" :
+      error: error.status === 401 ? "VoidMob API key was rejected" :
         error.status === 429 ? "Supplier rate limit reached; retry shortly" :
-        error.name === "AbortError" ? "Supplier request timed out" :
+        error.name === "AbortError" ? "Supplier catalogue request timed out" :
         "Supplier catalogue temporarily unavailable"
     };
   }
@@ -53,11 +52,34 @@ module.exports = async function handler(req, res) {
     res.setHeader("Allow", "GET");
     return json(res, 405, { ok: false, error: "Method not allowed" });
   }
+
+  // HeroSMS is the selected primary OTP supplier. The Account API key is not
+  // assumed to be a customer-facing reseller purchase/catalogue credential.
+  // Keep SMS unavailable until HeroSMS confirms the correct partner flow.
+  const sms = {
+    ok: false,
+    items: [],
+    provider: "HeroSMS",
+    error: process.env.HEROSMS_API_KEY
+      ? "HeroSMS credentials are present. The reseller catalogue and purchase API still need supplier confirmation."
+      : "HeroSMS connection is not configured."
+  };
+
   if (!process.env.VOIDMOB_API_KEY) {
-    return json(res, 503, {
+    return json(res, 200, {
       ok: false,
-      error: "VoidMob connection is not configured",
-      providers: { voidmob: false, herosms: Boolean(process.env.HEROSMS_API_KEY) }
+      updatedAt: new Date().toISOString(),
+      providers: {
+        herosms: Boolean(process.env.HEROSMS_API_KEY),
+        voidmob: false
+      },
+      sections: {
+        sms,
+        esim: { ok: false, items: [], error: "VoidMob connection is not configured." },
+        proxies: { ok: false, items: [], error: "VoidMob connection is not configured." },
+        dedicated: { ok: false, items: [], error: "VoidMob connection is not configured." }
+      },
+      summary: { sms: 0, esim: 0, proxies: 0, dedicatedCountries: 0 }
     });
   }
 
@@ -65,46 +87,51 @@ module.exports = async function handler(req, res) {
     Authorization: "Bearer " + process.env.VOIDMOB_API_KEY,
     Accept: "application/json"
   };
-  const tasks = [
-    safeRead("SMS services", () => supplierGet(VOIDMOB_BASE, "/v1/services", headers), p =>
-      (p.services || []).map(x => ({
-        id: x.id, name: x.name, available: x.available !== false,
-        verification: true, longTerm: true
-      }))
-    ),
-    safeRead("eSIM plans", () => supplierGet(VOIDMOB_BASE, "/v1/esim_products?limit=20", headers), p =>
+
+  const [esim, proxies, dedicated] = await Promise.all([
+    safeRead("eSIM plans", () => supplierGet("/v1/esim_products?limit=20", headers), p =>
       (p.products || []).map(x => ({
-        id: x.id, title: x.title, countries: x.countries || [],
-        dataGb: x.data_limit_gb, unlimited: Boolean(x.data_unlimited),
+        id: x.id,
+        title: x.title,
+        countries: x.countries || [],
+        dataGb: x.data_limit_gb,
+        unlimited: Boolean(x.data_unlimited),
         validityDays: x.validity_days,
         features: x.features || {}
       }))
     ),
-    safeRead("Proxy plans", () => supplierGet(VOIDMOB_BASE, "/v1/proxy_plans?type=all", headers), p =>
+    safeRead("proxy plans", () => supplierGet("/v1/proxy_plans?type=all", headers), p =>
       (p.plans || []).map(x => ({
-        id: x.id, name: x.name, type: x.type,
+        id: x.id,
+        name: x.name,
+        type: x.type,
         country: x.country_name || x.country || "Global",
-        dataGb: x.data_gb, durationDays: x.duration_days,
+        dataGb: x.data_gb,
+        durationDays: x.duration_days,
         available: x.available !== false
       }))
     ),
-    safeRead("Dedicated numbers", () => supplierGet(VOIDMOB_BASE, "/v1/dedicated/countries", headers), p =>
+    safeRead("dedicated-number countries", () => supplierGet("/v1/dedicated/countries", headers), p =>
       (Array.isArray(p) ? p : []).map(x => ({
-        country: x.country, name: x.name, inStock: Boolean(x.in_stock)
+        country: x.country,
+        name: x.name,
+        inStock: Boolean(x.in_stock)
       }))
     )
-  ];
+  ]);
 
-  const [sms, esim, proxies, dedicated] = await Promise.all(tasks);
   const sections = { sms, esim, proxies, dedicated };
-  const availableSections = Object.values(sections).filter(x => x.ok).length;
-  return json(res, availableSections ? 200 : 502, {
+  const availableSections = [esim, proxies, dedicated].filter(x => x.ok).length;
+  return json(res, 200, {
     ok: availableSections > 0,
-    source: "VoidMob",
     updatedAt: new Date().toISOString(),
+    providers: {
+      herosms: Boolean(process.env.HEROSMS_API_KEY),
+      voidmob: true
+    },
     sections,
     summary: {
-      sms: sms.items.length,
+      sms: 0,
       esim: esim.items.length,
       proxies: proxies.items.length,
       dedicatedCountries: dedicated.items.length
