@@ -2,7 +2,11 @@
   "name": "verifyflow",
   "version": "0.1.0",
   "private": true,
-  "description": "VerifyFlow storefront foundation",
-  "scripts": {"check": "node --check api/health.js"},
-  "engines": {"node": ">=22"}
+  "description": "VerifyFlow storefront and supplier catalogue",
+  "scripts": {
+    "check": "node --check api/health.js && node --check api/catalog.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
 }
