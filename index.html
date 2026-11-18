@@ -11,9 +11,12 @@
 </head>
 <body>
 <div class="announcement"><span class="announce-pulse"></span> A smarter way to stay connected <span class="announce-divider">/</span> <a href="#services">Explore the platform <b>↗</b></a></div>
-<header class="site-header"><a class="brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
-<nav class="main-nav"><a href="#services">Products</a><a href="#why">Why VerifyFlow</a><a href="#how">How it works</a></nav>
-<a class="header-action" href="/dashboard.html">Open dashboard <span>↗</span></a></header>
+<header class="vf-store-header"><div class="vf-topbar">
+<a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
+<a class="vf-location" href="#services"><small>Explore</small><strong>All services</strong></a>
+<form class="vf-search" action="#services" role="search"><label class="sr-only" for="vf-product-search">Search VerifyFlow services</label><input id="vf-product-search" type="search" placeholder="Search SMS, eSIM, numbers, proxies..." autocomplete="off"><button type="submit" aria-label="Search services">⌕</button></form>
+<a class="vf-account" href="/dashboard.html"><small>Hello, explore</small><strong>Account &amp; Dashboard</strong></a></div>
+<nav class="vf-subnav" aria-label="Service categories"><a href="#services">☰ <b>All services</b></a><a href="#services">SMS verification</a><a href="#services">Number rentals</a><a href="#services">eSIM data</a><a href="#services">Mobile proxies</a><a href="#why">Why VerifyFlow</a></nav></header>
 <main>
 <section class="hero">
 <div class="hero-grid"></div><div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> THE CONNECTIVITY SUPERPLATFORM</div>
@@ -90,7 +93,7 @@
 <section class="marketplace-section" id="services">
   <div class="marketplace-wrap">
     <div class="marketplace-kicker">THE VERIFYFLOW MARKETPLACE</div>
-    <div class="marketplace-heading"><div><h2>Explore everything<br><span>in one place.</span></h2><p>Browse the connectivity categories planned for the VerifyFlow platform.</p></div><a class="marketplace-viewall" href="/dashboard.html">Open dashboard <b>↗</b></a></div>
+    <div class="marketplace-heading"><div><h2>Explore everything<br><span>in one place.</span></h2><p>Browse the connectivity categories planned for the VerifyFlow platform.</p></div><div class="marketplace-tools"><label class="marketplace-search"><span>⌕</span><input id="marketplace-search" type="search" placeholder="Find a service..." aria-label="Find a service"></label><a class="marketplace-viewall" href="/dashboard.html">Open dashboard <b>↗</b></a></div></div>
     <div class="marketplace-grid">
       <a class="market-card market-card-feature" href="/dashboard.html"><div class="market-card-top"><span>01 · SMS SERVICES</span><b>EXPLORE ↗</b></div><div class="market-art market-art-otp"><div class="market-phone"><small>VERIFYFLOW</small><strong>Verification<br>code</strong><div class="market-code"><i>4</i><i>8</i><i>2</i><i>9</i><i>1</i><i>6</i></div><em>Message preview</em></div><span class="market-orbit"></span></div><div class="market-card-copy"><div><h3>SMS verification</h3><p>On-demand numbers for verification messages on supported services.</p></div><span class="market-arrow">↗</span></div></a>
       <a class="market-card" href="/dashboard.html"><div class="market-card-top"><span>02 · NUMBER RENTALS</span><b>EXPLORE ↗</b></div><div class="market-art market-art-rental"><div class="market-sim"><small>YOUR NUMBER</small><strong>+1 ··· ····</strong><span>Flexible rental periods</span></div><div class="market-ring"></div></div><div class="market-card-copy"><div><h3>Long-term numbers</h3><p>Number rentals for longer-term use, subject to availability.</p></div><span class="market-arrow">↗</span></div></a>
@@ -154,4 +157,11 @@
 })();
 </script>
 
-</body></html>
+<script>
+const vfSearch=document.getElementById("vf-product-search");
+const vfMarketplaceSearch=document.getElementById("marketplace-search");
+const vfCards=[...document.querySelectorAll(".market-card")];
+function vfFilter(value){const q=value.trim().toLowerCase();vfCards.forEach(card=>{card.hidden=!!q&&!card.textContent.toLowerCase().includes(q);});}
+vfSearch?.addEventListener("input",()=>{if(vfMarketplaceSearch)vfMarketplaceSearch.value=vfSearch.value;vfFilter(vfSearch.value);});
+vfMarketplaceSearch?.addEventListener("input",()=>{if(vfSearch)vfSearch.value=vfMarketplaceSearch.value;vfFilter(vfMarketplaceSearch.value);});
+</script></body></html>
