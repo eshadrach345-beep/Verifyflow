@@ -1,22 +1,22 @@
 # VerifyFlow
 
-VerifyFlow is a customer-facing marketplace for SMS verification, long-term number rentals, dedicated numbers, eSIM data, and mobile proxies.
+VerifyFlow is a customer-facing marketplace for SMS verification, long-term number rentals, dedicated numbers, eSIM data and mobile proxies.
 
-## What is currently implemented
+## Customer flow
 
-- Responsive storefront, customer registration/sign-in, customer sessions, and order-history reads.
-- Read-only product discovery for supported VoidMob catalogues.
-- Monnify server-side authentication, hosted Sandbox checkout, authenticated payment verification, and webhook verification.
-- A sandbox-only test page. The fixed NGN 100 test payment does not deliver a service.
-- Live Monnify payments are locked unless explicit launch and product-approval environment flags are enabled.
-- Customer wallet balances remain disabled.
-- Automated syntax checks, inline browser-script parsing, and helper tests.
+1. A customer signs in and chooses a product from the live supplier catalogue.
+2. VerifyFlow re-checks the supplier price on the server. Browser-submitted prices are never trusted.
+3. The server saves an order, a supplier-price snapshot and a payment record, then requests a hosted Monnify checkout in USD.
+4. The Monnify return page and webhook both verify the transaction directly with Monnify. The webhook signature is checked in LIVE mode.
+5. Only a verified, correctly priced and correctly denominated payment can create a durable VoidMob fulfilment job.
+6. The supplier request uses a permanent per-order idempotency key. Supplier order ID, status, cost and service details are saved against the order.
+7. Customers see their orders in their account and can refresh a pending supplier status. The admin dashboard shows sales, estimated supplier costs, queue status and jobs requiring attention.
+
+The fixed NGN 100 sandbox test page remains a payment integration test only. Its order metadata explicitly prevents service fulfilment.
 
 ## Database setup
 
-Customer accounts, orders, and payment records require the Neon PostgreSQL migrations.
-
-Configure DATABASE_URL as a server-side Vercel environment variable, then run:
+The application requires PostgreSQL (Neon is supported). Configure `DATABASE_URL` as a server-side environment variable, then run:
 
 ~~~bash
 npm install
@@ -24,20 +24,16 @@ npm run db:migrate
 npm run check
 ~~~
 
-The migration runner applies all numbered SQL migrations in order and records applied versions in vf_schema_migrations. Never put database credentials in browser code.
+The migrator applies numbered migrations in order. Migrations 003 and 004 create the supplier fulfilment queue and per-customer checkout idempotency index. They must be applied before enabling the new customer checkout or payment webhook flow. Never put database credentials in browser code or send them in chat.
 
-## Monnify configuration
+## Monnify setup
 
 Set these server-side Vercel environment variables:
 
-- MONNIFY_API_KEY
-- MONNIFY_SECRET_KEY
-- MONNIFY_CONTRACT_CODE
-- MONNIFY_ENVIRONMENT = SANDBOX
-
-Never commit Monnify credentials or share the secret key in chat.
-
-After deployment and database migration, sign in to VerifyFlow and open /payment-test.html. The fixed NGN 100 sandbox checkout is only an integration check and does not fulfil any service.
+- `MONNIFY_API_KEY`
+- `MONNIFY_SECRET_KEY`
+- `MONNIFY_CONTRACT_CODE`
+- `MONNIFY_ENVIRONMENT=SANDBOX` for testing
 
 Configure Monnify's Transaction Completion webhook URL as:
 
@@ -45,36 +41,65 @@ Configure Monnify's Transaction Completion webhook URL as:
 https://verifyflow-five.vercel.app/api/payments/webhook
 ~~~
 
-Sandbox notifications do not include the production signature. The sandbox webhook handler still verifies each referenced transaction directly with Monnify before updating its status. Production notifications require HMAC-SHA512 signature validation.
+The existing NGN 100 sandbox page uses a dedicated test order and never submits a supplier purchase.
 
-## Live payments
+### USD / international checkout
 
-Live checkout is disabled by default. Do not enable MONNIFY_LIVE_ENABLED or MONNIFY_PRODUCT_APPROVAL_CONFIRMED until Monnify has accepted VerifyFlow's actual business model and product categories in writing, international payment settings have been confirmed, and live credentials have been configured. Customer wallet top-ups are not enabled.
+Supplier catalogue prices are in USD, so retail checkout requests a USD card transaction. Monnify must enable USD international payments on this particular merchant account before `MONNIFY_INTERNATIONAL_ENABLED=true` is set. This capability is not assumed to be enabled. Monnify's international USD card route may have card-network/country restrictions; confirm the currently approved methods and customer countries with Monnify before launch.
 
-The sandbox test endpoint does not fulfil a service. Real retail checkout still requires an approved server-side price book, supplier purchase integration, refund/reconciliation handling, and idempotent fulfilment.
+Do not switch `MONNIFY_ENVIRONMENT` to LIVE until Monnify has approved VerifyFlow's actual business model and product categories in writing, live credentials are installed, the webhook is configured, and payment/fulfilment/refund tests have passed. Live payments are also guarded by `MONNIFY_LIVE_ENABLED=true` and `MONNIFY_PRODUCT_APPROVAL_CONFIRMED=true`. Retail order creation in LIVE additionally requires `VERIFYFLOW_LIVE_ORDERS_ENABLED=true`.
 
-## Supplier configuration
+Sandbox webhook notifications may omit the production signature; every referenced transaction is still verified server-to-server. LIVE webhook requests require HMAC-SHA512 signature validation.
 
-Set VOIDMOB_API_KEY as a server-side Vercel environment variable to load supplier-backed catalogues. Catalogue reads do not submit purchases.
+## VoidMob supplier setup
 
-The HeroSMS Account API key is not itself the customer-number purchase API. Confirm the separate purchase integration with HeroSMS before retail SMS sales are enabled.
+Set `VOIDMOB_API_KEY` as a server-side Vercel environment variable. The key must have the required Buy permission for the products VerifyFlow intends to supply. Set a conservative per-order spend cap and rolling daily spend cap in the VoidMob key/account settings. Never expose the key in browser code, logs, source files or chat.
 
-## Admin order dashboard
+The catalogue endpoint only reads product prices and stock. Actual purchases are separate POST requests and debit the prepaid VoidMob balance. VerifyFlow supports these legitimate connectivity services:
 
-The protected operations dashboard is available at `/admin.html`. It reads the latest customer orders and groups paid orders by supplier and product platform. It also flags paid orders that do not yet have a supplier order reference. It is a read-only report: it does not transfer supplier funds or submit supplier purchases.
+- SMS verification (VoidMob currently supplies US numbers for this category)
+- Long-term number rentals (US numbers, supported terms only)
+- Dedicated numbers (countries shown as in stock by VoidMob)
+- eSIM plans
+- Mobile proxy plans
 
-To grant admin access, set `VERIFYFLOW_ADMIN_EMAILS` as a server-side Vercel environment variable containing the exact email address(es) of authorized VerifyFlow accounts, separated by commas. The dashboard requires an active signed-in customer session and an email match. Do not use a public or shared email address. If the variable is missing, admin access remains disabled.
+Supplier auto-purchasing is disabled unless both of these server-side Vercel variables are explicitly set after the owner has configured the VoidMob Buy permission and spending limits:
 
-## Validation
+- `VOIDMOB_FULFILMENT_ENABLED=true`
+- `VOIDMOB_AUTOBUY_CONFIRMED=true`
+
+Do not set these flags just to test the website. Tests use mocked supplier responses and do not debit the VoidMob balance. When these flags are off, verified customer orders can be queued for admin review but no supplier purchase is sent.
+
+For launch, set `MONNIFY_INTERNATIONAL_ENABLED=true` only after the merchant account has actually been enabled for the relevant USD checkout route. Keep the application in SANDBOX while testing; the supplier auto-buy flags are independent of Monnify's environment.
+
+## Fulfilment and exceptions
+
+Supplier orders are submitted with a stable per-order idempotency key. If a request times out or its outcome is uncertain, the job is marked `unknown` and VerifyFlow will not create a new purchase key. The admin's reconciliation action resubmits only with the same key so VoidMob can return the original result or report that it is still processing.
+
+Supplier services such as eSIMs and mobile proxies can take time to provision. Customers can refresh their supplier status from the account page. The current implementation does not run a background polling worker.
+
+A definitive supplier rejection after a customer payment is flagged as a failed order and visible in the admin queue. Automated Monnify refunds are not implemented yet; the merchant must review the failed payment and issue any required refund from the Monnify dashboard. Do not advertise automatic refunds until this has been built and tested. Unknown outcomes must be reconciled before any refund or repeat purchase decision.
+
+VoidMob supplier deposits are not automated. The admin dashboard separates customer sales from saved supplier-cost estimates/charges; the owner must fund the supplier wallet separately and monitor the balance.
+
+## Admin dashboard
+
+The protected operations dashboard is available at `/admin.html`. Set `VERIFYFLOW_ADMIN_EMAILS` as a server-side comma-separated list of the exact authorized VerifyFlow account email addresses. Admin access requires an active signed-in session and an email allowlist match.
+
+The admin dashboard shows recent orders, customer sale totals, supplier cost estimates/charges, fulfilment status and error details. The fulfilment queue allows an admin to submit a queued paid order after the supplier auto-buy safeguards are enabled. An unknown outcome has a separate same-key reconciliation action. Never create a new supplier purchase to resolve an uncertain outcome.
+
+## Tax and launch readiness
+
+The current storefront shows USD supplier/retail prices but does not calculate, collect or remit VAT/sales tax. The displayed amount is not a tax-compliant global landed price. Before selling in a country, obtain advice on the seller's registration, invoicing, VAT/sales tax, consumer cancellation/refund rights, privacy and acceptable-use obligations, and configure tax collection for the relevant markets.
+
+Policy pages are draft templates. Replace them with reviewed terms, your actual business identity, monitored contact details and jurisdiction-specific policies before launch.
+
+## Validation and deployment
+
+Run:
 
 ~~~bash
 npm run check
 ~~~
 
-## Deploy
-
-Git pushes to the production branch trigger deployment and the GitHub validation workflow.
-
-## Legal
-
-Policy pages are draft templates. Replace them with reviewed terms, your actual business identity, and monitored contact details before launch.
+Git pushes to the production branch trigger the GitHub validation workflow and the connected Vercel deployment. A successful GitHub check does not by itself mean the Vercel deployment or database migrations have completed. Confirm both before using the live domain.
