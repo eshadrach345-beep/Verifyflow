@@ -1,7 +1,6 @@
 "use strict";
 
-// One fixed Vercel Function handles every API route.
-// vercel.json rewrites /api/<route> to /api/router?route=<route>.
+// Single Vercel function for every VerifyFlow API endpoint.
 const routes = {
   "account/profile": require("../api-handlers/account/profile"),
   "admin/fulfilment": require("../api-handlers/admin/fulfilment"),
@@ -24,21 +23,16 @@ const routes = {
   "orders/refresh": require("../api-handlers/orders/refresh"),
   "payments/create-test": require("../api-handlers/payments/create-test"),
   "payments/verify": require("../api-handlers/payments/verify"),
-  "payments/webhook": require("../api-handlers/payments/webhook")
+  "payments/webhook": require("../api-handlers/payments/webhook"),
 };
 
 module.exports = async function handler(req, res) {
-  const requestUrl = new URL(String(req.url || "/"), "https://verifyflow.invalid");
-  const rewrittenRoute = requestUrl.searchParams.get("route");
-  const pathname = String(rewrittenRoute || requestUrl.pathname.replace(/^\/api\/?/, ""))
-    .replace(/^\/+|\/+$/g, "");
-  const route = routes[pathname];
-
-  if (!route) {
-    res.statusCode = 404;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    return res.end(JSON.stringify({ ok: false, error: "API route not found." }));
-  }
-
-  return route(req, res);
+  let pathname = "/";
+  try { pathname = new URL(String(req.url || "/"), "https://verifyflow.invalid").pathname; } catch {}
+  let route = pathname.replace(/^\\/api\\/?/, "").replace(/^\\/+|\\/+$/g, "");
+  if (!route && req.query && req.query.path) route = Array.isArray(req.query.path) ? req.query.path.join("/") : String(req.query.path);
+  route = decodeURIComponent(route);
+  const target = routes[route];
+  if (!target) { res.statusCode = 404; res.setHeader("Content-Type", "application/json; charset=utf-8"); return res.end(JSON.stringify({ ok: false, error: "API route not found." })); }
+  return target(req, res);
 };
