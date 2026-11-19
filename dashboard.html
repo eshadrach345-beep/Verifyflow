@@ -443,7 +443,7 @@
       <button class="catalog-tab" data-catalog-tab="esim" type="button" aria-selected="false">eSIM data</button>
       <button class="catalog-tab" data-catalog-tab="proxies" type="button" aria-selected="false">Mobile proxies</button>
       <button class="catalog-tab" data-catalog-tab="dedicated" type="button" aria-selected="false">Dedicated numbers</button>
-      <button class="catalog-tab" data-catalog-tab="marketing" type="button" aria-selected="false">Marketing services</button>
+      <button class="catalog-tab" data-catalog-tab="marketing" type="button" aria-selected="false">Social Media Boosters</button>
     </div>
     <div class="catalog-state-row"><div class="catalog-status" id="catalog-status" aria-live="polite">Loading all product categories…</div><span class="catalog-live-indicator"><i></i> Live listings</span></div>
     <div class="catalog-grid" id="catalog-grid"></div>
@@ -469,7 +469,7 @@
  const ordersPanel=document.getElementById("customer-orders");
  const ordersList=document.getElementById("orders-list");
  const ordersCount=document.getElementById("orders-count");
- const categoryLabels={all:"All products",sms:"SMS verification",rentals:"Long-term numbers",esim:"eSIM data",proxies:"Mobile proxies",dedicated:"Dedicated numbers",marketing:"Marketing services"};
+ const categoryLabels={all:"All products",sms:"SMS verification",rentals:"Long-term numbers",esim:"eSIM data",proxies:"Mobile proxies",dedicated:"Dedicated numbers",marketing:"Social Media Boosters"};
  const categoryKeys=["sms","rentals","esim","proxies","dedicated","marketing"];
  const params=new URLSearchParams(window.location.search);
  const requestedCategory=params.get("category");
@@ -555,7 +555,7 @@
    return card("rentals",x.name||"Long-term number",String(catalogue.country||"us").toUpperCase()+" · Choose your rental period",detail,from,"from · before VAT/tax",x.available&&durations.length?("AVAILABLE · "+String(x.provider||"SUPPLIER").toUpperCase()):"LIMITED","USD",catalogue.country,key);
   }
   if(category==="marketing"){
-   return '<article class="catalog-item catalog-marketing" data-product-category="marketing" data-product-key="'+esc(key)+'"><div class="catalog-item-visual"><span class="catalog-art-icon">✦</span><i class="catalog-art-orbit"></i><small>SUPPLIER LISTED</small></div><div class="catalog-item-copy"><span class="catalog-category-label">Marketing services</span><h3>'+esc(x.name||"Marketing service")+'</h3><p>'+esc(x.category||"Marketing")+' · '+esc(x.providerLabel||"Supplier")+'</p><div class="catalog-item-detail">Order limits: '+esc(x.min)+'–'+esc(x.max)+(x.refill?" · Refill listed":"")+(x.cancel?" · Cancellation listed":"")+'</div><div class="catalog-price-row"><strong>Price being verified</strong><small>Checkout opens after supplier rate units and currency are confirmed.</small></div></div></article>';
+   return card("marketing",x.name||"Social media service",x.platform||"Social Media Boosters",x.description||("Choose a quantity between "+x.min+" and "+x.max+" and enter the public destination link."),x.pricePer1000Minor,"per 1,000 · USD · before applicable tax","AVAILABLE","USD","",key);
   }
   return "";
  }
