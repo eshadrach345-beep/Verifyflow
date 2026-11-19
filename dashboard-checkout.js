@@ -70,9 +70,8 @@
   }
 
   function productDetails(category, item) {
-    if (item?.provider === "herosms") return null;
-    if (category === "sms") return { type: "sms_otp", id: item.id, country: "us", available: item.available === true, price: item.priceCents };
-    if (category === "rentals") { const durations = (item.durations || []).filter(x => Number.isSafeInteger(Number(x.priceCents)) && Number(x.priceCents) > 0).map(x => ({ days: Number(x.days), price: Number(x.priceCents) })); return { type: "long_term_number", id: item.id, country: "us", available: item.available === true, price: Math.min(...durations.map(x => x.price)), durations }; }
+    if (category === "sms") return { type: "sms_otp", id: item.id, country: item.countryCode || catalogue?.country || "us", provider: item.provider || "voidmob", available: item.available === true, price: item.priceCents };
+    if (category === "rentals") { const durations = (item.durations || []).filter(x => Number.isSafeInteger(Number(x.priceCents)) && Number(x.priceCents) > 0).map(x => ({ days: Number(x.days), price: Number(x.priceCents) })); return { type: "long_term_number", id: item.id, country: item.countryCode || catalogue?.country || "us", provider: item.provider || "voidmob", available: item.available === true, price: Math.min(...durations.map(x => x.price)), durations }; }
     if (category === "esim") return { type: "esim", id: item.id, available: true, price: item.priceCents };
     if (category === "proxies") return { type: "mobile_proxy", id: item.id, available: item.available !== false, price: item.priceCents };
     if (category === "dedicated") return { type: "dedicated_number", id: item.country, country: item.country, available: item.inStock === true, price: item.priceCents };
@@ -90,7 +89,6 @@
       if (!item) return;
       const product = productDetails(category, item);
       if (!product) {
-        if (item?.provider === "herosms") card.querySelector(".catalog-item-copy")?.insertAdjacentHTML("beforeend", '<div class="vf-buy-area"><button class="vf-buy-button" type="button" disabled>HeroSMS checkout integration in progress</button></div>');
         return;
       }
       if (!product.id || !Number.isSafeInteger(Number(product.price)) || Number(product.price) <= 0) return;
@@ -100,7 +98,7 @@
         : "";
       const button = '<button class="vf-buy-button" type="button" data-vf-buy="true" ' +
         'data-product-type="' + esc(product.type) + '" data-product-id="' + esc(product.id) + '" ' +
-        'data-country="' + esc(product.country || "") + '" data-product-name="' + esc(item.title || item.name || item.full_title || item.country || "VerifyFlow service") + '" ' +
+        'data-country="' + esc(product.country || "") + '" data-provider="' + esc(product.provider || "voidmob") + '" data-product-name="' + esc(item.title || item.name || item.full_title || item.country || "VerifyFlow service") + '" ' +
         'data-product-price="' + esc(product.price) + '" data-duration-prices="' + esc(JSON.stringify(durations)) + '"' + (product.available && durations.length !== 0 || product.available && category !== "rentals" ? "" : " disabled") +
         '>Continue to checkout →</button>';
       card.querySelector(".catalog-item-copy")?.insertAdjacentHTML("beforeend", '<div class="vf-buy-area">' + select + button + '</div>');
@@ -108,8 +106,9 @@
   }
 
   async function loadCatalogue() {
-    const country = "us";
-    if (countryInput) { countryInput.value = "US"; countryInput.disabled = true; }
+    const country = String(countryInput?.value || "US").trim().toLowerCase();
+    if (!/^[a-z]{2}$/.test(country)) return;
+    if (countryInput) countryInput.disabled = false;
     try {
       const response = await fetch("/api/catalog?country=" + country, { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } });
       const data = await response.json();
@@ -132,6 +131,7 @@
     const card = button.closest(".catalog-item");
     selected = {
       productType: button.dataset.productType,
+      provider: button.dataset.provider || "voidmob",
       productId: button.dataset.productId,
       country: button.dataset.country || "us",
       productName: button.dataset.productName || "VerifyFlow service",
@@ -180,6 +180,7 @@
     const payload = {
       checkoutKey: selected.checkoutKey,
       productType: selected.productType,
+      provider: selected.provider || "voidmob",
       productId: selected.productId,
       country: selected.country
     };
@@ -210,6 +211,7 @@
     window.setTimeout(renderButtons, 0);
   }));
   searchInput?.addEventListener("input", () => window.setTimeout(renderButtons, 0));
+  countryInput?.addEventListener("change", loadCatalogue);
   document.getElementById("catalog-refresh")?.addEventListener("click", () => window.setTimeout(loadCatalogue, 300));
   loadCatalogue();
 })();
