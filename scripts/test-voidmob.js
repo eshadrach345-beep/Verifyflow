@@ -63,10 +63,11 @@ async function main() {
     const proxyQuote = await quoteProduct("mobile_proxy", { productId: "plan_mock" });
     assert.equal(proxyQuote.salePriceCents, 4050);
 
+    const beforePurchaseCalls = calls.length;
     const result = await purchase("sms_otp", { serviceId: "svc_test", maxPriceCents: 50 }, "vf-order-test-0001");
     assert.equal(result.supplierOrderId, "ver_mock_123");
     assert.equal(result.chargedPriceCents, 50);
-    assert.equal(calls.length, 1);
+    assert.equal(calls.length, beforePurchaseCalls + 1);
     assert.equal(calls[0].options.headers["Idempotency-Key"], "vf-order-test-0001");
     assert.equal(calls[0].options.headers.Authorization, "Bearer mock-only-key");
 
