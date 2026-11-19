@@ -1,6 +1,7 @@
 "use strict";
 const assert = require("node:assert/strict");
 const { buildPurchase, purchase, getOrder } = require("../lib/voidmob");
+const { mapSupplierState } = require("../lib/fulfilment");
 
 async function main() {
   const sms = buildPurchase("sms_otp", { serviceId: "svc_test", maxPriceCents: 50 });
@@ -17,6 +18,11 @@ async function main() {
   assert.throws(() => buildPurchase("long_term_number", { serviceId: "x", durationDays: 5, maxPriceCents: 1 }), { code: "INVALID_DURATION" });
   assert.throws(() => buildPurchase("sms_otp", { serviceId: "x", maxPriceCents: 0 }), { code: "INVALID_PRICE_CAP" });
   assert.throws(() => buildPurchase("social_followers", { maxPriceCents: 10 }), { code: "UNSUPPORTED_PRODUCT" });
+  assert.equal(mapSupplierState("sms_otp", "waiting_for_code"), "submitted");
+  assert.equal(mapSupplierState("sms_otp", "code_received"), "completed");
+  assert.equal(mapSupplierState("long_term_number", "active"), "completed");
+  assert.equal(mapSupplierState("esim", "processing"), "submitted");
+  assert.equal(mapSupplierState("mobile_proxy", "active"), "completed");
 
   const originalFetch = global.fetch;
   const originalKey = process.env.VOIDMOB_API_KEY;
@@ -24,8 +30,8 @@ async function main() {
   const originalAutoBuy = process.env.VOIDMOB_AUTOBUY_CONFIRMED;
   const calls = [];
   process.env.VOIDMOB_API_KEY = "mock-only-key";
-  process.env.VOIDMOB_FULFILMENT_ENABLED = "true";
-  process.env.VOIDMOB_AUTOBUY_CONFIRMED = "true";
+  process.env.VOIDMOB_FULFILMENT_ENABLED = "false";
+  process.env.VOIDMOB_AUTOBUY_CONFIRMED = "false";
   global.fetch = async (url, options) => {
     calls.push({ url: String(url), options });
     if (String(url).includes("/services?")) {
@@ -49,6 +55,14 @@ async function main() {
     }), { status: 201, headers: { "Content-Type": "application/json" } });
   };
   try {
+    await assert.rejects(
+      () => purchase("sms_otp", { serviceId: "svc_test", maxPriceCents: 50 }, "vf-order-test-0001"),
+      { code: "FULFILMENT_DISABLED" }
+    );
+    assert.equal(calls.length, 0);
+    process.env.VOIDMOB_FULFILMENT_ENABLED = "true";
+    process.env.VOIDMOB_AUTOBUY_CONFIRMED = "true";
+
     const { quoteProduct } = require("../lib/voidmob");
     const smsQuote = await quoteProduct("sms_otp", { productId: "svc_mock", country: "us" });
     assert.equal(smsQuote.supplierPriceCents, 35);
