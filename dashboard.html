@@ -217,7 +217,136 @@
 .catalog-country-flag b{font-weight:700}
 .catalog-item-visual>small{z-index:3}
 @media(max-width:600px){.catalog-country-flag{font-size:10px;left:7px;top:7px;padding:4px 6px}.catalog-country-flag b{max-width:78px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.catalog-brand-logo{padding:11px}}
-</style></head><body><header class="vf-store-header"><div class="vf-topbar">
+</style><style id="verifyflow-dashboard-polish">
+/* Final dashboard pass: readable catalogue, confident hierarchy and cleaner controls */
+.dash-shell{background:#f1f4f7;padding:42px 22px 72px}
+.dash-wrap{max-width:1320px}
+.dash-crumb{font-size:13px;letter-spacing:.15px;margin-bottom:16px}
+.dash-heading{margin:14px 0 25px;gap:24px}
+.dash-heading h1{font-size:clamp(36px,3.3vw,44px);line-height:1.12;letter-spacing:-.9px}
+.dash-heading p{font-size:16px;line-height:1.65;max-width:620px}
+.dash-account-link{min-height:48px;padding:13px 20px;font-size:14px;border-radius:28px;box-shadow:0 3px 9px rgba(15,17,17,.09)}
+.preview-pill{font-size:13px;padding:10px 14px}
+.customer-strip{padding:21px 24px;border-radius:14px;margin-bottom:25px;box-shadow:0 7px 20px rgba(15,17,17,.10)}
+.customer-strip-mark{width:48px;height:48px;flex-basis:48px;font-size:22px}
+.customer-strip-copy strong{font-size:18px}
+.customer-strip-copy span{font-size:15px;line-height:1.5}
+.customer-strip>a,.customer-signout{font-size:14px}
+.catalog-section{padding:28px 28px 30px;border-radius:14px;box-shadow:0 5px 18px rgba(15,17,17,.065)}
+.catalog-toolbar{gap:18px;margin-bottom:22px}
+.catalog-eyebrow{font-size:13px;letter-spacing:.75px}
+.catalog-toolbar h2{font-size:29px;line-height:1.2;letter-spacing:-.55px}
+.catalog-toolbar p{font-size:15px;line-height:1.6;margin-top:7px}
+.catalog-refresh{min-height:46px;font-size:14px;padding:12px 18px;border-radius:24px}
+.catalog-controls{gap:16px;margin-bottom:21px}
+.catalog-control{font-size:14px;gap:8px}
+.catalog-control input{min-height:49px;padding:12px 14px;font-size:16px;border-radius:9px}
+.catalog-control small{font-size:12px;line-height:1.55}
+.catalog-tabs{gap:9px;margin-bottom:14px;padding-bottom:7px}
+.catalog-tab{font-size:14px;padding:11px 17px}
+.catalog-state-row{min-height:39px;margin:10px 0 13px}
+.catalog-status{font-size:14px;line-height:1.5}
+.catalog-live-indicator{font-size:12px}
+.catalog-grid{gap:17px}
+.catalog-item{border-radius:12px;box-shadow:0 3px 10px rgba(15,17,17,.07)}
+.catalog-item:hover{transform:translateY(-4px);box-shadow:0 13px 26px rgba(15,17,17,.12)}
+.catalog-item-visual{height:148px}
+.catalog-art-icon{width:66px;height:66px;font-size:31px;border-radius:19px}
+.catalog-country-flag{font-size:12px;padding:6px 9px}
+.catalog-item-copy{padding:19px!important;min-height:205px}
+.catalog-item-copy h3{font-size:19px;line-height:1.32;margin-bottom:9px}
+.catalog-item-copy p{font-size:15px;line-height:1.55;margin-bottom:9px}
+.catalog-item-detail{font-size:14px;line-height:1.6}
+.catalog-price-row{margin-top:15px;padding-top:13px}
+.catalog-price-row strong{font-size:22px}
+.catalog-price-row small{font-size:12px;line-height:1.45}
+.catalog-empty{font-size:15px;line-height:1.6;padding:34px}
+.catalog-empty strong{font-size:18px}
+.catalog-empty small{font-size:14px}
+.catalog-footnote{font-size:13px;line-height:1.7}
+.orders-panel{margin-top:27px;padding:25px;border-radius:14px;box-shadow:0 5px 18px rgba(15,17,17,.06)}
+.orders-heading h2{font-size:25px}
+.orders-count{font-size:13px}
+.order-row{padding:17px 0}
+.order-row strong{font-size:15px}
+.order-row small{font-size:13px}
+.order-status{font-size:12px;padding:8px 11px}
+.dash-bottom{padding:25px;border-radius:12px}
+.dash-bottom h2{font-size:21px}
+.dash-bottom p{font-size:15px;line-height:1.65}
+.dash-bottom a{font-size:14px}
+.catalog-control input:focus-visible,.catalog-tab:focus-visible,.catalog-refresh:focus-visible,.dash-account-link:focus-visible{outline:3px solid rgba(0,113,133,.25);outline-offset:2px}
+@media(max-width:900px){
+ .dash-shell{padding:32px 16px 54px}
+ .catalog-section{padding:22px 18px}
+ .catalog-grid{gap:12px}
+ .catalog-item-copy{padding:15px!important}
+ .catalog-item-copy h3{font-size:17px}
+ .catalog-item-copy p{font-size:14px}
+ .catalog-item-detail{font-size:13px}
+}
+@media(max-width:600px){
+ .dash-shell{padding:25px 12px 42px}
+ .dash-heading{gap:13px;margin:8px 0 18px}
+ .dash-heading h1{font-size:31px;line-height:1.15}
+ .dash-heading p{font-size:15px;line-height:1.6}
+ .dash-account-link{font-size:13px;min-height:44px;padding:11px 15px}
+ .preview-pill{font-size:12px}
+ .customer-strip{padding:15px 14px;gap:10px;flex-wrap:wrap}
+ .customer-strip-mark{width:38px;height:38px;flex-basis:38px;font-size:18px}
+ .customer-strip-copy strong{font-size:15px}
+ .customer-strip-copy span{font-size:13px;line-height:1.5}
+ .customer-strip>a,.customer-signout{font-size:12px;margin-left:48px}
+ .catalog-section{padding:17px 13px 19px;border-radius:11px}
+ .catalog-toolbar{gap:13px;margin-bottom:17px}
+ .catalog-toolbar h2{font-size:24px}
+ .catalog-toolbar p{font-size:14px;line-height:1.55}
+ .catalog-refresh{font-size:13px;min-height:43px;padding:10px 15px}
+ .catalog-controls{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:17px}
+ .catalog-control{font-size:12px;line-height:1.4}
+ .catalog-control input{font-size:16px;min-height:46px;padding:10px 9px}
+ .catalog-control small{font-size:11px;line-height:1.45}
+ .catalog-tabs{gap:7px;margin-bottom:10px}
+ .catalog-tab{font-size:13px;padding:10px 13px}
+ .catalog-state-row{align-items:flex-start;gap:8px;flex-direction:column;margin:7px 0 11px}
+ .catalog-status{font-size:13px}
+ .catalog-live-indicator{font-size:11px}
+ .catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .catalog-item{border-radius:10px}
+ .catalog-item-visual{height:112px}
+ .catalog-art-icon{width:53px;height:53px;font-size:25px;border-radius:15px}
+ .catalog-country-flag{font-size:10px;left:7px;top:7px;padding:4px 6px}
+ .catalog-item-copy{padding:12px!important;min-height:205px}
+ .catalog-item-copy h3{font-size:15px;line-height:1.3;margin-bottom:7px}
+ .catalog-item-copy p{font-size:13px;line-height:1.5}
+ .catalog-item-detail{font-size:12px;line-height:1.5}
+ .catalog-price-row{margin-top:12px;padding-top:10px;gap:4px}
+ .catalog-price-row strong{font-size:17px}
+ .catalog-price-row small{font-size:11px;line-height:1.4;text-align:left}
+ .catalog-empty{font-size:14px;min-height:130px;padding:20px 13px}
+ .catalog-empty strong{font-size:16px}
+ .catalog-empty small{font-size:13px}
+ .catalog-footnote{font-size:12px;line-height:1.6}
+ .orders-panel{padding:15px;margin-top:18px}
+ .orders-heading h2{font-size:20px}
+ .order-row{gap:9px;padding:13px 0}
+ .order-row strong{font-size:13px}
+ .order-row small{font-size:12px}
+ .order-status{font-size:10px;padding:6px 8px}
+ .dash-bottom{padding:18px}
+ .dash-bottom h2{font-size:18px}
+ .dash-bottom p{font-size:13px}
+ .dash-bottom a{font-size:13px}
+}
+@media(max-width:365px){
+ .catalog-grid{grid-template-columns:1fr}
+ .catalog-item-copy{min-height:0}
+ .catalog-item-visual{height:130px}
+ .catalog-controls{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.catalog-item{transition:none}}
+</style>
+</head><body><header class="vf-store-header"><div class="vf-topbar">
 <a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
 <a class="vf-location" href="/#services"><small>Explore</small><strong>All services</strong></a>
 <form class="vf-search" action="/#services" role="search"><label class="sr-only" for="vf-dash-search">Search VerifyFlow services</label><input id="vf-dash-search" type="search" placeholder="Search SMS, eSIM, numbers, proxies..." autocomplete="off"><button type="submit" aria-label="Search services">⌕</button></form>
