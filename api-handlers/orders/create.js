@@ -78,7 +78,7 @@ module.exports = async function handler(req, res) {
       const supplierRate = product.supplier_rate == null ? null : Number(product.supplier_rate);
       const supplierPriceCents = String(product.supplier_currency || "").trim().toUpperCase() === "USD" &&
         Number.isFinite(supplierRate) && supplierRate > 0
-        ? Math.ceil(supplierRate * quantity)
+        ? Math.ceil(supplierRate * quantity / 1000 * 100)
         : null;
       const productName = String(product.platform) + " " + String(product.product_name);
       quote = {
