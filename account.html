@@ -419,6 +419,14 @@
    add("eSIM installation code",lpa);
    add("Expires",data.expires_at?dateLabel(data.expires_at):null);
   }
+  if(order.product_type==="smm_service"){
+   const snapshot=order.product_snapshot&&typeof order.product_snapshot==="object"?order.product_snapshot:{};
+   add("Quantity",snapshot.quantity);
+   add("Supplier order",order.supplier_order_id);
+   add("Remaining",data.remains);
+   add("Start count",data.startCount);
+   add("Target URL",snapshot.targetUrl);
+  }
   if(order.product_type==="mobile_proxy"&&data.gateway){
    const gateway=data.gateway;
    add("Proxy host",gateway.host);
