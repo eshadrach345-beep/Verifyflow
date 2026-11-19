@@ -61,10 +61,21 @@ module.exports = async function handler(req, res) {
 
     const identity = [eventType, paymentReference, String(data.transactionReference || "")].join(":");
     const eventKey = createHash("sha256").update(identity).digest("hex");
+    const safePayload = {
+      eventType,
+      eventData: {
+        paymentReference,
+        transactionReference: data.transactionReference || null,
+        paymentStatus: data.paymentStatus || null,
+        amountPaid: data.amountPaid ?? null,
+        currency: data.currency || null,
+        paymentMethod: data.paymentMethod || null
+      }
+    };
     await getPool().query(
       "INSERT INTO vf_payment_webhook_events (event_key, event_type, payment_reference, payload) " +
       "VALUES ($1, $2, $3, $4::jsonb) ON CONFLICT (provider, event_key) DO NOTHING",
-      [eventKey, eventType, paymentReference, JSON.stringify(payload)]
+      [eventKey, eventType, paymentReference, JSON.stringify(safePayload)]
     );
 
     // Never act on webhook amount/status fields alone.
