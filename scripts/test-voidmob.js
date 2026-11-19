@@ -21,8 +21,11 @@ async function main() {
   assert.equal(mapSupplierState("sms_otp", "waiting_for_code"), "submitted");
   assert.equal(mapSupplierState("sms_otp", "code_received"), "completed");
   assert.equal(mapSupplierState("long_term_number", "active"), "completed");
+  assert.equal(mapSupplierState("long_term_number", "expired"), "completed");
   assert.equal(mapSupplierState("esim", "processing"), "submitted");
+  assert.equal(mapSupplierState("esim", "expired"), "completed");
   assert.equal(mapSupplierState("mobile_proxy", "active"), "completed");
+  assert.equal(mapSupplierState("mobile_proxy", "exhausted"), "completed");
 
   const originalFetch = global.fetch;
   const originalKey = process.env.VOIDMOB_API_KEY;
