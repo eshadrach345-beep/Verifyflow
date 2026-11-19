@@ -1,13 +1,6 @@
 {
   "version": 2,
   "cleanUrls": true,
-  "rewrites": [
-    { "source": "/api/auth/:path*", "destination": "/api/catalog?route=auth/:path*" },
-    { "source": "/api/account/:path*", "destination": "/api/catalog?route=account/:path*" },
-    { "source": "/api/admin/:path*", "destination": "/api/catalog?route=admin/:path*" },
-    { "source": "/api/orders/:path*", "destination": "/api/catalog?route=orders/:path*" },
-    { "source": "/api/payments/:path*", "destination": "/api/catalog?route=payments/:path*" }
-  ],
   "headers": [{
     "source": "/(.*)",
     "headers": [
