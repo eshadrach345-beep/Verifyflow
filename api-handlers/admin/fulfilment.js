@@ -55,11 +55,14 @@ module.exports = async function handler(req, res) {
       return sendJson(res, 400, { ok: false, error: "The order reference is invalid." });
     }
     const job = await getPool().query(
-      "SELECT j.status, o.status AS order_status FROM vf_fulfilment_jobs j JOIN vf_orders o ON o.id = j.order_id WHERE j.order_id = $1 LIMIT 1",
+      "SELECT j.status, o.status AS order_status, o.provider FROM vf_fulfilment_jobs j JOIN vf_orders o ON o.id = j.order_id WHERE j.order_id = $1 LIMIT 1",
       [orderId]
     );
     if (!job.rowCount) return sendJson(res, 404, { ok: false, error: "No fulfilment job exists for this order." });
-    const retryUnknown = job.rows[0].status === "unknown" && String(body.action || "") === "retry_unknown";
+    const retryUnknown = job.rows[0].status === "unknown" && String(body.action || "") === "retry_unknown" && job.rows[0].provider === "voidmob";
+    if (job.rows[0].status === "unknown" && job.rows[0].provider === "herosms") {
+      return sendJson(res, 409, { ok: false, error: "HeroSMS purchase outcome must be reconciled with the supplier before any retry. Automatic retry is disabled to prevent duplicate charges." });
+    }
     if ((job.rows[0].status !== "pending" && !retryUnknown) || !["paid", "processing"].includes(job.rows[0].order_status)) {
       return sendJson(res, 409, { ok: false, error: "Only pending jobs or explicitly reconciled unknown jobs can be submitted." });
     }
