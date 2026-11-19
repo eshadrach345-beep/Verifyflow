@@ -59,6 +59,12 @@ Set VOIDMOB_API_KEY as a server-side Vercel environment variable to load supplie
 
 The HeroSMS Account API key is not itself the customer-number purchase API. Confirm the separate purchase integration with HeroSMS before retail SMS sales are enabled.
 
+## Admin order dashboard
+
+The protected operations dashboard is available at `/admin.html`. It reads the latest customer orders and groups paid orders by supplier and product platform. It also flags paid orders that do not yet have a supplier order reference. It is a read-only report: it does not transfer supplier funds or submit supplier purchases.
+
+To grant admin access, set `VERIFYFLOW_ADMIN_EMAILS` as a server-side Vercel environment variable containing the exact email address(es) of authorized VerifyFlow accounts, separated by commas. The dashboard requires an active signed-in customer session and an email match. Do not use a public or shared email address. If the variable is missing, admin access remains disabled.
+
 ## Validation
 
 ~~~bash
