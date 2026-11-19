@@ -1,7 +1,7 @@
 const VOIDMOB_BASE = "https://dashboard.voidmob.com/api/v1";
 
 const PRICE_RULES = {
-  sms: { percent: 40, minimumMarkupCents: 5 },
+  sms: { percent: 55, minimumMarkupCents: 5 },
   rentals: { percent: 30, minimumMarkupCents: 100 },
   esim: { percent: 25, minimumMarkupCents: 100 },
   proxies: { percent: 25, minimumMarkupCents: 100 },
