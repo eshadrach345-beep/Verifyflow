@@ -933,3 +933,157 @@ h1,h2,h3,h4,strong,b,.brand,.vf-store-brand{
   .market-card .market-art{height:150px}
   .market-card-copy{min-height:0}
 }
+
+
+/* VerifyFlow visual polish — clearer hierarchy, stronger contrast and more generous spacing */
+body{font-size:16px;line-height:1.55}
+.announcement{font-size:13px;min-height:38px;letter-spacing:.1px}
+.vf-topbar{min-height:78px;padding-top:13px;padding-bottom:13px}
+.vf-store-brand{font-size:24px;letter-spacing:-.8px}
+.vf-location small,.vf-account small{font-size:12px}
+.vf-location strong,.vf-account strong{font-size:15px}
+.vf-search{height:48px}
+.vf-search input{font-size:16px}
+.vf-search button{min-width:48px}
+.vf-subnav{min-height:46px;gap:26px}
+.vf-subnav a{font-size:14px}
+.hero{min-height:455px;padding:64px max(7vw,28px) 50px;gap:48px}
+.hero h1{font-size:clamp(42px,4.3vw,58px);line-height:1.08;letter-spacing:-1.8px;margin:18px 0}
+.hero-intro{font-size:17px;line-height:1.7;max-width:510px}
+.hero .eyebrow{font-size:12px;letter-spacing:1.5px}
+.hero-buttons{gap:20px;margin-top:28px}
+.hero-buttons .button{font-size:14px;padding:16px 21px}
+.hero-buttons .text-link{font-size:14px}
+.hero-proof{font-size:13px}
+.ticker{padding:17px 0}
+.ticker div{font-size:13px;letter-spacing:1.7px}
+.spotlight-section{padding:48px 22px 42px}
+.spotlight-heading{margin-bottom:20px}
+.spotlight-heading h2{font-size:32px;letter-spacing:-.6px}
+.spot-arrow{width:44px;height:44px;font-size:19px}
+.spotlight-viewport{border-radius:13px}
+.spotlight-slide{min-height:290px}
+.spotlight-copy{padding:38px 44px}
+.spotlight-tag{font-size:12px;padding:8px 12px}
+.spotlight-copy h3{font-size:38px;line-height:1.1;letter-spacing:-.8px;margin:17px 0 13px}
+.spotlight-copy p{font-size:16px;line-height:1.65;max-width:430px}
+.spotlight-cta{font-size:14px;padding:14px 19px}
+.spotlight-art{min-height:290px}
+.spotlight-note{font-size:11px}
+.marketplace-section{padding:58px 22px 66px}
+.marketplace-wrap{width:min(1240px,100%);max-width:1240px}
+.marketplace-kicker{font-size:13px;letter-spacing:.8px}
+.marketplace-heading{margin-bottom:28px}
+.marketplace-heading h2{font-size:38px;line-height:1.1;letter-spacing:-.8px}
+.marketplace-heading p{font-size:16px;line-height:1.65;max-width:500px}
+.marketplace-search{min-height:48px}
+.marketplace-search input{font-size:15px}
+.marketplace-viewall{font-size:14px;padding:14px 18px}
+.marketplace-grid{gap:18px}
+.market-card{min-height:340px;border-radius:12px;box-shadow:0 5px 17px rgba(15,17,17,.09)}
+.market-card-top{font-size:11px;padding:15px 16px 0}
+.market-card-top b{font-size:11px}
+.market-card .market-art{height:180px;margin:10px 12px 0}
+.market-card-copy{padding:18px 17px 20px;min-height:126px}
+.market-card-copy h3{font-size:19px;line-height:1.3}
+.market-card-copy p{font-size:15px;line-height:1.6}
+.market-arrow{width:34px;height:34px;flex-basis:34px}
+.marketplace-foot{font-size:13px;line-height:1.6}
+.manifesto{padding:64px max(7vw,28px)}
+.manifesto-inner{gap:72px}
+.manifesto h2{font-size:44px;line-height:1.12}
+.manifesto-left>p{font-size:16px;line-height:1.75}
+.manifesto-point h3{font-size:18px}
+.manifesto-point p{font-size:15px;line-height:1.7}
+.how-section{padding-top:62px;padding-bottom:68px}
+.how-heading h2{font-size:37px}
+.how-heading p{font-size:16px;line-height:1.7}
+.step{padding:25px;min-height:205px;border-radius:13px}
+.step-number{font-size:11px}
+.step h3{font-size:18px}
+.step p{font-size:15px;line-height:1.7}
+.closing-cta{padding:66px 24px 72px}
+.closing-cta h2{font-size:46px}
+.closing-cta>p{font-size:16px}
+.closing-cta .button{font-size:14px;padding:16px 21px}
+.site-footer{padding-left:max(7vw,28px);padding-right:max(7vw,28px)}
+.footer-links,.footer-main>p{font-size:14px}
+.footer-bottom{font-size:12px}
+@media(max-width:800px){
+ .hero{padding-left:6vw;padding-right:6vw;gap:20px}
+ .hero h1{font-size:clamp(40px,6vw,52px)}
+ .marketplace-heading h2{font-size:34px}
+ .market-card{min-height:320px}
+ .manifesto-inner{gap:40px}
+}
+@media(max-width:650px){
+ .announcement{font-size:11px;min-height:36px;padding:0 8px;text-align:center}
+ .vf-topbar{padding:10px 12px;gap:8px}
+ .vf-store-brand{font-size:19px}
+ .vf-location{display:none}
+ .vf-account small{font-size:10px}
+ .vf-account strong{font-size:12px}
+ .vf-search{height:42px}
+ .vf-search input{font-size:14px}
+ .vf-search button{min-width:40px;font-size:20px}
+ .vf-subnav{min-height:42px;gap:18px;padding:0 12px}
+ .vf-subnav a{font-size:12px}
+ .hero{min-height:0;padding:42px 19px 32px;gap:4px}
+ .hero h1{font-size:39px;line-height:1.1;letter-spacing:-1.1px}
+ .hero-intro{font-size:15px;line-height:1.65}
+ .hero .eyebrow{font-size:11px}
+ .hero-buttons{gap:14px;flex-wrap:wrap;margin-top:22px}
+ .hero-buttons .button{font-size:13px;padding:14px 16px}
+ .hero-buttons .text-link{font-size:13px}
+ .hero-proof{font-size:11px;margin-top:28px}
+ .hero-visual{height:305px;margin-top:4px}
+ .ticker{padding:13px 0}
+ .ticker div{font-size:11px}
+ .spotlight-section{padding:30px 12px 28px}
+ .spotlight-heading{align-items:center}
+ .spotlight-heading h2{font-size:25px}
+ .spot-arrow{width:36px;height:36px;font-size:16px}
+ .spotlight-copy{padding:23px 19px 9px}
+ .spotlight-copy h3{font-size:29px;line-height:1.12}
+ .spotlight-copy p{font-size:14px;line-height:1.6}
+ .spotlight-cta{font-size:13px}
+ .spotlight-art{height:185px;min-height:185px}
+ .marketplace-section{padding:36px 12px 42px}
+ .marketplace-kicker{font-size:11px}
+ .marketplace-heading{gap:14px;margin-bottom:19px}
+ .marketplace-heading h2{font-size:30px}
+ .marketplace-heading p{font-size:14px;line-height:1.6}
+ .marketplace-tools{gap:9px}
+ .marketplace-search{min-height:43px}
+ .marketplace-search input{font-size:14px}
+ .marketplace-viewall{font-size:12px;padding:12px 13px}
+ .marketplace-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+ .market-card{min-height:0}
+ .market-card-top{font-size:9px;padding:10px 9px 0}
+ .market-card-top b{font-size:9px}
+ .market-card .market-art{height:126px;margin:7px 7px 0}
+ .market-card-copy{padding:12px 10px 14px;min-height:124px}
+ .market-card-copy h3{font-size:16px}
+ .market-card-copy p{font-size:13px;line-height:1.5}
+ .market-arrow{width:27px;height:27px;flex-basis:27px}
+ .marketplace-foot{font-size:11px}
+ .manifesto{padding:46px 19px}
+ .manifesto h2{font-size:36px}
+ .manifesto-left>p,.manifesto-point p{font-size:14px;line-height:1.65}
+ .manifesto-point h3{font-size:17px}
+ .how-section{padding:46px 16px}
+ .how-heading h2{font-size:31px}
+ .how-heading p{font-size:14px}
+ .step{min-height:0;padding:21px}
+ .step h3{font-size:17px}
+ .step p{font-size:14px}
+ .closing-cta{padding:48px 17px}
+ .closing-cta h2{font-size:36px}
+ .closing-cta>p{font-size:14px;line-height:1.6}
+ .footer-links{font-size:12px;flex-wrap:wrap}
+}
+@media(max-width:370px){
+ .marketplace-grid{grid-template-columns:1fr}
+ .market-card .market-art{height:150px}
+ .market-card-copy{min-height:0}
+}
