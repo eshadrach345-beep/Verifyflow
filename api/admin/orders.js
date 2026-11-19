@@ -90,7 +90,7 @@ module.exports = async function handler(req, res) {
 
     const fundingMap = new Map();
     for (const order of orders) {
-      if (!["paid", "processing", "completed", "failed"].includes(order.status) || order.paymentStatus !== "paid") continue;
+      if (order.supplier !== "voidmob" || !["paid", "processing", "completed", "failed"].includes(order.status) || order.paymentStatus !== "paid") continue;
       const key = order.supplier + "::" + order.platform;
       const current = fundingMap.get(key) || {
         supplier: order.supplier,
@@ -99,6 +99,7 @@ module.exports = async function handler(req, res) {
         orders: 0,
         amountMinor: 0,
         supplierCostMinor: 0,
+        grossMarginMinor: 0,
         supplierCurrency: order.supplierCurrency,
         ordersWithQuotedCost: 0,
         awaitingSupplierSubmission: 0,
@@ -108,6 +109,7 @@ module.exports = async function handler(req, res) {
       if (current.currency === order.currency) current.amountMinor += order.totalMinor;
       if (order.supplierCostMinor != null && current.supplierCurrency === order.supplierCurrency) {
         current.supplierCostMinor += order.supplierCostMinor;
+        current.grossMarginMinor += order.totalMinor - order.supplierCostMinor;
         current.ordersWithQuotedCost += 1;
       }
       if (!order.supplierOrderId) current.awaitingSupplierSubmission += 1;
