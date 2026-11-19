@@ -225,7 +225,7 @@
     <div class="orders-list" id="orders-list"><p>Your recent orders will appear here.</p></div>
   </section>
 
-  <div class="dash-bottom"><div><h2>Keep everything in one flow.</h2><p>Sign in to access your account and keep track of your service activity.</p></div><a href="/account.html">GO TO YOUR ACCOUNT ↗</a></div>
+  <div class="dash-bottom"><div><h2>Keep everything in one flow.</h2><p>Manage your profile, review your orders and follow your service activity.</p></div><a href="/account.html">MANAGE MY ACCOUNT ↗</a></div>
 </div>
 </main><footer class="site-footer"><div class="footer-main"><a class="brand brand-footer" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><p>One flow. Every connection.</p><div class="footer-links"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/acceptable-use.html">Acceptable use</a></div></div><div class="footer-bottom"><span>© 2026 VerifyFlow. All rights reserved.</span><span>Designed for a world that never stands still.</span></div></footer><script>
 (() => {
@@ -346,7 +346,7 @@
   if(!response.ok||!data.ok||!data.user)return;
   const user=data.user;
   const firstName=String(user.fullName||user.full_name||"").trim().split(/\\s+/)[0];
-  link.href="/dashboard.html";
+  link.href="/account.html";
   link.innerHTML="<small>"+(firstName?"Welcome, "+firstName:"Your account")+"</small><strong>My Account</strong>";
   link.setAttribute("aria-label","Open your VerifyFlow account");
  }catch(error){/* Keep the normal sign-in link if session status cannot be checked. */}
