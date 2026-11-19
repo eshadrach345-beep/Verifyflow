@@ -29,6 +29,26 @@ for (const category of categories) {
 }
 assert.ok(dashboard.includes('data-catalog-tab="all"'), "Dashboard must expose All products");
 assert.ok(dashboard.includes('params.get("search")'), "Dashboard must hydrate search from the URL");
+
+// The homepage All services control must open a real category menu rather than act as an anchor.
+assert.match(home, /<button[^>]*id="vf-services-trigger"[^>]*aria-controls="vf-services-menu"/);
+assert.ok(home.includes('id="vf-services-menu"'), "Homepage must contain the All services menu panel");
+assert.ok(home.includes("Accessible All services disclosure"), "Homepage must wire menu open/close behavior");
+for (const category of categories) {
+  assert.ok(home.includes('/dashboard.html?category=' + category + '#catalogue'),
+    "All services menu must link to the " + category + " catalogue");
+}
+assert.ok(home.includes('id="home-smm-grid"'), "Homepage must visibly reserve a Social Media Boosters product section");
+assert.ok(home.includes('/api/marketing-catalog'), "Homepage must load published public SMM products");
+assert.ok(home.includes("No Social Media Boosters have been published yet."),
+  "Homepage must explain when no SMM products are published");
+assert.ok(dashboard.includes('data-nav-category="marketing"'),
+  "Dashboard top navigation must expose Social Media Boosters");
+assert.ok(dashboard.includes("No Social Media Boosters are published yet."),
+  "Dashboard must explain an empty SMM catalogue");
+assert.ok(dashboard.includes("SMM product database migration may need to be applied"),
+  "Dashboard must surface a clear SMM catalogue setup hint");
+
 assert.ok(dashboard.includes('active==="all"?categoryKeys:[active]'),
   "Global search must query all catalogue categories");
 
