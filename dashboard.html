@@ -250,7 +250,7 @@
           <option value="ZA"><option value="KE"><option value="BR"><option value="JP">
           <option value="MX"><option value="PH"><option value="SG">
         </datalist>
-        <small id="catalog-country-help">SMS verification and long-term rentals currently use US numbers only.</small>
+        <small id="catalog-country-help">Country availability varies by supplier. VerifyFlow combines supported countries and services from connected providers.</small>
       </label>
       <label class="catalog-control catalog-search-control" for="catalog-search">Search products
         <input id="catalog-search" type="search" placeholder="Search services, plans or countries..." autocomplete="off">
@@ -346,7 +346,7 @@
   status.textContent=rows.length+" product"+(rows.length===1?"":"s")+" listed"+(active==="sms"||active==="rentals"?" for "+String(catalogue.country||"us").toUpperCase():"");
 
   if(active==="sms"){
-   grid.innerHTML=rows.map(x=>card("sms",x.name||"SMS verification","One-time verification · "+String(catalogue.country||"us").toUpperCase(),x.available?"Supplier stock is currently available.":"Supplier stock is not currently available.",x.priceCents,"per activation · before VAT/tax",x.available?"AVAILABLE":"OUT OF STOCK",x.currency,catalogue.country)).join("");
+   grid.innerHTML=rows.map(x=>card("sms",x.name||"SMS verification","One-time verification · "+String(catalogue.country||"us").toUpperCase(),x.available?((x.availableCount!=null?x.availableCount+" numbers reported by ":"")+String(x.provider||"Supplier").toUpperCase()+" stock is currently available."):"Supplier stock is not currently available.",x.priceCents,"per activation · "+String(x.provider||"supplier").toUpperCase()+" · before VAT/tax",x.available?"AVAILABLE":"OUT OF STOCK",x.currency,catalogue.country)).join("");
   }else if(active==="esim"){
    grid.innerHTML=rows.map(x=>{
     const data=x.unlimited?"Unlimited data":(x.dataGb==null?"Data plan":x.dataGb+" GB");
@@ -368,7 +368,7 @@
   }else if(active==="rentals"){
    grid.innerHTML=rows.map(x=>{
     const durations=Array.isArray(x.durations)?x.durations:[];
-    const detail=durations.length?durations.map(option=>option.days+" days: "+money(option.priceCents,option.currency)).join(" · "):"No rental durations currently listed";
+    const detail=(x.availableCount!=null?x.availableCount+" numbers · ":"")+String(x.provider||"Supplier").toUpperCase()+" · "+(durations.length?durations.map(option=>option.days+" days: "+money(option.priceCents,option.currency)).join(" · "):"No rental durations currently listed");
     const prices=durations.map(option=>Number(option.priceCents)).filter(value=>Number.isSafeInteger(value)&&value>0);
     const from=prices.length?Math.min(...prices):null;
     return card("rentals",x.name||"Long-term number",String(catalogue.country||"us").toUpperCase()+" · Choose your rental period",detail,from,"from · before VAT/tax",x.available&&durations.length?"AVAILABLE":"LIMITED","USD",catalogue.country);
