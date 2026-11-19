@@ -13,6 +13,8 @@ function response() {
 async function main() {
   const originalFetch = global.fetch;
   const originalKey = process.env.VOIDMOB_API_KEY;
+  const originalHeroKey = process.env.HEROSMS_API_KEY;
+  delete process.env.HEROSMS_API_KEY;
   process.env.VOIDMOB_API_KEY = "test-key";
 
   const calls = [];
@@ -117,6 +119,8 @@ async function main() {
     global.fetch = originalFetch;
     if (originalKey === undefined) delete process.env.VOIDMOB_API_KEY;
     else process.env.VOIDMOB_API_KEY = originalKey;
+    if (originalHeroKey === undefined) delete process.env.HEROSMS_API_KEY;
+    else process.env.HEROSMS_API_KEY = originalHeroKey;
   }
 }
 
