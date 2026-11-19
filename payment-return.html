@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#131921">
+<title>Payment result — VerifyFlow</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.payment-result{min-height:65vh;background:#eaeded;padding:48px 16px}.payment-result-card{width:min(620px,100%);margin:0 auto;padding:30px;background:#fff;border:1px solid #d5d9d9;border-radius:14px;box-shadow:0 8px 28px rgba(15,17,17,.08)}.payment-result-card h1{font-size:28px;margin:0 0 12px;color:#131921}.payment-result-card p{color:#565959;line-height:1.65}.payment-result-status{font-weight:800;margin:20px 0}.payment-result-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:24px}.payment-result-links a{color:#007185;font-weight:700}
+</style>
+</head>
+<body>
+<div class="announcement">VerifyFlow payment test</div>
+<header class="vf-store-header"><div class="vf-topbar"><a class="brand vf-store-brand" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><a class="vf-account" href="/dashboard.html"><small>Account</small><strong>Dashboard</strong></a></div></header>
+<main class="payment-result"><section class="payment-result-card">
+<h1>Checking your payment</h1>
+<p id="payment-result-copy">We're confirming the transaction directly with Monnify. Please keep this page open.</p>
+<div class="payment-result-status" id="payment-result-status" role="status" aria-live="polite">Verifying…</div>
+<div class="payment-result-links"><a href="/payment-test.html">Run another sandbox test</a><a href="/dashboard.html">Open dashboard</a></div>
+</section></main>
+<script>
+(() => {
+ const query=new URLSearchParams(window.location.search);
+ const reference=query.get("paymentReference")||query.get("paymentreference")||"";
+ const status=document.getElementById("payment-result-status");
+ const copy=document.getElementById("payment-result-copy");
+ async function verify(){
+  if(!reference){status.textContent="Payment reference missing";copy.textContent="Return to the payment test page and start a new sandbox checkout.";return}
+  try{
+   const response=await fetch("/api/payments/verify",{method:"POST",headers:{"Accept":"application/json","Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({paymentReference:reference})});
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok||!data.ok)throw new Error(data.error||"We couldn't confirm the payment yet.");
+   const state=data.payment.status;
+   status.textContent=state==="paid"?"Sandbox payment verified":state==="pending"?"Payment is still pending":state==="amount_mismatch"?"Payment needs manual review":"Payment status: "+state;
+   copy.textContent=state==="paid"?"Monnify confirmed the test payment. No VerifyFlow service was supplied.":state==="pending"?"Monnify has not confirmed payment yet. Refresh this page in a moment.":"This was a sandbox test only. No service was supplied.";
+  }catch(error){status.textContent="Could not verify yet";copy.textContent=error.message||"Please sign in to the same VerifyFlow account and refresh this page."}
+ }
+ verify();
+})();
+</script>
+</body></html>

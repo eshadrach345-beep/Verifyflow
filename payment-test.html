@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#131921">
+<title>Payment integration test — VerifyFlow</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.payment-test{min-height:65vh;background:#eaeded;padding:48px 16px}.payment-test-card{width:min(620px,100%);margin:0 auto;padding:30px;background:#fff;border:1px solid #d5d9d9;border-radius:14px;box-shadow:0 8px 28px rgba(15,17,17,.08)}.payment-test-card h1{font-size:28px;margin:0 0 12px;color:#131921}.payment-test-card p{color:#565959;line-height:1.65}.payment-warning{padding:13px 15px;border-left:4px solid #d99b00;background:#fff8df;color:#4e3a00;font-size:14px;line-height:1.55;margin:20px 0}.payment-test-button{width:100%;min-height:48px;border:1px solid #e2ba00;border-radius:25px;background:#ffd814;font-weight:800;font-size:15px;cursor:pointer}.payment-test-button:disabled{opacity:.65;cursor:wait}.payment-test-message{min-height:24px;margin:14px 0 0;font-size:14px;color:#b42318}
+</style>
+</head>
+<body>
+<div class="announcement">VerifyFlow developer test</div>
+<header class="vf-store-header"><div class="vf-topbar"><a class="brand vf-store-brand" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><a class="vf-account" href="/dashboard.html"><small>Account</small><strong>Dashboard</strong></a></div></header>
+<main class="payment-test"><section class="payment-test-card">
+<h1>Monnify sandbox checkout</h1>
+<p>This page checks that VerifyFlow can create a hosted Monnify checkout and confirm the result securely.</p>
+<div class="payment-warning"><strong>Test only.</strong> This is a fixed NGN 100 Sandbox transaction. It does not buy an OTP, number, eSIM, proxy or any other service. Do not use a real card.</div>
+<button class="payment-test-button" id="start-test" type="button">Start NGN 100 sandbox test</button>
+<p class="payment-test-message" id="test-message" role="status" aria-live="polite"></p>
+<p><a href="/dashboard.html">Return to your dashboard</a> · <a href="/">VerifyFlow home</a></p>
+</section></main>
+<script>
+(() => {
+ const button=document.getElementById("start-test");
+ const message=document.getElementById("test-message");
+ button.addEventListener("click",async()=>{
+  button.disabled=true;button.textContent="Connecting to Monnify…";message.textContent="";
+  try{
+   const response=await fetch("/api/payments/create-test",{method:"POST",headers:{"Accept":"application/json","Content-Type":"application/json"},credentials:"same-origin",body:"{}"});
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok||!data.ok)throw new Error(data.error||"Checkout could not be started.");
+   window.location.assign(data.checkoutUrl);
+  }catch(error){message.textContent=error.message||"Please sign in and try again."}
+  finally{button.disabled=false;button.textContent="Start NGN 100 sandbox test"}
+ });
+})();
+</script>
+</body></html>

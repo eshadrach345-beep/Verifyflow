@@ -4,58 +4,70 @@ VerifyFlow is a customer-facing marketplace for SMS verification, long-term numb
 
 ## What is currently implemented
 
-- Responsive storefront and service-category pages.
-- Customer registration and sign-in endpoints using scrypt password hashes and HttpOnly session cookies.
-- Customer session lookup and sign-out.
-- Customer order-history read endpoint.
-- Read-only product discovery for supported VoidMob catalogues, including eSIM plans, proxy plans, dedicated-number country availability, and long-term rental availability.
-- Customer-facing service pages do not expose supplier credentials, supplier connection diagnostics, database schema state, or payment-approval notes.
-- Admin database diagnostics are restricted to the `VERIFYFLOW_ADMIN_SECRET` bearer credential.
-- Automated syntax checks, inline browser-script parsing, and mocked catalogue/authentication smoke tests.
+- Responsive storefront, customer registration/sign-in, customer sessions, and order-history reads.
+- Read-only product discovery for supported VoidMob catalogues.
+- Monnify server-side authentication, hosted Sandbox checkout, authenticated payment verification, and webhook verification.
+- A sandbox-only test page. The fixed NGN 100 test payment does not deliver a service.
+- Live Monnify payments are locked unless explicit launch and product-approval environment flags are enabled.
+- Customer wallet balances remain disabled.
+- Automated syntax checks, inline browser-script parsing, and helper tests.
 
 ## Database setup
 
-Customer accounts and order history require the Neon PostgreSQL migration.
+Customer accounts, orders, and payment records require the Neon PostgreSQL migrations.
 
-Configure `DATABASE_URL` as a server-side Vercel environment variable, then run:
+Configure DATABASE_URL as a server-side Vercel environment variable, then run:
 
-```bash
+~~~bash
 npm install
 npm run db:migrate
 npm run check
-```
+~~~
 
-The migration is idempotent and creates the customer, session, wallet, order, and order-event tables. The database status endpoint is administrative only and requires:
+The migration runner applies all numbered SQL migrations in order and records applied versions in vf_schema_migrations. Never put database credentials in browser code.
 
-```http
-Authorization: Bearer <VERIFYFLOW_ADMIN_SECRET>
-```
+## Monnify configuration
 
-Never put database credentials or the admin secret in browser code.
+Set these server-side Vercel environment variables:
+
+- MONNIFY_API_KEY
+- MONNIFY_SECRET_KEY
+- MONNIFY_CONTRACT_CODE
+- MONNIFY_ENVIRONMENT = SANDBOX
+
+Never commit Monnify credentials or share the secret key in chat.
+
+After deployment and database migration, sign in to VerifyFlow and open /payment-test.html. The fixed NGN 100 sandbox checkout is only an integration check and does not fulfil any service.
+
+Configure Monnify's Transaction Completion webhook URL as:
+
+~~~text
+https://verifyflow-five.vercel.app/api/payments/webhook
+~~~
+
+Sandbox notifications do not include the production signature. The sandbox webhook handler still verifies each referenced transaction directly with Monnify before updating its status. Production notifications require HMAC-SHA512 signature validation.
+
+## Live payments
+
+Live checkout is disabled by default. Do not enable MONNIFY_LIVE_ENABLED or MONNIFY_PRODUCT_APPROVAL_CONFIRMED until Monnify has accepted VerifyFlow's actual business model and product categories in writing, international payment settings have been confirmed, and live credentials have been configured. Customer wallet top-ups are not enabled.
+
+The sandbox test endpoint does not fulfil a service. Real retail checkout still requires an approved server-side price book, supplier purchase integration, refund/reconciliation handling, and idempotent fulfilment.
 
 ## Supplier configuration
 
-Set `VOIDMOB_API_KEY` as a server-side Vercel environment variable to load the supplier-backed catalogues. The API reads catalogue data only; it does not submit purchases.
+Set VOIDMOB_API_KEY as a server-side Vercel environment variable to load supplier-backed catalogues. Catalogue reads do not submit purchases.
 
-The HeroSMS Account API key is for partner-account management, pricing, balance, and statistics. It is not itself a customer-number purchase API. HeroSMS's Protocol API and Custom API require a separate partner-number integration and must be configured and tested with the supplier before retail sales are enabled.
-
-## Purchases and payments
-
-Customer purchase fulfilment, wallet top-ups, checkout, payment verification, refunds, supplier callbacks, and purchase webhooks are not implemented yet. Do not accept real customer payments or trigger supplier purchases until those flows are implemented and tested end to end, retail pricing is configured, and the payment provider has approved the exact reseller business model and product categories.
-
-VoidMob purchase endpoints can spend the prepaid supplier wallet. Catalogue reads in this project do not spend funds.
+The HeroSMS Account API key is not itself the customer-number purchase API. Confirm the separate purchase integration with HeroSMS before retail SMS sales are enabled.
 
 ## Validation
 
-```bash
+~~~bash
 npm run check
-```
-
-This runs Node syntax checks, parses inline scripts from the customer pages, tests password/session helper behavior, and uses mocked supplier responses to validate catalogue mapping and safe error handling.
+~~~
 
 ## Deploy
 
-Import the repository into Vercel and connect the production branch. Git pushes trigger deployment and the GitHub validation workflow.
+Git pushes to the production branch trigger deployment and the GitHub validation workflow.
 
 ## Legal
 
