@@ -100,6 +100,23 @@ The admin dashboard shows recent orders, customer sale totals, supplier cost est
 
 Vercel currently reports the connected OmniPulse team on the Hobby plan. Its current plan terms describe Hobby as for personal, non-commercial use. Verify the plan is appropriate for a commercial storefront and upgrade before taking live customer orders if required by Vercel's terms.
 
+## Admin launch-readiness report
+
+The protected admin dashboard includes a live configuration report at `/api/admin/readiness`. It checks the PostgreSQL connection, required schema migrations and tables, admin allowlist, required server-side environment-variable presence, and owner confirmation flags. The report never returns secret values.
+
+The report distinguishes configured variables from manual verification. In particular, it cannot prove that Monnify approved the business, that USD card processing is enabled on the merchant account, that supplier permissions and balances are adequate, or that legal/tax obligations have been satisfied. The Peakerr and JustAnotherPanel entries remain optional, read-only monitors; neither provider is wired into customer checkout or fulfilment.
+
+Before live launch, configure and verify the following on the **VerifyFlow** Vercel project:
+
+- `VERIFYFLOW_LEGAL_BUSINESS_NAME`, `VERIFYFLOW_BUSINESS_ADDRESS`, and `VERIFYFLOW_SUPPORT_EMAIL` using real, monitored business details.
+- `VERIFYFLOW_MONNIFY_WEBHOOK_CONFIRMED=true` only after the production webhook URL has been configured and successfully tested.
+- `VERIFYFLOW_POLICIES_REVIEWED=true` only after the Terms, Privacy and Acceptable Use pages have been completed and reviewed.
+- `VERIFYFLOW_TAX_SETUP_CONFIRMED=true` only after tax registration, collection and invoicing requirements have been checked for intended markets.
+- `VERIFYFLOW_REFUND_PROCESS_CONFIRMED=true` only after a manual refund and customer-notification process has been documented. Automated refunds are not implemented.
+- The existing live payment and VoidMob fulfilment flags only after Monnify and supplier approvals, safe spending limits, sandbox tests and reconciliation tests are complete.
+
+A green configuration item is not a guarantee of launch approval. Keep live orders disabled until every external provider, legal, operational and deployment check has been completed.
+
 ## Tax and launch readiness
 
 The current storefront shows USD supplier/retail prices but does not calculate, collect or remit VAT/sales tax. The displayed amount is not a tax-compliant global landed price. Before selling in a country, obtain advice on the seller's registration, invoicing, VAT/sales tax, consumer cancellation/refund rights, privacy and acceptable-use obligations, and configure tax collection for the relevant markets.

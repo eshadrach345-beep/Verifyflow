@@ -26,6 +26,18 @@ th{background:#f7f8f8;color:#4b555a;font-size:11px;text-transform:uppercase;lett
 .status.paid,.status.completed{background:#e8f5e9;color:#216e39}.status.failed,.status.refunded{background:#fff0ed;color:#a33b2b}
 .empty{text-align:center;padding:28px;color:#66727b}
 .admin-foot{font-size:12px;line-height:1.6;color:#66727b;margin-top:14px}
+.readiness-good{border-color:#b8d8c2;background:#f0f8f2;color:#215d35}
+.readiness-warn{border-color:#e5c58b;background:#fff8e9;color:#7b5418}
+.readiness-card{display:flex;flex-direction:column;gap:6px}
+.readiness-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.readiness-card-head strong{margin:0}
+.readiness-pill{flex:0 0 auto;border-radius:20px;padding:4px 8px;background:#eef2f3;color:#43515a;font-size:10px;font-weight:800}
+.readiness-ready .readiness-pill{background:#e8f5e9;color:#216e39}
+.readiness-needs_action .readiness-pill{background:#fff0ed;color:#a33b2b}
+.readiness-review .readiness-pill{background:#fff6df;color:#8a6218}
+.readiness-action{color:#47545c!important}
+.readiness-optional{font-style:italic;color:#77838a!important}
+
 @media(max-width:700px){.admin-grid{grid-template-columns:1fr}.admin-top{align-items:flex-start;flex-direction:column}.admin-top h1{font-size:24px}}
 </style>
 </head>
@@ -34,6 +46,7 @@ th{background:#f7f8f8;color:#4b555a;font-size:11px;text-transform:uppercase;lett
 <main class="admin-shell"><div class="admin-wrap">
 <div class="admin-top"><div><div class="muted">VERIFYFLOW OPERATIONS</div><h1>Admin order dashboard</h1><p>Monitor paid orders and see which supplier/platform needs operational attention.</p></div><button class="admin-btn" id="refresh" type="button">↻ Refresh report</button></div>
 <div class="admin-alert" id="message" role="status" aria-live="polite">Checking admin access…</div>
+<section class="admin-section"><h2>Launch readiness</h2><p class="muted">Server-side configuration, required database migrations and owner launch confirmations. A configured flag is not proof of provider approval or legal compliance.</p><div class="admin-alert" id="readiness-summary">Checking launch requirements…</div><div class="admin-grid" id="readiness-checks"><div class="empty">Loading launch checks…</div></div></section>
 <section class="admin-section"><h2>Supplier funding & fulfilment queue</h2><p class="muted">Paid orders grouped by supplier and product platform, with customer sales separated from estimated supplier costs.</p><div class="admin-grid" id="funding"><div class="empty">Loading report…</div></div><p class="admin-foot">Supplier purchases run from the protected fulfilment queue. Supplier wallet deposits remain a separate manual action.</p></section>
 <section class="admin-section"><h2>Social marketing supplier connections</h2><p class="muted">Live supplier wallet balances, catalogue sync and eligible service pricing. API credentials stay server-side.</p><div class="admin-grid" id="supplier-connections"><div class="empty">Loading supplier connections…</div></div></section>
 <section class="admin-section"><h2>Supplier fulfilment queue</h2><p class="muted">Paid orders awaiting submission, supplier responses and any items requiring reconciliation. Unknown outcomes are held rather than blindly purchased again.</p><div class="admin-table-wrap"><table><thead><tr><th>Order</th><th>Product</th><th>Queue status</th><th>Supplier status</th><th>Supplier cost</th><th>Issue</th><th>Action</th></tr></thead><tbody id="fulfilment-queue"><tr><td colspan="7" class="empty">Loading queue…</td></tr></tbody></table></div><p class="admin-foot">Submitting a pending order sends one supplier request using the same permanent idempotency key for retries. Failed orders may need a customer refund; unknown orders need reconciliation first.</p></section>
@@ -64,4 +77,5 @@ th{background:#f7f8f8;color:#4b555a;font-size:11px;text-transform:uppercase;lett
 </script>
 <script src="/admin-suppliers.js" defer></script>
 <script src="/admin-fulfilment.js" defer></script>
+<script src="/admin-readiness.js" defer></script>
 </body></html>
