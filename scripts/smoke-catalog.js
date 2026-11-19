@@ -66,11 +66,11 @@ async function main() {
     assert.equal(body.summary.proxies, 1);
     assert.equal(body.summary.dedicated, 1);
     assert.equal(body.sections.sms.items[0].priceCents, 55);
-    assert.equal(body.sections.rentals.items[0].durations[0].priceCents, 1950);
-    assert.equal(body.sections.rentals.items[0].durations[1].priceCents, 5460);
-    assert.equal(body.sections.esim.items[0].priceCents, 1875);
-    assert.equal(body.sections.proxies.items[0].priceCents, 3750);
-    assert.equal(body.sections.dedicated.items[0].priceCents, 4374);
+    assert.equal(body.sections.rentals.items[0].durations[0].priceCents, 2100);
+    assert.equal(body.sections.rentals.items[0].durations[1].priceCents, 5880);
+    assert.equal(body.sections.esim.items[0].priceCents, 2025);
+    assert.equal(body.sections.proxies.items[0].priceCents, 4050);
+    assert.equal(body.sections.dedicated.items[0].priceCents, 4724);
     assert.equal(body.sections.sms.items[0].name, "Telegram");
     assert.equal(body.sections.esim.items[0].title, "Europe 5 GB · 30 Days");
     assert.equal(body.sections.proxies.items[0].country, "United Kingdom");
