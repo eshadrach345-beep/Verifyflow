@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("node:assert/strict");
-const { buildPurchase, purchase, getOrder } = require("../lib/voidmob");
+const { buildPurchase, purchase, getOrder, getProxyCredentials } = require("../lib/voidmob");
 const { mapSupplierState } = require("../lib/fulfilment");
 
 async function main() {
@@ -86,6 +86,15 @@ async function main() {
     assert.equal(calls[beforePurchaseCalls].options.headers.Authorization, "Bearer mock-only-key");
 
     await assert.rejects(() => purchase("sms_otp", { serviceId: "svc_test", maxPriceCents: 50 }, "bad"), { code: "INVALID_IDEMPOTENCY_KEY" });
+    global.fetch = async (url, options) => {
+      assert(String(url).includes("/proxies/prx_mock/flex_credentials"));
+      assert.equal(options.headers["Idempotency-Key"], "vf-proxy-credentials-test");
+      return new Response(JSON.stringify({ success: true, data: { proxy: {
+        gateway: { host: "proxy.example", port: 10092, username: "vf-user", password: "mock-password", protocol: "http" }
+      } } }), { status: 200 });
+    };
+    const credentials = await getProxyCredentials("prx_mock", "vf-proxy-credentials-test");
+    assert.equal(credentials.gateway.host, "proxy.example");
     global.fetch = async () => new Response(JSON.stringify({ success: true, data: { status: "active", id: "ren_mock_123" } }), { status: 200 });
     const rentalStatus = await getOrder("long_term_number", "ren_mock_123");
     assert.equal(rentalStatus.id, "ren_mock_123");
