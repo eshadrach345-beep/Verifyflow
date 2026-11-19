@@ -195,7 +195,7 @@ module.exports = async function handler(req, res) {
       available: Boolean(service.available),
       durations
     };
-  });
+  }).filter(item => item.durations.length > 0);
 
   const esimItems = esim.items.map(product => ({
     id: product.id,
