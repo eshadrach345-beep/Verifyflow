@@ -66,6 +66,9 @@
       renderProducts();
       const summary = providers.map(p => p.label + ": " + (p.connected ? (p.services.length + " services loaded") : "not connected")).join(" · ");
       message.textContent = "Supplier catalogues loaded · " + summary + " · " + products.length + " saved products.";
+      if (data.productsTableReady === false) {
+        message.textContent += " · " + (data.productsMessage || "Apply the SMM product database migration before saving and publishing.");
+      }
     } catch (error) {
       message.textContent = error.message || "Unable to load SMM products.";
       productsBody.innerHTML = '<tr><td colspan="6" class="empty">' + esc(message.textContent) + '</td></tr>';
