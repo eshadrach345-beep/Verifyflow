@@ -70,6 +70,7 @@
   }
 
   function productDetails(category, item) {
+    if (item?.provider === "herosms") return null;
     if (category === "sms") return { type: "sms_otp", id: item.id, country: "us", available: item.available === true, price: item.priceCents };
     if (category === "rentals") { const durations = (item.durations || []).filter(x => Number.isSafeInteger(Number(x.priceCents)) && Number(x.priceCents) > 0).map(x => ({ days: Number(x.days), price: Number(x.priceCents) })); return { type: "long_term_number", id: item.id, country: "us", available: item.available === true, price: Math.min(...durations.map(x => x.price)), durations }; }
     if (category === "esim") return { type: "esim", id: item.id, available: true, price: item.priceCents };
@@ -88,7 +89,11 @@
       const item = rows[index];
       if (!item) return;
       const product = productDetails(category, item);
-      if (!product || !product.id || !Number.isSafeInteger(Number(product.price)) || Number(product.price) <= 0) return;
+      if (!product) {
+        if (item?.provider === "herosms") card.querySelector(".catalog-item-copy")?.insertAdjacentHTML("beforeend", '<div class="vf-buy-area"><button class="vf-buy-button" type="button" disabled>HeroSMS checkout integration in progress</button></div>');
+        return;
+      }
+      if (!product.id || !Number.isSafeInteger(Number(product.price)) || Number(product.price) <= 0) return;
       const durations = product.durations || [];
       const select = category === "rentals" && durations.length
         ? '<select aria-label="Choose rental period" data-rental-days>' + durations.map(option => '<option value="' + esc(option.days) + '">' + esc(option.days) + ' days</option>').join("") + '</select>'
