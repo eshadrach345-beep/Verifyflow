@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#131921">
+<title>Admin — VerifyFlow</title><link rel="stylesheet" href="/styles.css">
+<style>
+.admin-shell{background:#eaeded;min-height:75vh;padding:30px 16px 60px;color:#0f1111;font-family:Inter,Arial,sans-serif}
+.admin-wrap{max-width:1240px;margin:auto}
+.admin-top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}
+.admin-top h1{font-size:28px;margin:4px 0}.admin-top p,.muted{color:#565959;font-size:13px}
+.admin-btn{border:1px solid #c8d0d2;background:#fff;border-radius:22px;padding:10px 16px;font-weight:700;cursor:pointer}
+.admin-btn:disabled{opacity:.6}
+.admin-alert{background:#fff;border:1px solid #d5d9d9;border-radius:9px;padding:16px;margin:14px 0;color:#565959;font-size:14px}
+.admin-section{background:#fff;border:1px solid #d5d9d9;border-radius:10px;padding:18px;margin:16px 0}
+.admin-section h2{font-size:19px;margin:0 0 5px}
+.admin-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.admin-card{border:1px solid #e1e5e6;border-radius:8px;padding:15px;min-width:0}
+.admin-card strong{display:block;font-size:15px;margin-bottom:6px}.admin-card .big{font-size:23px;font-weight:800}
+.admin-card small{display:block;color:#66727b;line-height:1.5;margin-top:6px}
+.admin-table-wrap{overflow:auto;margin-top:14px}
+table{border-collapse:collapse;width:100%;min-width:850px;font-size:13px}
+th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #e8ebed;vertical-align:top}
+th{background:#f7f8f8;color:#4b555a;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+.status{display:inline-block;border-radius:20px;padding:5px 8px;background:#eef2f3;font-size:11px;font-weight:700}
+.status.paid,.status.completed{background:#e8f5e9;color:#216e39}.status.failed,.status.refunded{background:#fff0ed;color:#a33b2b}
+.empty{text-align:center;padding:28px;color:#66727b}
+.admin-foot{font-size:12px;line-height:1.6;color:#66727b;margin-top:14px}
+@media(max-width:700px){.admin-grid{grid-template-columns:1fr}.admin-top{align-items:flex-start;flex-direction:column}.admin-top h1{font-size:24px}}
+</style>
+</head>
+<body>
+<header class="site-header"><div class="header-main"><a class="brand" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><nav class="header-links"><a href="/">Storefront</a><a href="/account.html">Customer account</a></nav></div></header>
+<main class="admin-shell"><div class="admin-wrap">
+<div class="admin-top"><div><div class="muted">VERIFYFLOW OPERATIONS</div><h1>Admin order dashboard</h1><p>Monitor paid orders and see which supplier/platform needs operational attention.</p></div><button class="admin-btn" id="refresh" type="button">↻ Refresh report</button></div>
+<div class="admin-alert" id="message" role="status" aria-live="polite">Checking admin access…</div>
+<section class="admin-section"><h2>Supplier funding & fulfilment queue</h2><p class="muted">Paid orders grouped by supplier and product platform. These are customer sale totals, not supplier funding costs.</p><div class="admin-grid" id="funding"><div class="empty">Loading report…</div></div><p class="admin-foot">“Awaiting supplier submission” means the order is paid but has no supplier order ID recorded. This dashboard does not transfer funds or submit supplier orders.</p></section>
+<section class="admin-section"><h2>Latest customer orders</h2><p class="muted">Up to 200 most recent orders, including payment and supplier references.</p><div class="admin-table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Product / platform</th><th>Supplier</th><th>Payment</th><th>Order status</th><th>Total</th><th>Supplier ref</th><th>Date</th></tr></thead><tbody id="orders"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody></table></div></section>
+</div></main>
+<script>
+(()=>{
+ const message=document.getElementById("message"),funding=document.getElementById("funding"),orders=document.getElementById("orders"),refresh=document.getElementById("refresh");
+ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const money=(minor,currency)=>{const n=Number(minor||0)/100;try{return new Intl.NumberFormat("en-US",{style:"currency",currency:currency||"USD"}).format(n)}catch{return (currency||"")+" "+n.toFixed(2)}};
+ async function load(){
+  refresh.disabled=true;message.textContent="Loading the latest orders…";
+  try{
+   const response=await fetch("/api/admin/orders",{credentials:"same-origin",cache:"no-store",headers:{Accept:"application/json"}});
+   const data=await response.json();
+   if(response.status===401){message.textContent="Please sign in to your VerifyFlow account first.";funding.innerHTML='<div class="empty">Admin sign-in required.</div>';orders.innerHTML="";return}
+   if(response.status===403){message.textContent="This account is not on the VerifyFlow admin allowlist.";funding.innerHTML="";orders.innerHTML="";return}
+   if(!response.ok||!data.ok)throw new Error(data.error||"Could not load report.");
+   message.textContent="Report updated "+new Date(data.updatedAt).toLocaleString()+" · "+data.orders.length+" recent orders";
+   const groups=data.fundingSummary||[];
+   funding.innerHTML=groups.length?groups.map(x=>'<article class="admin-card"><strong>'+esc(x.supplier.toUpperCase())+' · '+esc(x.platform)+'</strong><div class="big">'+esc(x.orders)+' paid order'+(x.orders===1?"":"s")+'</div><small>Customer order total: '+esc(money(x.amountMinor,x.currency))+'</small><small>Awaiting supplier submission: <b>'+esc(x.awaitingSupplierSubmission)+'</b></small></article>').join(""):'<div class="empty">No paid orders currently require supplier attention.</div>';
+   orders.innerHTML=data.orders.length?data.orders.map(x=>'<tr><td><b>'+esc(x.orderNumber)+'</b></td><td>'+esc(x.customerEmail)+'</td><td>'+esc(x.productName)+'<br><span class="muted">'+esc(x.platform)+'</span></td><td>'+esc(x.supplier)+'</td><td><span class="status '+esc(x.paymentStatus)+'">'+esc(x.paymentStatus)+'</span></td><td><span class="status '+esc(x.status)+'">'+esc(x.status)+'</span></td><td>'+esc(money(x.totalMinor,x.currency))+'</td><td>'+esc(x.supplierOrderId||"Not submitted")+'</td><td>'+esc(new Date(x.createdAt).toLocaleString())+'</td></tr>').join(""):'<tr><td colspan="9" class="empty">No customer orders found.</td></tr>';
+  }catch(error){message.textContent=error.message||"Report unavailable.";funding.innerHTML='<div class="empty">Unable to load funding summary.</div>'}
+  finally{refresh.disabled=false}
+ }
+ refresh.addEventListener("click",load);load();
+})();
+</script>
+</body></html>
