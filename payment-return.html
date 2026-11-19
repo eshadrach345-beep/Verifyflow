@@ -10,13 +10,13 @@
 </style>
 </head>
 <body>
-<div class="announcement">VerifyFlow payment test</div>
+<div class="announcement">VerifyFlow secure checkout</div>
 <header class="vf-store-header"><div class="vf-topbar"><a class="brand vf-store-brand" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><a class="vf-account" href="/dashboard.html"><small>Account</small><strong>Dashboard</strong></a></div></header>
 <main class="payment-result"><section class="payment-result-card">
 <h1>Checking your payment</h1>
 <p id="payment-result-copy">We're confirming the transaction directly with Monnify. Please keep this page open.</p>
 <div class="payment-result-status" id="payment-result-status" role="status" aria-live="polite">Verifying…</div>
-<div class="payment-result-links"><a href="/payment-test.html">Run another sandbox test</a><a href="/dashboard.html">Open dashboard</a></div>
+<div class="payment-result-links"><a href="/account.html">View your orders</a><a href="/dashboard.html">Return to marketplace</a></div>
 </section></main>
 <script>
 (() => {
@@ -31,8 +31,8 @@
    const data=await response.json().catch(()=>({}));
    if(!response.ok||!data.ok)throw new Error(data.error||"We couldn't confirm the payment yet.");
    const state=data.payment.status;
-   status.textContent=state==="paid"?"Sandbox payment verified":state==="pending"?"Payment is still pending":state==="amount_mismatch"?"Payment needs manual review":"Payment status: "+state;
-   copy.textContent=state==="paid"?"Monnify confirmed the test payment. No VerifyFlow service was supplied.":state==="pending"?"Monnify has not confirmed payment yet. Refresh this page in a moment.":"This was a sandbox test only. No service was supplied.";
+   status.textContent=state==="paid"?"Payment verified":state==="pending"?"Payment is still pending":state==="amount_mismatch"?"Payment needs manual review":"Payment status: "+state;
+   copy.textContent=state==="paid"?"Monnify confirmed your payment. Your order is being processed and its latest status will appear in your account.":state==="pending"?"Monnify has not confirmed payment yet. Refresh this page in a moment.":"Your payment needs attention. Your account will show the latest order status.";
   }catch(error){status.textContent="Could not verify yet";copy.textContent=error.message||"Please sign in to the same VerifyFlow account and refresh this page."}
  }
  verify();
