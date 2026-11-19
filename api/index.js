@@ -10,6 +10,7 @@ const routes = {
   "admin/readiness": require("../api-handlers/admin/readiness"),
   "admin/suppliers": require("../api-handlers/admin/suppliers"),
   "admin/smm-products": require("../api-handlers/admin/smm-products"),
+  "admin/support": require("../api-handlers/support-chat"),
   "auth/login": require("../api-handlers/auth/login"),
   "auth/logout": require("../api-handlers/auth/logout"),
   "auth/me": require("../api-handlers/auth/me"),
@@ -25,6 +26,7 @@ const routes = {
   "orders": require("../api-handlers/orders"),
   "orders/create": require("../api-handlers/orders/create"),
   "orders/refresh": require("../api-handlers/orders/refresh"),
+  "support/chat": require("../api-handlers/support-chat"),
   "payments/create-test": require("../api-handlers/payments/create-test"),
   "payments/verify": require("../api-handlers/payments/verify"),
   "payments/webhook": require("../api-handlers/payments/webhook")
