@@ -164,4 +164,21 @@ const vfCards=[...document.querySelectorAll(".market-card")];
 function vfFilter(value){const q=value.trim().toLowerCase();vfCards.forEach(card=>{card.hidden=!!q&&!card.textContent.toLowerCase().includes(q);});}
 vfSearch?.addEventListener("input",()=>{if(vfMarketplaceSearch)vfMarketplaceSearch.value=vfSearch.value;vfFilter(vfSearch.value);});
 vfMarketplaceSearch?.addEventListener("input",()=>{if(vfSearch)vfSearch.value=vfMarketplaceSearch.value;vfFilter(vfMarketplaceSearch.value);});
-</script></body></html>
+</script><script>
+/* Keep the storefront account link in sync with the signed-in customer session. */
+(async()=>{
+ const link=document.querySelector(".vf-account");
+ if(!link)return;
+ try{
+  const response=await fetch("/api/auth/me",{credentials:"same-origin",cache:"no-store",headers:{Accept:"application/json"}});
+  const data=await response.json();
+  if(!response.ok||!data.ok||!data.user)return;
+  const user=data.user;
+  const firstName=String(user.fullName||user.full_name||"").trim().split(/\\s+/)[0];
+  link.href="/dashboard.html";
+  link.innerHTML="<small>"+(firstName?"Welcome, "+firstName:"Your account")+"</small><strong>My Account</strong>";
+  link.setAttribute("aria-label","Open your VerifyFlow account");
+ }catch(error){/* Keep the normal sign-in link if session status cannot be checked. */}
+})();
+</script>
+</body></html>
