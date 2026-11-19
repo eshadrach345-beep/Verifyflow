@@ -515,7 +515,7 @@
  };
  const productKey=(category,item)=>{
   const base=item.id??item.productId??item.country??item.title??item.name??item.full_title??"";
-  return String(base);
+  return String(item.provider||item.providerLabel||"")+":"+String(base);
  };
  const card=(category,title,meta,detail,priceCents,priceNote,tag="AVAILABLE",currency="USD",country="",key="")=>{
   const brand=logoFor(title),flag=flagFor(country),logo=brand?'<img class="catalog-brand-logo" src="'+brand.url+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">':'';
