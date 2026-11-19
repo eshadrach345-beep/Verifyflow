@@ -388,7 +388,7 @@
    const response=await fetch("/api/catalog?country="+encodeURIComponent(country),{headers:{Accept:"application/json"},cache:"no-store"});
    const data=await response.json();
    if(!response.ok||!data.sections)throw new Error("Please refresh again shortly.");
-   catalogue=data;render();
+   catalogue=data;render();if(active==="marketing")loadMarketingCatalogue();
   }catch(error){
    catalogue=null;empty("We couldn't load the catalogue just now.");status.textContent="Please refresh to try again.";
   }finally{
@@ -411,7 +411,7 @@
   active=tab.dataset.catalogTab;
   tabs.forEach(item=>{const selected=item===tab;item.classList.toggle("is-active",selected);item.setAttribute("aria-selected",String(selected));});
   render();
-  if(active==="marketing"&&!catalogue?.sections?.marketing)loadMarketingCatalogue();
+  if(active==="marketing"&&(!catalogue?.sections?.marketing||!catalogue.sections.marketing.ok))loadMarketingCatalogue();
  }));
  refresh.addEventListener("click",load);
  countryInput?.addEventListener("change",load);
