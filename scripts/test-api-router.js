@@ -7,6 +7,12 @@ function response() {
     headers: {},
     body: "",
     setHeader(name, value) { this.headers[name.toLowerCase()] = value; },
+    status(code) { this.statusCode = code; return this; },
+    json(value) {
+      this.setHeader("Content-Type", "application/json; charset=utf-8");
+      this.body = JSON.stringify(value);
+      return this;
+    },
     end(value) { this.body = String(value || ""); }
   };
 }
