@@ -16,6 +16,7 @@ const routes = {
   "auth/reset-password": require("../api-handlers/auth/reset-password"),
   "auth/verify-email": require("../api-handlers/auth/verify-email"),
   "catalog": require("../api-handlers/catalog"),
+  "marketing-catalog": require("../api-handlers/marketing-catalog"),
   "db-status": require("../api-handlers/db-status"),
   "health": require("../api-handlers/health"),
   "orders": require("../api-handlers/orders"),

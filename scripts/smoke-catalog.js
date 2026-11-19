@@ -1,5 +1,5 @@
 const assert = require("node:assert/strict");
-const handler = require("../api/catalog");
+const handler = require("../api-handlers/catalog");
 
 function response() {
   return {

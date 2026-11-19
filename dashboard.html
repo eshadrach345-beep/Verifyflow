@@ -262,6 +262,7 @@
       <button class="catalog-tab" data-catalog-tab="esim" type="button" aria-selected="false">eSIM data</button>
       <button class="catalog-tab" data-catalog-tab="proxies" type="button" aria-selected="false">Mobile proxies</button>
       <button class="catalog-tab" data-catalog-tab="dedicated" type="button" aria-selected="false">Dedicated numbers</button>
+      <button class="catalog-tab" data-catalog-tab="marketing" type="button" aria-selected="false">Marketing services</button>
     </div>
     <div class="catalog-state-row"><div class="catalog-status" id="catalog-status" aria-live="polite">Loading live catalogue…</div><span class="catalog-live-indicator"><i></i> Live listings</span></div>
     <div class="catalog-grid" id="catalog-grid"></div>
@@ -290,7 +291,7 @@
  let catalogue=null, active="sms", loading=false;
 
  const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
- const icons={sms:"✉",rentals:"◉",esim:"⌁",proxies:"◎",dedicated:"▣"};
+ const icons={sms:"✉",rentals:"◉",esim:"⌁",proxies:"◎",dedicated:"▣",marketing:"✦"};
  const appBrands=[
   ["whatsapp","whatsapp","25D366"],["telegram","telegram","26A5E4"],["google","google","4285F4"],["gmail","gmail","EA4335"],
   ["instagram","instagram","E4405F"],["facebook","facebook","0866FF"],["tiktok","tiktok","111111"],["discord","discord","5865F2"],
@@ -372,6 +373,8 @@
     const from=prices.length?Math.min(...prices):null;
     return card("rentals",x.name||"Long-term number",String(catalogue.country||"us").toUpperCase()+" · Choose your rental period",detail,from,"from · before VAT/tax",x.available&&durations.length?"AVAILABLE":"LIMITED","USD",catalogue.country);
    }).join("");
+  }else if(active==="marketing"){
+   grid.innerHTML=rows.map(x=>'<article class="catalog-item catalog-marketing"><div class="catalog-item-visual"><span class="catalog-art-icon">✦</span><i class="catalog-art-orbit"></i><small>SUPPLIER LISTED</small></div><div class="catalog-item-copy"><h3>'+esc(x.name||"Marketing service")+'</h3><p>'+esc(x.category||"Marketing")+' · '+esc(x.providerLabel||"Supplier")+'</p><div class="catalog-item-detail">Order limits: '+esc(x.min)+'–'+esc(x.max)+(x.refill?' · Refill listed':'')+(x.cancel?' · Cancellation listed':'')+'</div><div class="catalog-price-row"><strong>Price being verified</strong><small>Checkout opens after supplier rate units and currency are confirmed.</small></div></div></article>').join("");
   }
  }
  async function load(){
@@ -392,10 +395,23 @@
    loading=false;refresh.disabled=false;refresh.textContent="↻ Refresh catalogue";
   }
  }
+ async function loadMarketingCatalogue(){
+  if(!catalogue||catalogue.sections?.marketing?.loading)return;
+  catalogue.sections.marketing={ok:false,items:[],loading:true,message:"Loading eligible services…"};
+  status.textContent="Checking eligible marketing services…";
+  try{
+   const response=await fetch("/api/marketing-catalog",{headers:{Accept:"application/json"},cache:"no-store"});
+   const data=await response.json();
+   if(!response.ok||!data.ok)throw new Error(data.message||"Marketing services are temporarily unavailable.");
+   catalogue.sections.marketing={ok:true,items:Array.isArray(data.items)?data.items:[],message:null};
+  }catch(error){catalogue.sections.marketing={ok:false,items:[],message:error.message||"Marketing services are temporarily unavailable."};}
+  if(active==="marketing")render();
+ }
  tabs.forEach(tab=>tab.addEventListener("click",()=>{
   active=tab.dataset.catalogTab;
   tabs.forEach(item=>{const selected=item===tab;item.classList.toggle("is-active",selected);item.setAttribute("aria-selected",String(selected));});
   render();
+  if(active==="marketing"&&!catalogue?.sections?.marketing)loadMarketingCatalogue();
  }));
  refresh.addEventListener("click",load);
  countryInput?.addEventListener("change",load);
