@@ -90,7 +90,7 @@ module.exports = async function handler(req, res) {
 
     const fundingMap = new Map();
     for (const order of orders) {
-      if (order.supplier !== "voidmob" || !["paid", "processing", "completed", "failed"].includes(order.status) || order.paymentStatus !== "paid") continue;
+      if (!["voidmob", "herosms", "peakerr", "justanotherpanel"].includes(order.supplier) || !["paid", "processing", "completed", "failed"].includes(order.status) || order.paymentStatus !== "paid") continue;
       const key = order.supplier + "::" + order.platform;
       const current = fundingMap.get(key) || {
         supplier: order.supplier,
