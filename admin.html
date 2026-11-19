@@ -119,6 +119,16 @@ fetch("/api/admin/access",{credentials:"same-origin",cache:"no-store",headers:{A
 <p class="admin-foot">Saving publishes the product to the Social Media Boosters catalogue immediately after the new version is deployed. The customer supplies their public profile or content link and quantity at checkout. Supplier orders are submitted only after Monnify confirms payment and the production fulfilment switches have been approved.</p>
 </section>
 <section class="admin-section"><h2>Supplier fulfilment queue</h2><p class="muted">Paid orders awaiting submission, supplier responses and any items requiring reconciliation. Unknown outcomes are held rather than blindly purchased again.</p><div class="admin-table-wrap"><table><thead><tr><th>Order</th><th>Product</th><th>Queue status</th><th>Supplier status</th><th>Supplier cost</th><th>Issue</th><th>Action</th></tr></thead><tbody id="fulfilment-queue"><tr><td colspan="7" class="empty">Loading queue…</td></tr></tbody></table></div><p class="admin-foot">Submitting a pending order sends one supplier request using the same permanent idempotency key for retries. Failed orders may need a customer refund; unknown orders need reconciliation first.</p></section>
+<section class="admin-section" id="customer-support-inbox">
+<h2>Customer support inbox</h2>
+<p class="muted">AI handles common VerifyFlow website questions first. When a customer requests a person, their conversation is prioritised here for an admin reply.</p>
+<div class="vf-support-inbox">
+<div class="vf-support-list" id="vf-support-list"><p class="empty">Loading customer conversations…</p></div>
+<div class="vf-support-thread" id="vf-support-thread"><p class="empty">Choose a customer conversation to read and reply.</p></div>
+</div>
+<form class="vf-support-reply-form" id="vf-support-reply-form"><textarea rows="2" maxlength="4000" placeholder="Write a reply to the selected customer…" required></textarea><button class="admin-btn" type="submit">Send reply</button></form>
+<p class="admin-foot">Customers receive your reply in the same chat window. The AI stops replying after a human agent takes over.</p>
+</section>
 <section class="admin-section"><h2>Latest customer orders</h2><p class="muted">Up to 200 most recent orders, including payment and supplier references.</p><div class="admin-table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Product / platform</th><th>Supplier</th><th>Payment</th><th>Order status</th><th>Total</th><th>Supplier ref</th><th>Date</th></tr></thead><tbody id="orders"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody></table></div></section>
 </div></main>
 <script>
@@ -148,4 +158,5 @@ fetch("/api/admin/access",{credentials:"same-origin",cache:"no-store",headers:{A
 <script src="/admin-smm-products.js" defer></script>
 <script src="/admin-fulfilment.js" defer></script>
 <script src="/admin-readiness.js" defer></script>
+<script src="/admin-support.js" defer></script>
 </body></html>
