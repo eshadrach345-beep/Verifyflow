@@ -11,7 +11,6 @@ module.exports = async function handler(req, res) {
     const result = await getPool().query(
       `SELECT o.id, o.order_number, o.product_type, o.product_name, o.status, o.currency,
               o.total_minor, o.created_at, o.updated_at,
-              o.metadata->'fulfilment'->'serviceData' AS service_data,\n              o.metadata->'checkout'->'productSnapshot' AS product_snapshot,
               (SELECT j.status FROM vf_fulfilment_jobs j WHERE j.order_id = o.id LIMIT 1) AS fulfilment_status,
               COALESCE((
                 SELECT json_agg(
