@@ -35,6 +35,7 @@ th{background:#f7f8f8;color:#4b555a;font-size:11px;text-transform:uppercase;lett
 <div class="admin-top"><div><div class="muted">VERIFYFLOW OPERATIONS</div><h1>Admin order dashboard</h1><p>Monitor paid orders and see which supplier/platform needs operational attention.</p></div><button class="admin-btn" id="refresh" type="button">↻ Refresh report</button></div>
 <div class="admin-alert" id="message" role="status" aria-live="polite">Checking admin access…</div>
 <section class="admin-section"><h2>Supplier funding & fulfilment queue</h2><p class="muted">Paid orders grouped by supplier and product platform, with customer sales separated from estimated supplier costs.</p><div class="admin-grid" id="funding"><div class="empty">Loading report…</div></div><p class="admin-foot">Supplier purchases run from the protected fulfilment queue. Supplier wallet deposits remain a separate manual action.</p></section>
+<section class="admin-section"><h2>Social marketing supplier connections</h2><p class="muted">Live supplier wallet balances, catalogue sync and eligible service pricing. API credentials stay server-side.</p><div class="admin-grid" id="supplier-connections"><div class="empty">Loading supplier connections…</div></div></section>
 <section class="admin-section"><h2>Supplier fulfilment queue</h2><p class="muted">Paid orders awaiting submission, supplier responses and any items requiring reconciliation. Unknown outcomes are held rather than blindly purchased again.</p><div class="admin-table-wrap"><table><thead><tr><th>Order</th><th>Product</th><th>Queue status</th><th>Supplier status</th><th>Supplier cost</th><th>Issue</th><th>Action</th></tr></thead><tbody id="fulfilment-queue"><tr><td colspan="7" class="empty">Loading queue…</td></tr></tbody></table></div><p class="admin-foot">Submitting a pending order sends one supplier request using the same permanent idempotency key for retries. Failed orders may need a customer refund; unknown orders need reconciliation first.</p></section>
 <section class="admin-section"><h2>Latest customer orders</h2><p class="muted">Up to 200 most recent orders, including payment and supplier references.</p><div class="admin-table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Product / platform</th><th>Supplier</th><th>Payment</th><th>Order status</th><th>Total</th><th>Supplier ref</th><th>Date</th></tr></thead><tbody id="orders"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody></table></div></section>
 </div></main>
@@ -61,5 +62,6 @@ th{background:#f7f8f8;color:#4b555a;font-size:11px;text-transform:uppercase;lett
  refresh.addEventListener("click",load);load();
 })();
 </script>
+<script src="/admin-suppliers.js" defer></script>
 <script src="/admin-fulfilment.js" defer></script>
 </body></html>
