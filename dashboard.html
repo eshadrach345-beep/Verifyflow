@@ -430,7 +430,7 @@
           <option value="ZA"><option value="KE"><option value="BR"><option value="JP">
           <option value="MX"><option value="PH"><option value="SG">
         </datalist>
-        <small id="catalog-country-help">Country availability varies by supplier. VerifyFlow combines supported countries and services from connected providers.</small>
+        <small id="catalog-country-help">Country availability varies by product. Browse supported services and current options.</small>
       </label>
       <label class="catalog-control catalog-search-control" for="catalog-search">Search products
         <input id="catalog-search" name="search" type="search" placeholder="Search every product, service or country..." autocomplete="off">
@@ -447,7 +447,7 @@
     </div>
     <div class="catalog-state-row"><div class="catalog-status" id="catalog-status" aria-live="polite">Loading all product categories…</div><span class="catalog-live-indicator"><i></i> Live listings</span></div>
     <div class="catalog-grid" id="catalog-grid"></div>
-    <p class="catalog-footnote">Prices are shown in USD. Supplier availability and prices can change before checkout. Applicable taxes are not calculated or collected by VerifyFlow at this stage. SMS and rental coverage varies by supplier and country. USD card checkout requires activation by Monnify.</p>
+    <p class="catalog-footnote">Prices are shown in USD. Availability and prices can change before checkout. Applicable taxes are not calculated or collected by VerifyFlow at this stage. Coverage varies by product and country. USD card checkout requires activation by Monnify.</p>
   </section>
 
 <section class="orders-panel" id="customer-orders" hidden>
@@ -515,7 +515,7 @@
  };
  const productKey=(category,item)=>{
   const base=item.id??item.productId??item.country??item.title??item.name??item.full_title??"";
-  return String(item.provider||item.providerLabel||"")+":"+String(base);
+  return String(base);
  };
  const card=(category,title,meta,detail,priceCents,priceNote,tag="AVAILABLE",currency="USD",country="",key="")=>{
   const brand=logoFor(title),flag=flagFor(country),logo=brand?'<img class="catalog-brand-logo" src="'+brand.url+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">':'';
@@ -528,7 +528,7 @@
  function renderProduct(category,x){
   const key=productKey(category,x);
   if(category==="sms"){
-   return card("sms",x.name||"SMS verification","One-time verification · "+String(catalogue.country||"us").toUpperCase(),x.available?((x.availableCount!=null?x.availableCount+" numbers reported by ":"")+String(x.provider||"Supplier").toUpperCase()+" stock is currently available."):"Supplier stock is not currently available.",x.priceCents,"per activation · "+String(x.provider||"supplier").toUpperCase()+" · before VAT/tax",x.available?("AVAILABLE · "+String(x.provider||"SUPPLIER").toUpperCase()):"OUT OF STOCK",x.currency,catalogue.country,key);
+   return card("sms",x.name||"SMS verification","One-time verification · "+String(catalogue.country||"us").toUpperCase(),x.available?"Numbers currently available.":"Currently unavailable.",x.priceCents,"per activation · before VAT/tax",x.available?"AVAILABLE":"OUT OF STOCK",x.currency,catalogue.country,key);
   }
   if(category==="esim"){
    const data=x.unlimited?"Unlimited data":(x.dataGb==null?"Data plan":x.dataGb+" GB");
@@ -549,10 +549,10 @@
   }
   if(category==="rentals"){
    const durations=Array.isArray(x.durations)?x.durations:[];
-   const detail=(x.availableCount!=null?x.availableCount+" numbers · ":"")+String(x.provider||"Supplier").toUpperCase()+" · "+(durations.length?durations.map(option=>option.days+" days: "+money(option.priceCents,option.currency)).join(" · "):"No rental durations currently listed");
+   const detail=(x.availableCount!=null?x.availableCount+" numbers · ":"")+(durations.length?durations.map(option=>option.days+" days: "+money(option.priceCents,option.currency)).join(" · "):"No rental durations currently listed");
    const prices=durations.map(option=>Number(option.priceCents)).filter(value=>Number.isSafeInteger(value)&&value>0);
    const from=prices.length?Math.min(...prices):null;
-   return card("rentals",x.name||"Long-term number",String(catalogue.country||"us").toUpperCase()+" · Choose your rental period",detail,from,"from · before VAT/tax",x.available&&durations.length?("AVAILABLE · "+String(x.provider||"SUPPLIER").toUpperCase()):"LIMITED","USD",catalogue.country,key);
+   return card("rentals",x.name||"Long-term number",String(catalogue.country||"us").toUpperCase()+" · Choose your rental period",detail,from,"from · before VAT/tax",x.available&&durations.length?"AVAILABLE":"LIMITED","USD",catalogue.country,key);
   }
   if(category==="marketing"){
    return card("marketing",(x.platform||"Social media")+" "+(x.name||"service"),x.description||"Social Media Boosters", "Choose a quantity between "+x.min+" and "+x.max+" and enter the public destination link.",x.pricePer1000Minor,"per 1,000 · USD · before applicable tax","AVAILABLE","USD","",key);
@@ -598,9 +598,6 @@
    if(!response.ok||!data.sections)throw new Error("Please refresh again shortly.");
    catalogue=data;
    const countryList=document.getElementById("catalog-country-options");
-   if(countryList&&Array.isArray(data.supplierCoverage?.heroSms?.countries)){
-    countryList.innerHTML=data.supplierCoverage.heroSms.countries.filter(item=>item.code&&item.name).map(item=>'<option value="'+esc(item.code.toUpperCase())+'" label="'+esc(item.name)+'"></option>').join("");
-   }
    render();if(active==="marketing"||active==="all")loadMarketingCatalogue();
   }catch(error){
    catalogue=null;empty("We couldn't load the catalogue just now.");status.textContent="Please refresh to try again.";
