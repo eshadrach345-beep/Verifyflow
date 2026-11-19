@@ -81,6 +81,8 @@ th{font-size:12px;letter-spacing:.5px}
  th,td{padding:12px 10px}
  .admin-foot{font-size:12px}
 }
+
+.smm-product-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:18px}.smm-product-form label{display:grid;gap:7px;font-size:13px;font-weight:700;color:#34414a}.smm-product-form input,.smm-product-form select,.smm-product-form textarea{width:100%;min-height:44px;border:1px solid #cbd4d8;border-radius:8px;padding:10px 12px;font:500 14px Inter,Arial;background:#fff;color:#18212b}.smm-description{grid-column:1/-1}.smm-selected-service{grid-column:1/-1;background:#f3f7f8;border:1px solid #dde6e8;padding:12px 14px;border-radius:8px;font-size:13px;line-height:1.6;color:#42515c}.smm-actions{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap}.smm-products-table{min-width:780px}.smm-products-table .admin-btn{min-height:34px;padding:7px 12px;font-size:12px}.smm-product-actions{display:flex;gap:7px;flex-wrap:wrap}@media(max-width:700px){.smm-product-form{grid-template-columns:1fr}.smm-description,.smm-selected-service,.smm-actions{grid-column:1}.smm-actions .admin-btn{width:100%}}
 </style>
 </head>
 <body>
@@ -91,6 +93,24 @@ th{font-size:12px;letter-spacing:.5px}
 <section class="admin-section"><h2>Launch readiness</h2><p class="muted">Server-side configuration, required database migrations and owner launch confirmations. A configured flag is not proof of provider approval or legal compliance.</p><div class="admin-alert" id="readiness-summary">Checking launch requirements…</div><div class="admin-grid" id="readiness-checks"><div class="empty">Loading launch checks…</div></div></section>
 <section class="admin-section"><h2>Supplier funding & fulfilment queue</h2><p class="muted">Paid orders grouped by supplier and product platform, with customer sales separated from estimated supplier costs.</p><div class="admin-grid" id="funding"><div class="empty">Loading report…</div></div><p class="admin-foot">Supplier purchases run from the protected fulfilment queue. Supplier wallet deposits remain a separate manual action.</p></section>
 <section class="admin-section"><h2>Social marketing supplier connections</h2><p class="muted">Live supplier wallet balances, catalogue sync and eligible service pricing. API credentials stay server-side.</p><div class="admin-grid" id="supplier-connections"><div class="empty">Loading supplier connections…</div></div></section>
+<section class="admin-section" id="smm-products-manager">
+<h2>Social Media Boosters — Product Manager</h2>
+<p class="muted">Choose a live service from Peakerr or JustAnotherPanel, set your selling price per 1,000, and publish it to the storefront. Supplier keys and raw API requests remain server-side.</p>
+<div class="admin-alert" id="smm-product-message" role="status" aria-live="polite">Loading supplier catalogues and saved products…</div>
+<form id="smm-product-form" class="smm-product-form">
+<input type="hidden" id="smm-product-id">
+<label>Supplier<select id="smm-provider" required><option value="peakerr">Peakerr</option><option value="justanotherpanel">JustAnotherPanel</option></select></label>
+<label>Supplier service<select id="smm-service-id" required><option value="">Loading services…</option></select></label>
+<label>Platform<input id="smm-platform" maxlength="60" placeholder="TikTok, Instagram, YouTube…" required></label>
+<label>Storefront product name<input id="smm-product-name" maxlength="140" placeholder="TikTok Likes" required></label>
+<label>Retail price per 1,000 (USD)<input id="smm-price" type="number" min="0.01" max="999999" step="0.01" placeholder="5.00" required></label>
+<label class="smm-description">Product description (optional)<textarea id="smm-description" rows="2" maxlength="500" placeholder="Describe what the customer is purchasing."></textarea></label>
+<div class="smm-selected-service" id="smm-selected-service">Choose a supplier service to see its limits and rate.</div>
+<div class="smm-actions"><button class="admin-btn" type="submit" id="smm-save">Save and publish product</button><button class="admin-btn" type="button" id="smm-reset">Clear form</button></div>
+</form>
+<div class="admin-table-wrap"><table class="smm-products-table"><thead><tr><th>Product</th><th>Supplier / service</th><th>Limits</th><th>Retail price / 1K</th><th>Status</th><th>Actions</th></tr></thead><tbody id="smm-products"><tr><td colspan="6" class="empty">Loading saved products…</td></tr></tbody></table></div>
+<p class="admin-foot">Saving publishes the product to the Social Media Boosters catalogue immediately after the new version is deployed. The customer supplies their public profile or content link and quantity at checkout. Supplier orders are submitted only after Monnify confirms payment and the production fulfilment switches have been approved.</p>
+</section>
 <section class="admin-section"><h2>Supplier fulfilment queue</h2><p class="muted">Paid orders awaiting submission, supplier responses and any items requiring reconciliation. Unknown outcomes are held rather than blindly purchased again.</p><div class="admin-table-wrap"><table><thead><tr><th>Order</th><th>Product</th><th>Queue status</th><th>Supplier status</th><th>Supplier cost</th><th>Issue</th><th>Action</th></tr></thead><tbody id="fulfilment-queue"><tr><td colspan="7" class="empty">Loading queue…</td></tr></tbody></table></div><p class="admin-foot">Submitting a pending order sends one supplier request using the same permanent idempotency key for retries. Failed orders may need a customer refund; unknown orders need reconciliation first.</p></section>
 <section class="admin-section"><h2>Latest customer orders</h2><p class="muted">Up to 200 most recent orders, including payment and supplier references.</p><div class="admin-table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Product / platform</th><th>Supplier</th><th>Payment</th><th>Order status</th><th>Total</th><th>Supplier ref</th><th>Date</th></tr></thead><tbody id="orders"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody></table></div></section>
 </div></main>
@@ -118,6 +138,7 @@ th{font-size:12px;letter-spacing:.5px}
 })();
 </script>
 <script src="/admin-suppliers.js" defer></script>
+<script src="/admin-smm-products.js" defer></script>
 <script src="/admin-fulfilment.js" defer></script>
 <script src="/admin-readiness.js" defer></script>
 </body></html>
