@@ -75,6 +75,7 @@ assert.ok(admin.includes("Social Media Boosters — Product Manager"), "Admin mu
 assert.ok(admin.includes('id="smm-product-form"'), "Admin must contain the product publishing form");
 assert.ok(adminSmm.includes('fetch("/api/admin/smm-products"'), "Admin must save products through the protected API");
 assert.ok(adminSmm.includes("Save and publish product"), "Admin must provide an explicit publish action");
+assert.ok(adminSmm.includes("Database setup required"), "Admin must disable publishing until the SMM product table exists");
 assert.ok(smmAdminApi.includes("readProvider(provider)"), "Admin must validate chosen supplier service IDs");
 assert.ok(smmAdminApi.includes("retail_rate_minor_per_1000"), "Admin must persist a retail rate per 1,000");
 assert.ok(smmAdminApi.includes("productsTableReady"), "Admin must report whether the SMM product table is installed");
