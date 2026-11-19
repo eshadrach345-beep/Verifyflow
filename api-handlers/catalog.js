@@ -236,11 +236,11 @@ module.exports = async function handler(req, res) {
   }));
 
   const mergedSmsItems = [
-    ...smsItems.map(item => ({ ...item })),
+    ...smsItems.map(item => ({ ...item, provider: "voidmob" })),
     ...(heroSms.ok ? (heroSms.items?.smsItems || []) : [])
   ];
   const mergedRentalItems = [
-    ...voidMobRentalItems.map(item => ({ ...item })),
+    ...voidMobRentalItems.map(item => ({ ...item, provider: "voidmob" })),
     ...(heroSms.ok ? (heroSms.items?.rentalItems || []) : [])
   ];
   const smsOk = services.ok || heroSms.ok;
