@@ -10,7 +10,7 @@ module.exports = async function handler(req, res) {
     if (!user) return sendJson(res, 401, { ok: false, error: "Please sign in to view your orders." });
     const result = await getPool().query(
       `SELECT o.id, o.order_number, o.product_type, o.product_name, o.status, o.currency,
-              o.total_minor, o.created_at, o.updated_at, o.supplier_order_id,
+              o.total_minor, o.created_at, o.updated_at,
               o.metadata->'fulfilment'->'serviceData' AS service_data,\n              o.metadata->'checkout'->'productSnapshot' AS product_snapshot,
               (SELECT j.status FROM vf_fulfilment_jobs j WHERE j.order_id = o.id LIMIT 1) AS fulfilment_status,
               COALESCE((
