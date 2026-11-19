@@ -30,7 +30,13 @@ Authentication attempts are throttled in PostgreSQL by hashed IP/email buckets: 
 
 ## Monnify setup
 
-Set these server-side Vercel environment variables:
+Set these server-side Vercel environment variables for customer account email:
+
+- `RESEND_API_KEY`
+- `VERIFYFLOW_EMAIL_FROM` (for example, `VerifyFlow <accounts@your-verified-domain.com>`)
+- `PUBLIC_APP_URL` (your final HTTPS domain)
+
+Set these server-side Vercel environment variables for Monnify:
 
 - `MONNIFY_API_KEY`
 - `MONNIFY_SECRET_KEY`
@@ -106,7 +112,9 @@ Vercel currently reports the connected OmniPulse team on the Hobby plan. Its cur
 
 The protected admin dashboard includes a live configuration report at `/api/admin/readiness`. It checks the PostgreSQL connection, required schema migrations and tables, admin allowlist, required server-side environment-variable presence, and owner confirmation flags. The report never returns secret values.
 
-The current sign-up flow activates accounts immediately. Although the database includes email-verification and password-reset token tables, the verification-email, resend and self-service password-reset flows are not implemented. Add a transactional email provider with a verified sender domain and complete those flows before opening public registration. The admin readiness panel reports this as an outstanding required item.
+New registrations remain pending until customers verify their email. Verification links expire in 24 hours; password-reset links expire in 1 hour. Resend and reset request responses do not reveal whether an email address has an account. Password reset revokes all sessions and signs the customer into the current browser.
+
+Transactional email uses the Resend API. Configure `RESEND_API_KEY` and `VERIFYFLOW_EMAIL_FROM` on the VerifyFlow Vercel project using a sender address on a domain you control and have verified with the provider. Keep `PUBLIC_APP_URL` set to the final HTTPS customer-facing domain. Email delivery is not proven until a real message reaches an inbox; the admin readiness panel marks configured email as needing manual verification.
 
 The report distinguishes configured variables from manual verification. In particular, it cannot prove that Monnify approved the business, that USD card processing is enabled on the merchant account, that supplier permissions and balances are adequate, or that legal/tax obligations have been satisfied. The Peakerr and JustAnotherPanel entries remain optional, read-only monitors; neither provider is wired into customer checkout or fulfilment.
 

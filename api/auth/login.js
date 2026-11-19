@@ -36,8 +36,14 @@ module.exports = async function handler(req, res) {
       [email]
     );
     const user = found.rows[0];
-    const valid = user && user.status === "active" && await verifyPassword(password, user.password_hash);
-    if (!valid) return sendJson(res, 401, { ok: false, error: "Email or password is incorrect." });
+    const validPassword = user && await verifyPassword(password, user.password_hash);
+    if (!validPassword || !["active", "pending_verification"].includes(user.status)) {
+      return sendJson(res, 401, { ok: false, error: "Email or password is incorrect." });
+    }
+    if (user.status === "pending_verification") {
+      return sendJson(res, 403, { ok: false, verificationRequired: true,
+        error: "Please verify your email before signing in. You can request a new verification link below." });
+    }
 
     client = await db.connect();
     await issueSession(client, user.id, res);
