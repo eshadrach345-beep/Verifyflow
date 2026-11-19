@@ -329,7 +329,7 @@
   }else{
    list.innerHTML=currentOrders.map(order=>{
     const status=String(order.status||"pending").toLowerCase().replace(/[^a-z_]/g,"");
-    const refreshButton=order.supplier_order_id&&status==="processing"?'<button class="account-text-link" type="button" data-order-refresh="'+esc(order.id)+'">Refresh service status ↻</button>':"";
+    const refreshButton=order.supplier_order_id&&["processing","completed"].includes(status)?'<button class="account-text-link" type="button" data-order-refresh="'+esc(order.id)+'">Refresh service status ↻</button>':"";
     return '<article class="order-card"><div class="order-card-head"><div><p class="order-name">'+esc(order.product_name||"VerifyFlow service")+'</p><div class="order-meta">Order '+esc(order.order_number||"—")+' · '+esc(dateLabel(order.created_at))+'</div></div><div class="order-price">'+esc(currencyLabel(order.total_minor,order.currency))+'</div></div><span class="order-status '+esc(status)+'">'+esc(nice(status))+'</span>'+serviceDetailsHtml(order)+refreshButton+'</article>';
    }).join("");
   }
