@@ -42,8 +42,7 @@ async function main() {
     assert.equal(body.sections.sms.items.find(x => x.provider === "herosms").availableCount, 15);
     assert.equal(body.sections.rentals.items.length, 1);
     assert.equal(body.sections.rentals.items[0].provider, "herosms");
-    assert.equal(body.supplierCoverage.heroSms.connected, true);
-    assert.equal(body.supplierCoverage.heroSms.countries[0].code, "us");
+    assert.equal(Object.hasOwn(body, "supplierCoverage"), false, "public catalogue must not expose supplier coverage metadata");
   } finally {
     global.fetch = oldFetch;
     if (oldVoid === undefined) delete process.env.VOIDMOB_API_KEY; else process.env.VOIDMOB_API_KEY = oldVoid;
