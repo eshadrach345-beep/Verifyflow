@@ -25,8 +25,15 @@ for (const file of htmlFiles) {
     const openingTag = html.slice(start, openEnd + 1);
     const source = html.slice(openEnd + 1, closeStart).trim();
     if (!openingTag.includes("src=") && source) {
-      new vm.Script(source, { filename: file + "#inline-script-" + (checked + 1) });
-      checked += 1;
+      const typeMatch = openingTag.match(/\\btype\\s*=\\s*["']([^"']+)["']/i);
+      const scriptType = typeMatch ? typeMatch[1].toLowerCase() : "text/javascript";
+      if (scriptType === "application/ld+json") {
+        // Structured data is JSON, not executable JavaScript. Parse it explicitly.
+        JSON.parse(source);
+      } else {
+        new vm.Script(source, { filename: file + "#inline-script-" + (checked + 1) });
+        checked += 1;
+      }
     }
     cursor = closeStart + "</script>".length;
   }
