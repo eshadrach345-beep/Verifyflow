@@ -6,7 +6,7 @@
   const message = $("smm-product-message"), supplierSelect = $("smm-provider");
   const serviceSelect = $("smm-service-id"), productsBody = $("smm-products");
   const saveButton = $("smm-save");
-  let providers = [], products = [];
+  let providers = [], products = [], productsTableReady = true;
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   }[c]));
@@ -62,7 +62,9 @@
       if (!response.ok || !data.ok) throw new Error(data.error || "Social media product manager unavailable.");
       providers = data.providers || [];
       products = data.products || [];
+      productsTableReady = data.productsTableReady !== false;
       renderServices(serviceSelect.value);
+      saveButton.disabled = !productsTableReady;
       renderProducts();
       const summary = providers.map(p => p.label + ": " + (p.connected ? (p.services.length + " services loaded") : "not connected")).join(" · ");
       message.textContent = "Supplier catalogues loaded · " + summary + " · " + products.length + " saved products.";
@@ -81,7 +83,8 @@
     $("smm-product-name").value = "";
     $("smm-price").value = "";
     $("smm-description").value = "";
-    form.querySelector("button[type=submit]").textContent = "Save and publish product";
+    saveButton.textContent = productsTableReady ? "Save and publish product" : "Database setup required";
+    saveButton.disabled = !productsTableReady;
     updateServiceInfo();
   }
   supplierSelect.addEventListener("change", () => renderServices());
@@ -91,6 +94,10 @@
   form.addEventListener("submit", async event => {
     event.preventDefault();
     const service = currentService();
+    if (!productsTableReady) {
+      message.textContent = "Apply database migration 006_smm_product_manager.sql before publishing products.";
+      return;
+    }
     if (!service) { message.textContent = "Select a supplier service first."; return; }
     saveButton.disabled = true;
     saveButton.textContent = "Saving product…";
@@ -115,8 +122,8 @@
     } catch (error) {
       message.textContent = error.message || "Product save failed.";
     } finally {
-      saveButton.disabled = false;
-      saveButton.textContent = "Save and publish product";
+      saveButton.disabled = !productsTableReady;
+      saveButton.textContent = productsTableReady ? "Save and publish product" : "Database setup required";
     }
   });
   productsBody.addEventListener("click", async event => {
