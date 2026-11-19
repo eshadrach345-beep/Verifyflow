@@ -9,11 +9,35 @@ module.exports = async function handler(req, res) {
     const user = await getSessionUser(req);
     if (!user) return sendJson(res, 401, { ok: false, error: "Please sign in to view your orders." });
     const result = await getPool().query(
-      `SELECT order_number, product_type, product_name, status, currency,
-              total_minor, created_at
-         FROM vf_orders
-        WHERE user_id = $1
-        ORDER BY created_at DESC
+      `SELECT o.order_number, o.product_type, o.product_name, o.status, o.currency,
+              o.total_minor, o.created_at, o.updated_at,
+              COALESCE((
+                SELECT json_agg(
+                  json_build_object(
+                    'eventType', e.event_type,
+                    'message', e.message,
+                    'createdAt', e.created_at
+                  ) ORDER BY e.created_at DESC
+                )
+                FROM vf_order_events e
+                WHERE e.order_id = o.id
+              ), '[]'::json) AS events,
+              (
+                SELECT json_build_object(
+                  'status', p.status,
+                  'currency', p.currency,
+                  'amountMinor', p.amount_minor,
+                  'createdAt', p.created_at,
+                  'updatedAt', p.updated_at
+                )
+                FROM vf_payments p
+                WHERE p.order_id = o.id
+                ORDER BY p.created_at DESC
+                LIMIT 1
+              ) AS latest_payment
+         FROM vf_orders o
+        WHERE o.user_id = $1
+        ORDER BY o.created_at DESC
         LIMIT 25`,
       [user.id]
     );
