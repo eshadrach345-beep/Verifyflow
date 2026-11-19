@@ -101,7 +101,13 @@
 @media(max-width:850px){.account-overview-grid,.orders-layout{grid-template-columns:1fr}.auth-layout{grid-template-columns:1fr}.auth-aside{min-height:0;padding:25px}.auth-aside h1{font-size:29px;margin:25px 0 9px}.auth-main{padding:28px}}
 @media(max-width:600px){.account-page{padding:20px 11px 38px}.account-hero{align-items:flex-start;flex-direction:column;padding:19px}.account-hero h1{font-size:24px}.account-hero-actions{width:100%}.account-hero-actions>*{flex:1}.account-avatar{width:48px;height:48px;flex-basis:48px;border-radius:13px}.account-summary{grid-template-columns:1fr 1fr}.account-stat:last-child{grid-column:1/-1}.account-card{padding:16px}.account-nav button{font-size:12px;padding:10px 13px}.profile-form{grid-template-columns:1fr}.profile-actions{grid-column:1;align-items:flex-start;flex-direction:column}.order-card-head{flex-direction:column}.order-price{white-space:normal}.auth-main{padding:24px 19px}.auth-aside{padding:21px}.auth-aside h1{font-size:27px}}
 </style>
-</head>
+<style>
+.order-service-details{margin-top:12px;padding:11px;background:#f7f9f9;border:1px solid #e2e7e8;border-radius:8px;display:grid;gap:7px}
+.service-detail{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;font-size:12px}
+.service-detail span{color:#66727b;flex:0 0 40%}
+.service-detail strong{color:#17232b;text-align:right;overflow-wrap:anywhere;font-weight:700}
+.order-card [data-order-refresh]{margin-top:10px;padding:0}
+</style></head>
 <body>
 <div class="announcement">Your VerifyFlow account <span class="announce-divider">/</span> Profile, orders and activity</div>
 <header class="vf-store-header">
@@ -285,6 +291,33 @@
   if(!shown.length)return '<div class="activity-empty">No activity has been recorded yet. Your order updates will appear here.</div>';
   return shown.map(item=>'<div class="activity-item"><strong>'+esc(item.title)+'</strong><p>'+esc(item.description)+'</p><time>'+esc(dateLabel(item.when))+'</time></div>').join("");
  }
+ function serviceDetailsHtml(order){
+  const data=order.service_data&&typeof order.service_data==="object"?order.service_data:{};
+  const rows=[];
+  const add=(label,value)=>{if(value!==undefined&&value!==null&&String(value)!=="")rows.push('<div class="service-detail"><span>'+esc(label)+'</span><strong>'+esc(value)+'</strong></div>');};
+  add("Service status",data.status||data.supplier_status);
+  if(order.product_type==="sms_otp"||order.product_type==="long_term_number"||order.product_type==="dedicated_number"){
+   add("Phone number",data.phone_number);
+   if(data.code)add("Latest code",data.code);
+   add("Expires",data.expires_at?dateLabel(data.expires_at):null);
+  }
+  if(order.product_type==="esim"){
+   let lpa=data.activation_code||"";
+   if(lpa&&!String(lpa).startsWith("LPA:")&&data.smdp_address)lpa="LPA:1$"+data.smdp_address+"$"+lpa;
+   add("eSIM installation code",lpa);
+   add("Expires",data.expires_at?dateLabel(data.expires_at):null);
+  }
+  if(order.product_type==="mobile_proxy"&&data.gateway){
+   const gateway=data.gateway;
+   add("Proxy host",gateway.host);
+   add("Port",gateway.port);
+   add("Username",gateway.username);
+   add("Password",gateway.password);
+   add("Protocol",gateway.protocol||"HTTP");
+  }
+  if(!rows.length)return "";
+  return '<div class="order-service-details">'+rows.join("")+'</div>';
+ }
  function renderOrders(orders){
   currentOrders=Array.isArray(orders)?orders:[];
   const count=currentOrders.length;
@@ -296,7 +329,8 @@
   }else{
    list.innerHTML=currentOrders.map(order=>{
     const status=String(order.status||"pending").toLowerCase().replace(/[^a-z_]/g,"");
-    return '<article class="order-card"><div class="order-card-head"><div><p class="order-name">'+esc(order.product_name||"VerifyFlow service")+'</p><div class="order-meta">Order '+esc(order.order_number||"—")+' · '+esc(dateLabel(order.created_at))+'</div></div><div class="order-price">'+esc(currencyLabel(order.total_minor,order.currency))+'</div></div><span class="order-status '+esc(status)+'">'+esc(nice(status))+'</span></article>';
+    const refreshButton=order.supplier_order_id&&status==="processing"?'<button class="account-text-link" type="button" data-order-refresh="'+esc(order.id)+'">Refresh service status ↻</button>':"";
+    return '<article class="order-card"><div class="order-card-head"><div><p class="order-name">'+esc(order.product_name||"VerifyFlow service")+'</p><div class="order-meta">Order '+esc(order.order_number||"—")+' · '+esc(dateLabel(order.created_at))+'</div></div><div class="order-price">'+esc(currencyLabel(order.total_minor,order.currency))+'</div></div><span class="order-status '+esc(status)+'">'+esc(nice(status))+'</span>'+serviceDetailsHtml(order)+refreshButton+'</article>';
    }).join("");
   }
   const activity=buildActivity(currentOrders);
@@ -312,6 +346,17 @@
   }
   renderProfile(data.profile||fallbackUser||{});
  }
+ document.getElementById("order-list").addEventListener("click",async event=>{
+  const button=event.target.closest("[data-order-refresh]");
+  if(!button)return;
+  button.disabled=true;button.textContent="Refreshing…";
+  try{
+   const response=await fetch("/api/orders/refresh",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify({orderId:button.dataset.orderRefresh})});
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok||!data.ok)throw new Error(data.error||"The service status could not be refreshed.");
+   await loadOrders();
+  }catch(error){button.disabled=false;button.textContent=error.message||"Refresh failed";}
+ });
  async function loadOrders(){
   const response=await fetch("/api/orders",{credentials:"same-origin",cache:"no-store",headers:{Accept:"application/json"}});
   const data=await response.json().catch(()=>({}));
