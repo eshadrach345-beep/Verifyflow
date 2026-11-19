@@ -20,7 +20,12 @@
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.ok) throw new Error(data.error || "Supplier report unavailable.");
-      host.innerHTML = data.providers.map(provider => {
+      const hero = data.heroSms || { connected: false, message: "HeroSMS Account API status unavailable." };
+      const heroCard = '<article class="admin-card"><strong>HeroSMS</strong><div class="big">' + esc(hero.connected ? "Account API connected" : "Account API not connected") + '</div>' +
+        '<small>USD balance: <b>' + esc(hero.usd == null ? "—" : Number(hero.usd).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " USD") + '</b></small>' +
+        '<small>RUB balance: <b>' + esc(hero.rub == null ? "—" : Number(hero.rub).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " RUB") + '</b></small>' +
+        '<small>' + esc(hero.message || "Read-only account check.") + '</small></article>';
+      host.innerHTML = heroCard + data.providers.map(provider => {
         const status = provider.connected ? "Connected" : "Not connected";
         const services = Number(provider.eligibleCount || 0);
         return '<article class="admin-card"><strong>' + esc(provider.label) + '</strong>' +
@@ -32,7 +37,7 @@
           (services ? '<small>Available eligible services: ' + provider.eligibleServices.slice(0, 8).map(item => esc(item.name) + ' · supplier rate: ' + esc(item.supplierRateReported || "not reported")).join("; ") + '</small><small>Rate unit and service currency are unconfirmed; raw rates are not retail prices.</small>' : '') +
           '</article>';
       }).join("");
-      host.insertAdjacentHTML("beforeend", '<p class="admin-foot">Supplier rates are displayed exactly as reported. Rate units and service currency have not been confirmed, so no retail price or margin is calculated. This report is read-only; no supplier orders are placed from this screen.</p>');
+      host.insertAdjacentHTML("beforeend", '<p class="admin-foot">HeroSMS is currently checked through its read-only Account API; it is not an OTP catalogue connection. Supplier rates are displayed exactly as reported. Rate units and service currency have not been confirmed, so no retail price or margin is calculated. This report is read-only; no supplier orders are placed from this screen.</p>');
     } catch (error) {
       host.innerHTML = '<div class="empty">' + esc(error.message || "Supplier report unavailable.") + '</div>';
     }

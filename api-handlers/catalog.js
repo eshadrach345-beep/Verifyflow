@@ -47,6 +47,8 @@ async function supplierGet(path, headers) {
       error.status = response.status;
       error.code = payload.error?.code || payload.code || "CATALOGUE_ERROR";
       error.requestId = payload.error?.request_id || payload.request_id || response.headers.get("x-request-id") || null;
+      error.endpoint = path;
+      error.retryAfter = response.headers.get("retry-after") || null;
       throw error;
     }
     return payload.data ?? payload;
@@ -79,7 +81,7 @@ async function safeRead(task, map) {
     const data = await task();
     return { ok: true, items: map(data), message: null };
   } catch (error) {
-    console.error("[catalog]", JSON.stringify({ status: error.status || null, code: error.code || "CATALOGUE_ERROR", requestId: error.requestId || null }));
+    console.error("[catalog]", JSON.stringify({ endpoint: error.endpoint || null, status: error.status || null, code: error.code || "CATALOGUE_ERROR", requestId: error.requestId || null, retryAfter: error.retryAfter || null }));
     return {
       ok: false,
       items: [],
