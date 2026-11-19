@@ -27,14 +27,16 @@
         return;
       }
       body.innerHTML = jobs.map(job => {
-        const canSubmit = job.fulfilment_status === "pending" && ["paid", "processing"].includes(job.order_status);
+        const action = ["paid", "processing"].includes(job.order_status) && job.fulfilment_status === "pending" ? "submit" :
+          ["paid", "processing"].includes(job.order_status) && job.fulfilment_status === "unknown" ? "retry_unknown" : null;
+        const actionLabel = action === "retry_unknown" ? "Reconcile safely" : "Submit";
         return '<tr><td><b>' + esc(job.order_number) + '</b></td>' +
           '<td>' + esc(job.product_name) + '<br><span class="muted">' + esc(job.product_type) + '</span></td>' +
           '<td><span class="status ' + esc(job.fulfilment_status) + '">' + esc(job.fulfilment_status) + '</span></td>' +
           '<td>' + esc(job.supplier_status || "—") + '</td>' +
           '<td>' + (job.supplier_cost_minor == null ? "—" : esc(money(job.supplier_cost_minor, job.supplier_currency))) + '</td>' +
           '<td>' + esc(job.last_error_message || job.last_error_code || "—") + '</td>' +
-          '<td>' + (canSubmit ? '<button class="admin-btn" type="button" data-submit-order="' + esc(job.order_id) + '">Submit</button>' : "—") + '</td></tr>';
+          '<td>' + (action ? '<button class="admin-btn" type="button" data-submit-order="' + esc(job.order_id) + '" data-submit-action="' + esc(action) + '">' + esc(actionLabel) + '</button>' : "—") + '</td></tr>';
       }).join("");
     } catch (error) {
       body.innerHTML = '<tr><td colspan="7" class="empty">' + esc(error.message || "Queue unavailable.") + '</td></tr>';
@@ -49,7 +51,7 @@
       const response = await fetch("/api/admin/fulfilment", {
         method: "POST", credentials: "same-origin",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ orderId: button.dataset.submitOrder })
+        body: JSON.stringify({ orderId: button.dataset.submitOrder, action: button.dataset.submitAction || "submit" })
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.ok) throw new Error(data.error || "The supplier request could not be submitted.");
