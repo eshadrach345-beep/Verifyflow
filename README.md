@@ -24,7 +24,9 @@ npm run db:migrate
 npm run check
 ~~~
 
-The migrator applies numbered migrations in order. Migrations 003 and 004 create the supplier fulfilment queue and per-customer checkout idempotency index. They must be applied before enabling the new customer checkout or payment webhook flow. Never put database credentials in browser code or send them in chat.
+The migrator applies numbered migrations in order. Migrations 003 and 004 create the supplier fulfilment queue and per-customer checkout idempotency index. Migration 005 adds database-backed authentication rate limits that work across serverless instances. Apply all numbered migrations before enabling customer checkout or payment flows. Never put database credentials in browser code or send them in chat.
+
+Authentication attempts are throttled in PostgreSQL by hashed IP/email buckets: sign-in allows up to 8 attempts per email in 15 minutes, and registration allows up to 3 attempts per email per hour. The request IP has a separate, higher limit. Raw email addresses and IPs are not stored in the rate-limit table. Set an optional random `VERIFYFLOW_RATE_LIMIT_PEPPER` on VerifyFlow to make the bucket hashes unique to this deployment.
 
 ## Monnify setup
 

@@ -2,6 +2,7 @@ const {
   getPool, sendJson, readJson, sameOrigin, verifyPassword,
   issueSession, publicUser
 } = require("../../lib/auth");
+const { enforceAuthRateLimit, pruneExpiredRateLimits } = require("../../lib/rate-limit");
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -21,6 +22,14 @@ module.exports = async function handler(req, res) {
 
   let client;
   try {
+    if (await enforceAuthRateLimit(req, res, {
+      scope: "login",
+      identifier: email,
+      ipLimit: 40,
+      identityLimit: 8,
+      windowSeconds: 900
+    })) return;
+    await pruneExpiredRateLimits();
     const db = getPool();
     const found = await db.query(
       "SELECT id, email, full_name, password_hash, status, created_at FROM vf_users WHERE LOWER(email) = $1 LIMIT 1",
