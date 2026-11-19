@@ -53,7 +53,7 @@ module.exports = async function handler(req, res) {
     try { body = await readJson(req); }
     catch { return sendJson(res, 400, { ok: false, error: "Please submit a valid profile." }); }
 
-    const fullName = String(body.fullName || "").trim().replace(/\\s+/g, " ");
+    const fullName = String(body.fullName || "").trim().replace(/\s+/g, " ");
     const countryCode = String(body.countryCode || "").trim().toUpperCase();
     const currency = String(body.preferredCurrency || "USD").trim().toUpperCase();
     const timezone = String(body.timezone || "Africa/Lagos").trim();
