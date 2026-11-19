@@ -157,9 +157,9 @@ module.exports = async function handler(req, res) {
       () => supplierGet("/dedicated/countries", headers),
       data => Array.isArray(data) ? data : []
     ),
-    process.env.HEROSMS_API_KEY
+    process.env.HEROSMS_RETAIL_API_KEY
       ? safeRead(() => getHeroSmsCatalog(requestedCountry), data => ({ smsItems: data.items || [], rentalItems: data.rentals || [], countries: data.countries || [], countryName: data.countryName }))
-      : Promise.resolve({ ok: false, items: [], rentals: [], countries: [], message: "HeroSMS retail API key is not configured." })
+      : Promise.resolve({ ok: false, items: [], rentals: [], countries: [], message: "HeroSMS retail API key is not configured. The Account API key is separate." })
   ]);
 
   const smsItems = services.items.map(service => ({
