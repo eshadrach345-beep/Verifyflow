@@ -25,7 +25,7 @@
         '<small>Wallet balance: <b>' + esc(voidMob.balanceFormatted || "—") + '</b></small>' +
         '<small>' + esc(voidMob.message || "Read-only account check.") + '</small></article>';
       const hero = data.heroSms || { connected: false, message: "HeroSMS retail API status unavailable." };
-      const heroCard = '<article class="admin-card"><strong>HeroSMS</strong><div class="big">' + esc(hero.connected ? "Retail API connected" : "Retail API not connected") + '</div>' +
+      const heroCard = '<article class="admin-card"><strong>HeroSMS</strong><div class="big">' + esc(hero.connected ? "Account API connected" : "Account API not connected") + '</div>' +
         '<small>Wallet balance: <b>' + esc(hero.balance == null ? "—" : Number(hero.balance).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " " + (hero.currency || "USD")) + '</b></small>' +
         '<small>' + esc(hero.message || "Read-only retail API check.") + '</small></article>';
       host.innerHTML = voidMobCard + heroCard + data.providers.map(provider => {
