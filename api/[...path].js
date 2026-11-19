@@ -29,7 +29,7 @@ const routes = {
 module.exports = async function handler(req, res) {
   let pathname = "/";
   try { pathname = new URL(String(req.url || "/"), "https://verifyflow.invalid").pathname; } catch {}
-  let route = pathname.replace(/^\\/api\\/?/, "").replace(/^\\/+|\\/+$/g, "");
+  let route = pathname.replace(/^\/api\/?/, "").replace(/^\/+|\/+$/g, "");
   if (!route && req.query && req.query.path) {
     route = Array.isArray(req.query.path) ? req.query.path.join("/") : String(req.query.path);
   }
