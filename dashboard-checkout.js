@@ -59,14 +59,12 @@
     return "vf" + Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   }
 
-  function activeCategory() {
-    return document.querySelector("[data-catalog-tab].is-active")?.dataset.catalogTab || "sms";
-  }
-  function visibleRows() {
-    const section = catalogue?.sections?.[activeCategory()];
+  function visibleRows(category) {
+    const section = catalogue?.sections?.[category];
     const rows = Array.isArray(section?.items) ? section.items : [];
     const query = String(searchInput?.value || "").trim().toLowerCase();
-    return query ? rows.filter(item => JSON.stringify(item).toLowerCase().includes(query)) : rows;
+    const labels = { sms:"sms verification", rentals:"long-term numbers", esim:"esim data", proxies:"mobile proxies", dedicated:"dedicated numbers", marketing:"marketing services" };
+    return query ? rows.filter(item => JSON.stringify(item).toLowerCase().includes(query) || (labels[category]||"").includes(query)) : rows;
   }
 
   function productDetails(category, item) {
@@ -81,12 +79,12 @@
 
   function renderButtons() {
     if (!catalogue) return;
-    const category = activeCategory();
-    const rows = visibleRows();
     const cards = [...grid.querySelectorAll(".catalog-item")];
-    cards.forEach((card, index) => {
+    cards.forEach(card => {
       if (card.querySelector(".vf-buy-area")) return;
-      const item = rows[index];
+      const category = card.dataset.productCategory || "sms";
+      const key = card.dataset.productKey || "";
+      const item = visibleRows(category).find(row => String(row.provider||row.providerLabel||"")+":"+String(row.id??row.productId??row.country??row.title??row.name??row.full_title??"") === key);
       if (!item) return;
       const product = productDetails(category, item);
       if (!product) {
@@ -212,6 +210,7 @@
     window.setTimeout(renderButtons, 0);
   }));
   searchInput?.addEventListener("input", () => window.setTimeout(renderButtons, 0));
+  document.getElementById("vf-dash-search")?.addEventListener("input", () => window.setTimeout(renderButtons, 0));
   countryInput?.addEventListener("change", loadCatalogue);
   document.getElementById("catalog-refresh")?.addEventListener("click", () => window.setTimeout(loadCatalogue, 300));
   loadCatalogue();
