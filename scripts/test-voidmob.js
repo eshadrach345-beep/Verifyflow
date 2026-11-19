@@ -76,6 +76,7 @@ async function main() {
     assert.equal(esimQuote.salePriceCents, 2025);
     const proxyQuote = await quoteProduct("mobile_proxy", { productId: "plan_mock" });
     assert.equal(proxyQuote.salePriceCents, 4050);
+    assert.equal(proxyQuote.productSnapshot.planType, "shared");
 
     const beforePurchaseCalls = calls.length;
     const result = await purchase("sms_otp", { serviceId: "svc_test", maxPriceCents: 50 }, "vf-order-test-0001");
