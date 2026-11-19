@@ -11,6 +11,8 @@ const robots = fs.readFileSync("robots.txt", "utf8");
 const sitemap = fs.readFileSync("sitemap.xml", "utf8");
 const admin = fs.readFileSync("admin.html", "utf8");
 const adminSmm = fs.readFileSync("admin-smm-products.js", "utf8");
+const ordersApi = fs.readFileSync("api-handlers/orders.js", "utf8");
+const accessApi = fs.readFileSync("api-handlers/admin/access.js", "utf8");
 const smmAdminApi = fs.readFileSync("api-handlers/admin/smm-products.js", "utf8");
 const smmSupplier = fs.readFileSync("lib/smm-service.js", "utf8");
 const orderCreate = fs.readFileSync("api-handlers/orders/create.js", "utf8");
@@ -39,6 +41,16 @@ assert.ok(checkout.includes('card.dataset.productKey'), "Checkout must resolve t
 assert.ok(checkout.includes('row.provider||row.providerLabel||""'),
   "Checkout matching must distinguish supplier rows sharing a product identifier");
 assert.ok(checkout.includes('visibleRows(category)'), "Checkout must search within the card's original category");
+
+assert.ok(!dashboard.includes('String(x.provider||"Supplier").toUpperCase()'), "Customer dashboard must not display supplier names");
+assert.ok(!dashboard.includes('String(x.provider||"supplier").toUpperCase()'), "Customer dashboard price labels must not display supplier names");
+assert.ok(!dashboard.includes("supplierCoverage"), "Public dashboard must not read supplier connection metadata");
+assert.ok(!home.includes("connected suppliers"), "Homepage must not expose supplier relationships");
+assert.ok(ordersApi.includes("supplier_order_id") === false, "Customer order API must not return supplier order identifiers");
+assert.ok(ordersApi.includes("product_snapshot") === false, "Customer order API must not return internal supplier product snapshots");
+assert.ok(accessApi.includes("VERIFYFLOW_ADMIN_EMAILS"), "Admin access must be checked on the server");
+assert.ok(admin.includes("/api/admin/access"), "Admin page must check authorization before showing its interface");
+
 assert.ok(admin.includes("Social Media Boosters — Product Manager"), "Admin must expose SMM product management");
 assert.ok(admin.includes('id="smm-product-form"'), "Admin must contain the product publishing form");
 assert.ok(adminSmm.includes('fetch("/api/admin/smm-products"'), "Admin must save products through the protected API");
