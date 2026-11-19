@@ -335,4 +335,21 @@
  }
  load();loadAccount();
 })();
-</script></body></html>
+</script><script>
+/* Keep the storefront account link in sync with the signed-in customer session. */
+(async()=>{
+ const link=document.querySelector(".vf-account");
+ if(!link)return;
+ try{
+  const response=await fetch("/api/auth/me",{credentials:"same-origin",cache:"no-store",headers:{Accept:"application/json"}});
+  const data=await response.json();
+  if(!response.ok||!data.ok||!data.user)return;
+  const user=data.user;
+  const firstName=String(user.fullName||user.full_name||"").trim().split(/\\s+/)[0];
+  link.href="/dashboard.html";
+  link.innerHTML="<small>"+(firstName?"Welcome, "+firstName:"Your account")+"</small><strong>My Account</strong>";
+  link.setAttribute("aria-label","Open your VerifyFlow account");
+ }catch(error){/* Keep the normal sign-in link if session status cannot be checked. */}
+})();
+</script>
+</body></html>
