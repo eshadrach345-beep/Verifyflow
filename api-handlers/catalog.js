@@ -46,6 +46,7 @@ async function supplierGet(path, headers) {
       const error = new Error("Catalogue request failed");
       error.status = response.status;
       error.code = payload.error?.code || payload.code || "CATALOGUE_ERROR";
+      error.requestId = payload.error?.request_id || payload.request_id || response.headers.get("x-request-id") || null;
       throw error;
     }
     return payload.data ?? payload;
@@ -78,7 +79,7 @@ async function safeRead(task, map) {
     const data = await task();
     return { ok: true, items: map(data), message: null };
   } catch (error) {
-    console.error("[catalog]", error.code || error.message);
+    console.error("[catalog]", JSON.stringify({ status: error.status || null, code: error.code || "CATALOGUE_ERROR", requestId: error.requestId || null }));
     return {
       ok: false,
       items: [],
