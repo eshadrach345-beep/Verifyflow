@@ -92,6 +92,8 @@ The admin screen displays the raw supplier-reported service rate only. It does n
 
 ## Fulfilment and exceptions
 
+**Final purchase safety gate:** supplier purchases are blocked unless Monnify is in LIVE mode, `VERIFYFLOW_LIVE_ORDERS_ENABLED=true`, and both fulfilment confirmation flags for the selected supplier are enabled. Orders created while Monnify is in SANDBOX are permanently marked as test/no-fulfilment orders, so changing environment variables later cannot turn an old sandbox order into a supplier purchase. Keep all live flags off during testing.
+
 Supplier orders are submitted with a stable per-order idempotency key. If a request times out or its outcome is uncertain, the job is marked `unknown` and VerifyFlow will not create a new purchase key. The admin's reconciliation action resubmits only with the same key so VoidMob can return the original result or report that it is still processing.
 
 Supplier services such as eSIMs and mobile proxies can take time to provision. Customers can refresh their supplier status from the account page. The current implementation does not run a background polling worker.
