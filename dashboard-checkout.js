@@ -71,7 +71,7 @@
 
   function productDetails(category, item) {
     if (category === "sms") return { type: "sms_otp", id: item.id, country: "us", available: item.available === true, price: item.priceCents };
-    if (category === "rentals") return { type: "long_term_number", id: item.id, country: "us", available: item.available === true, price: Math.min(...(item.durations || []).map(x => Number(x.priceCents)).filter(x => Number.isSafeInteger(x) && x > 0)), durations: (item.durations || []).filter(x => Number(x.priceCents) > 0).map(x => Number(x.days)) };
+    if (category === "rentals") { const durations = (item.durations || []).filter(x => Number.isSafeInteger(Number(x.priceCents)) && Number(x.priceCents) > 0).map(x => ({ days: Number(x.days), price: Number(x.priceCents) })); return { type: "long_term_number", id: item.id, country: "us", available: item.available === true, price: Math.min(...durations.map(x => x.price)), durations }; }
     if (category === "esim") return { type: "esim", id: item.id, available: true, price: item.priceCents };
     if (category === "proxies") return { type: "mobile_proxy", id: item.id, available: item.available !== false, price: item.priceCents };
     if (category === "dedicated") return { type: "dedicated_number", id: item.country, country: item.country, available: item.inStock === true, price: item.priceCents };
@@ -91,12 +91,12 @@
       if (!product || !product.id || !Number.isSafeInteger(Number(product.price)) || Number(product.price) <= 0) return;
       const durations = product.durations || [];
       const select = category === "rentals" && durations.length
-        ? '<select aria-label="Choose rental period" data-rental-days>' + durations.map(days => '<option value="' + esc(days) + '">' + esc(days) + ' days</option>').join("") + '</select>'
+        ? '<select aria-label="Choose rental period" data-rental-days>' + durations.map(option => '<option value="' + esc(option.days) + '">' + esc(option.days) + ' days</option>').join("") + '</select>'
         : "";
       const button = '<button class="vf-buy-button" type="button" data-vf-buy="true" ' +
         'data-product-type="' + esc(product.type) + '" data-product-id="' + esc(product.id) + '" ' +
         'data-country="' + esc(product.country || "") + '" data-product-name="' + esc(item.title || item.name || item.full_title || item.country || "VerifyFlow service") + '" ' +
-        'data-product-price="' + esc(product.price) + '"' + (product.available && durations.length !== 0 || product.available && category !== "rentals" ? "" : " disabled") +
+        'data-product-price="' + esc(product.price) + '" data-duration-prices="' + esc(JSON.stringify(durations)) + '"' + (product.available && durations.length !== 0 || product.available && category !== "rentals" ? "" : " disabled") +
         '>Continue to checkout →</button>';
       card.querySelector(".catalog-item-copy")?.insertAdjacentHTML("beforeend", '<div class="vf-buy-area">' + select + button + '</div>');
     });
@@ -131,9 +131,14 @@
       country: button.dataset.country || "us",
       productName: button.dataset.productName || "VerifyFlow service",
       estimate: Number(button.dataset.productPrice),
+      durationPrices: JSON.parse(button.dataset.durationPrices || "[]"),
       checkoutKey: key(),
       durationDays: Number(card?.querySelector("[data-rental-days]")?.value || 0)
     };
+    if (selected.productType === "long_term_number") {
+      const chosen = selected.durationPrices.find(item => item.days === selected.durationDays);
+      if (chosen) selected.estimate = chosen.price;
+    }
     document.getElementById("vf-checkout-product").textContent = selected.productName;
     document.getElementById("vf-checkout-price").textContent = money(selected.estimate);
     message.textContent = "";
@@ -151,6 +156,15 @@
     dialog.showModal();
   });
 
+  document.getElementById("vf-duration-select").addEventListener("change", event => {
+    if (!selected || selected.productType !== "long_term_number") return;
+    selected.durationDays = Number(event.target.value);
+    const chosen = selected.durationPrices.find(item => item.days === selected.durationDays);
+    if (chosen) {
+      selected.estimate = chosen.price;
+      document.getElementById("vf-checkout-price").textContent = money(chosen.price);
+    }
+  });
   document.getElementById("vf-checkout-close").addEventListener("click", () => dialog.close());
   form.addEventListener("submit", async event => {
     event.preventDefault();
