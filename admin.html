@@ -84,6 +84,13 @@ th{font-size:12px;letter-spacing:.5px}
 
 .smm-product-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:18px}.smm-product-form label{display:grid;gap:7px;font-size:13px;font-weight:700;color:#34414a}.smm-product-form input,.smm-product-form select,.smm-product-form textarea{width:100%;min-height:44px;border:1px solid #cbd4d8;border-radius:8px;padding:10px 12px;font:500 14px Inter,Arial;background:#fff;color:#18212b}.smm-description{grid-column:1/-1}.smm-selected-service{grid-column:1/-1;background:#f3f7f8;border:1px solid #dde6e8;padding:12px 14px;border-radius:8px;font-size:13px;line-height:1.6;color:#42515c}.smm-actions{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap}.smm-products-table{min-width:780px}.smm-products-table .admin-btn{min-height:34px;padding:7px 12px;font-size:12px}.smm-product-actions{display:flex;gap:7px;flex-wrap:wrap}@media(max-width:700px){.smm-product-form{grid-template-columns:1fr}.smm-description,.smm-selected-service,.smm-actions{grid-column:1}.smm-actions .admin-btn{width:100%}}
 </style>
+<style>html.vf-admin-pending body{visibility:hidden}html.vf-admin-denied body{visibility:visible}</style>
+<script>
+document.documentElement.classList.add("vf-admin-pending");
+fetch("/api/admin/access",{credentials:"same-origin",cache:"no-store",headers:{Accept:"application/json"}})
+.then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok||!data.ok)throw new Error("denied");document.documentElement.classList.remove("vf-admin-pending");})
+.catch(()=>{document.documentElement.classList.remove("vf-admin-pending");document.documentElement.classList.add("vf-admin-denied");window.location.replace("/account.html?next=%2Fadmin.html");});
+</script>
 </head>
 <body>
 <header class="site-header"><div class="header-main"><a class="brand" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><nav class="header-links"><a href="/">Storefront</a><a href="/account.html">Customer account</a></nav></div></header>
