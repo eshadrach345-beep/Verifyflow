@@ -86,9 +86,9 @@ VerifyFlow has a protected, read-only supplier monitor for Peakerr and JustAnoth
 
 - `PEAKERR_API_KEY`
 - `JUSTANOTHERPANEL_API_KEY`
-- Optional pricing controls: `VERIFYFLOW_SMM_MARKUP_PERCENT=40` and `VERIFYFLOW_SMM_MIN_MARKUP_CENTS=25`
+The supplier keys are never sent to browser code. The monitor reads the `balance` and `services` actions only; it does not place orders. The customer-facing catalogue allowlist is restricted to clearly described creative/marketing work (for example content creation, video editing, design, advertising campaign management and audits). Engagement inflation, purchased traffic, reviews, backlinks and similar metric-manipulation services are excluded.
 
-The supplier keys are never sent to browser code. The monitor currently reads the documented `balance` and `services` actions only; it does not place orders. The customer-facing catalogue allowlist is restricted to clearly described creative/marketing work (for example content creation, video editing, design, advertising campaign management and audits). Engagement inflation, purchased traffic, reviews, backlinks and similar metric-manipulation services are excluded. If a provider has no eligible services, its eligible count will correctly show zero. Supplier service rates and currency must be confirmed before any future checkout or fulfilment integration is enabled.
+The admin screen displays the raw supplier-reported service rate only. It does not assume that a rate is USD, per 1,000 units, or denominated in the wallet currency. JustAnotherPanel's public API page documents the wallet currency in the balance response and shows a service rate example, but does not specify the unit for that service rate. Verify the actual currency and unit for each service directly with the supplier before displaying retail prices or accepting customer payments. Peakerr's API response schema must also be verified against its account documentation. The monitor is read-only and no customer checkout or fulfilment is connected.
 
 ## Fulfilment and exceptions
 

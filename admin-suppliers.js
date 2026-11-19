@@ -5,10 +5,12 @@
   const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[char]));
-  const money = (value, currency) => {
-    if (!Number.isFinite(Number(value))) return "—";
-    try { return new Intl.NumberFormat("en-US", { style: "currency", currency: currency || "USD" }).format(Number(value)); }
-    catch { return (currency || "USD") + " " + Number(value).toFixed(2); }
+  const walletLabel = provider => {
+    if (provider.balance == null) return "—";
+    const amount = Number(provider.balance);
+    if (!Number.isFinite(amount)) return "—";
+    return amount.toLocaleString("en-US", { maximumFractionDigits: 6 }) +
+      (provider.currency ? " " + provider.currency : " (currency not returned)");
   };
   async function load() {
     host.innerHTML = '<div class="empty">Checking supplier connections…</div>';
@@ -23,17 +25,14 @@
         const services = Number(provider.eligibleCount || 0);
         return '<article class="admin-card"><strong>' + esc(provider.label) + '</strong>' +
           '<div class="big">' + esc(status) + '</div>' +
-          '<small>Supplier wallet: <b>' + esc(money(provider.balance, provider.currency)) + '</b></small>' +
+          '<small>Supplier wallet: <b>' + esc(walletLabel(provider)) + '</b></small>' +
           '<small>Catalogue entries checked: ' + esc(provider.totalServices ?? "—") + '</small>' +
           '<small>Eligible marketing services: <b>' + esc(services) + '</b></small>' +
           (provider.message ? '<small>' + esc(provider.message) + '</small>' : '') +
-          (services ? '<small>Available eligible services: ' + provider.eligibleServices.map(item => esc(item.name) + ' · ' + esc(money(item.retailRatePerThousandCents / 100, "USD")) + '/1K').join("; ") + '</small>' : '') +
+          (services ? '<small>Available eligible services: ' + provider.eligibleServices.slice(0, 8).map(item => esc(item.name) + ' · supplier rate: ' + esc(item.supplierRateReported || "not reported")).join("; ") + '</small><small>Rate unit and service currency are unconfirmed; raw rates are not retail prices.</small>' : '') +
           '</article>';
       }).join("");
-      const p = data.pricing || {};
-      host.insertAdjacentHTML("beforeend", '<p class="admin-foot">Retail pricing rule: ' +
-        esc(p.markupPercent) + '% markup, minimum ' + esc(money(Number(p.minimumMarkupCents) / 100, "USD")) +
-        ' per 1,000 units. This report is read-only; no supplier orders are placed from this screen.</p>');
+      host.insertAdjacentHTML("beforeend", '<p class="admin-foot">Supplier rates are displayed exactly as reported. Rate units and service currency have not been confirmed, so no retail price or margin is calculated. This report is read-only; no supplier orders are placed from this screen.</p>');
     } catch (error) {
       host.innerHTML = '<div class="empty">' + esc(error.message || "Supplier report unavailable.") + '</div>';
     }

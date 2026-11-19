@@ -31,11 +31,6 @@ module.exports = async function handler(req, res) {
       providers: providers.map(({ eligibleServices, ...provider }) => ({
         ...provider, eligibleServices
       })),
-      pricing: {
-        markupPercent: Number(process.env.VERIFYFLOW_SMM_MARKUP_PERCENT || 40),
-        minimumMarkupCents: Number(process.env.VERIFYFLOW_SMM_MIN_MARKUP_CENTS || 25),
-        basis: "USD per 1,000 units; server-side retail rates"
-      }
     });
   } catch (error) {
     console.error("[admin/suppliers]", error.code || error.message);
