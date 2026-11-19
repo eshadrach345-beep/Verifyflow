@@ -47,7 +47,7 @@ async function main() {
       return new Response(JSON.stringify({ success: true, data: { product: { id: "prod_mock", title: "Mock eSIM", price_cents: 1500 } } }), { status: 200 });
     }
     if (String(url).includes("/proxy_plans/plan_mock")) {
-      return new Response(JSON.stringify({ success: true, data: { plan: { id: "plan_mock", name: "Mock Proxy", available: true, quoted_price_cents: 3000 } } }), { status: 200 });
+      return new Response(JSON.stringify({ success: true, data: { plan: { id: "plan_mock", name: "Mock Proxy", type: "shared", available: true, quoted_price_cents: 3000 } } }), { status: 200 });
     }
     return new Response(JSON.stringify({
       success: true,
