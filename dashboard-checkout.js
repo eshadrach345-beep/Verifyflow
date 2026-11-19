@@ -126,6 +126,20 @@
     });
   }
 
+  async function loadMarketingCatalogue() {
+    try {
+      const response = await fetch("/api/marketing-catalog", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } });
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.message || "Social media catalogue unavailable.");
+      catalogue.sections = catalogue.sections || {};
+      catalogue.sections.marketing = { ok: true, items: Array.isArray(data.items) ? data.items : [] };
+    } catch {
+      catalogue.sections = catalogue.sections || {};
+      catalogue.sections.marketing = { ok: false, items: [] };
+    }
+    renderButtons();
+  }
+
   async function loadCatalogue() {
     const country = String(countryInput?.value || "US").trim().toLowerCase();
     if (!/^[a-z]{2}$/.test(country)) return;
@@ -135,6 +149,7 @@
       const data = await response.json();
       if (!response.ok || !data.sections) throw new Error("Catalogue unavailable");
       catalogue = data;
+      await loadMarketingCatalogue();
       renderButtons();
     } catch {
       catalogue = null;
