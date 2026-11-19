@@ -96,6 +96,8 @@
 .auth-field input:focus{border:2px solid #e99d24}
 .auth-message{min-height:20px;font-size:13px;color:#b42318;margin:0}
 .auth-terms{font-size:11px;line-height:1.6;color:#737b81;margin:0}
+/* Keep hidden account views and forms hidden even when component CSS sets display. */
+[hidden]{display:none!important}
 @media(max-width:850px){.account-overview-grid,.orders-layout{grid-template-columns:1fr}.auth-layout{grid-template-columns:1fr}.auth-aside{min-height:0;padding:25px}.auth-aside h1{font-size:29px;margin:25px 0 9px}.auth-main{padding:28px}}
 @media(max-width:600px){.account-page{padding:20px 11px 38px}.account-hero{align-items:flex-start;flex-direction:column;padding:19px}.account-hero h1{font-size:24px}.account-hero-actions{width:100%}.account-hero-actions>*{flex:1}.account-avatar{width:48px;height:48px;flex-basis:48px;border-radius:13px}.account-summary{grid-template-columns:1fr 1fr}.account-stat:last-child{grid-column:1/-1}.account-card{padding:16px}.account-nav button{font-size:12px;padding:10px 13px}.profile-form{grid-template-columns:1fr}.profile-actions{grid-column:1;align-items:flex-start;flex-direction:column}.order-card-head{flex-direction:column}.order-price{white-space:normal}.auth-main{padding:24px 19px}.auth-aside{padding:21px}.auth-aside h1{font-size:27px}}
 </style>
