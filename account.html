@@ -62,9 +62,9 @@
 <div style="font-size:12px;color:#c0cde0">VerifyFlow · Your world, connected</div>
 </section>
 <section class="account-main">
-<h2 id="form-title">Welcome back</h2><p class="account-lead" id="form-lead">Sign in to continue to your dashboard.</p>
-<div class="account-mode" role="tablist" aria-label="Choose account action"><button class="active" id="login-tab" type="button" role="tab" aria-selected="true">Sign in</button><button id="register-tab" type="button" role="tab" aria-selected="false">Create account</button></div>
-<form class="account-form" id="login-form" novalidate>
+<h2 id="form-title">Welcome back</h2><p class="account-lead" id="form-lead">Checking your account…</p>
+<div class="account-mode" role="tablist" aria-label="Choose account action" hidden><button class="active" id="login-tab" type="button" role="tab" aria-selected="true">Sign in</button><button id="register-tab" type="button" role="tab" aria-selected="false">Create account</button></div>
+<form class="account-form" id="login-form" hidden novalidate>
 <div class="account-field"><label for="login-email">Email address</label><input id="login-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></div>
 <div class="account-field"><label for="login-password">Password</label><input id="login-password" name="password" type="password" autocomplete="current-password" required placeholder="Your password"></div>
 <button class="account-submit" type="submit">Sign in to your account</button><p class="account-message" id="login-message" role="status" aria-live="polite"></p>
@@ -119,7 +119,44 @@
  }
  loginForm.addEventListener("submit",event=>{event.preventDefault();submit(loginForm,"/api/auth/login","login-message","Sign in to your account")});
  registerForm.addEventListener("submit",event=>{event.preventDefault();submit(registerForm,"/api/auth/register","register-message","Create my account")});
- fetch("/api/auth/me",{credentials:"same-origin",cache:"no-store"}).then(r=>r.json()).then(data=>{if(data.ok&&data.user){title.textContent="You're already signed in";lead.textContent="Your VerifyFlow account is ready.";loginForm.hidden=true;registerForm.hidden=true;document.querySelector(".account-mode").hidden=true;const link=document.createElement("a");link.className="account-submit";link.href="/dashboard.html";link.textContent="Open my dashboard";link.style.display="grid";link.style.placeItems="center";link.style.textDecoration="none";document.querySelector(".account-main").insertBefore(link,document.querySelector(".account-secure"));}}).catch(()=>{});
+ async function checkAccount(){
+  title.textContent="Checking your account";
+  lead.textContent="Please wait while we verify your sign-in.";
+  try{
+   let response=await fetch("/api/auth/me",{credentials:"same-origin",cache:"no-store"});
+   let data=await response.json();
+   if(!response.ok){
+    await new Promise(resolve=>setTimeout(resolve,350));
+    response=await fetch("/api/auth/me",{credentials:"same-origin",cache:"no-store"});
+    data=await response.json();
+   }
+   if(data.ok&&data.user){
+    title.textContent="You are already signed in";
+    lead.textContent="Your VerifyFlow account is ready.";
+    const link=document.createElement("a");
+    link.className="account-submit";
+    link.href="/dashboard.html";
+    link.textContent="Open my dashboard";
+    link.style.display="grid";
+    link.style.placeItems="center";
+    link.style.textDecoration="none";
+    document.querySelector(".account-main").insertBefore(link,document.querySelector(".account-secure"));
+    return;
+   }
+   document.querySelector(".account-mode").hidden=false;
+   show("login");
+  }catch(error){
+   title.textContent="We could not verify your session";
+   lead.textContent="Please refresh this page to check your account again. Your account has not been changed.";
+   const retry=document.createElement("button");
+   retry.type="button";
+   retry.className="account-submit";
+   retry.textContent="Check again";
+   retry.addEventListener("click",()=>{retry.remove();checkAccount();});
+   document.querySelector(".account-main").insertBefore(retry,document.querySelector(".account-secure"));
+  }
+ }
+ checkAccount();
 })();
 </script>
 </body></html>
