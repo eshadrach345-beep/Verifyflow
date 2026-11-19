@@ -18,7 +18,7 @@ async function main() {
   assert.equal(hashToken(token), hashToken(token));
 
   assert.equal(sameOrigin({
-    headers: { origin: "https://verifyflow-five.vercel.app", host: "verifyflow-five.vercel.app" }
+    headers: { origin: "https://verifyflow.us.ci", host: "verifyflow-five.vercel.app" }
   }), true);
   assert.equal(sameOrigin({
     headers: { origin: "https://evil.example", host: "verifyflow-five.vercel.app" }

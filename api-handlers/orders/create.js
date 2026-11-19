@@ -96,7 +96,7 @@ module.exports = async function handler(req, res) {
     const orderNumber = "VF-" + orderSuffix;
     const paymentReference = "VF_" + randomBytes(12).toString("hex").toUpperCase();
     const orderIdempotencyKey = "vf-order-" + orderId.replace(/-/g, "");
-    const redirectUrl = (process.env.PUBLIC_APP_URL || "https://verifyflow-five.vercel.app").replace(/\/+$/, "") +
+    const redirectUrl = (process.env.PUBLIC_APP_URL || "https://verifyflow.us.ci").replace(/\/+$/, "") +
       "/payment-return.html?paymentReference=" + encodeURIComponent(paymentReference);
 
     const metadata = {
