@@ -185,7 +185,31 @@
 @media(max-width:600px){.dash-shell{padding:22px 12px 38px}.dash-heading{margin-bottom:17px}.dash-heading h1{font-size:29px}.dash-heading p{font-size:14px}.customer-strip{padding:14px;gap:10px;align-items:flex-start}.customer-strip-mark{width:35px;height:35px;flex-basis:35px}.customer-strip-copy strong{font-size:14px}.customer-strip-copy span{font-size:12px}.customer-strip>a,.customer-signout{font-size:11px;white-space:normal;text-align:right}.catalog-toolbar{align-items:flex-start;flex-direction:column}.catalog-toolbar h2{font-size:23px}.catalog-toolbar p{font-size:13px}.catalog-refresh{align-self:flex-start}.catalog-tab{font-size:12px;padding:9px 12px}.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.catalog-item-visual{height:105px}.catalog-art-icon{width:51px;height:51px;font-size:24px}.catalog-item-copy{padding:12px!important}.catalog-item-copy h3{font-size:14px}.catalog-item-copy p{font-size:12px}.catalog-item-detail{font-size:11px}.catalog-state-row{align-items:flex-start}.catalog-status{font-size:11px}.catalog-live-indicator{font-size:9px}.orders-panel{padding:15px}.order-row strong{font-size:12px}.order-row small{font-size:10px}.order-status{font-size:9px;padding:6px 8px}.dash-bottom{padding:17px}.dash-bottom h2{font-size:16px}.dash-bottom p{font-size:12px}.dash-bottom a{display:inline-block;margin-top:12px}}
 @media(max-width:365px){.catalog-grid{grid-template-columns:1fr}.catalog-item-visual{height:125px}}
 </style>
-</head><body><header class="vf-store-header"><div class="vf-topbar">
+<style>
+.catalog-controls{display:grid;grid-template-columns:minmax(175px,240px) minmax(220px,1fr);gap:13px;margin:0 0 18px}
+.catalog-control{display:grid;gap:7px;color:#303a42;font:700 12px Inter,Arial,sans-serif}
+.catalog-control input{width:100%;min-width:0;border:1px solid #c8d0d2;border-radius:7px;background:#fff;color:#0f1111;padding:11px 12px;font:500 14px Inter,Arial,sans-serif;outline:none}
+.catalog-control input:focus{border-color:#007185;box-shadow:0 0 0 3px rgba(0,113,133,.12)}
+.catalog-control small{font:400 11px/1.5 Inter,Arial,sans-serif;color:#66727b}
+.catalog-price-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;border-top:1px solid #edf0f0;margin-top:13px;padding-top:11px}
+.catalog-price-row strong{font:800 20px/1.2 Inter,Arial,sans-serif;color:#0f1111;letter-spacing:-.4px}
+.catalog-price-row small{font:600 10px/1.4 Inter,Arial,sans-serif;color:#78838a;text-align:right}
+.catalog-item-copy{display:flex;flex-direction:column;min-height:190px}
+.catalog-item-detail{flex:1}
+.catalog-footnote{margin:15px 2px 0;font:400 12px/1.65 Inter,Arial,sans-serif;color:#66727b}
+@media(max-width:600px){
+ .catalog-controls{grid-template-columns:1fr 1fr;gap:8px}
+ .catalog-control{font-size:11px}
+ .catalog-control input{padding:10px 9px;font-size:13px}
+ .catalog-control small{font-size:10px;grid-column:1/-1}
+ .catalog-price-row{align-items:flex-start;flex-direction:column;gap:3px}
+ .catalog-price-row strong{font-size:17px}
+ .catalog-price-row small{text-align:left}
+ .catalog-item-copy{min-height:190px}
+ .catalog-footnote{font-size:11px}
+}
+@media(max-width:365px){.catalog-controls{grid-template-columns:1fr}}
+</style></head><body><header class="vf-store-header"><div class="vf-topbar">
 <a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
 <a class="vf-location" href="/#services"><small>Explore</small><strong>All services</strong></a>
 <form class="vf-search" action="/#services" role="search"><label class="sr-only" for="vf-dash-search">Search VerifyFlow services</label><input id="vf-dash-search" type="search" placeholder="Search SMS, eSIM, numbers, proxies..." autocomplete="off"><button type="submit" aria-label="Search services">⌕</button></form>
@@ -206,21 +230,37 @@
 
   <section class="catalog-section" id="catalogue">
     <div class="catalog-toolbar">
-      <div><span class="catalog-eyebrow">THE VERIFYFLOW MARKETPLACE</span><h2>Explore available options</h2><p>Choose a category to browse the latest options and coverage.</p></div>
-      <button class="catalog-refresh" id="catalog-refresh" type="button">↻ Refresh options</button>
+      <div><span class="catalog-eyebrow">THE VERIFYFLOW MARKETPLACE</span><h2>Explore available products</h2><p>Browse live listings, check coverage and compare retail prices.</p></div>
+      <button class="catalog-refresh" id="catalog-refresh" type="button">↻ Refresh catalogue</button>
+    </div>
+    <div class="catalog-controls">
+      <label class="catalog-control" for="catalog-country">SMS / rental country
+        <input id="catalog-country" type="text" value="US" maxlength="2" list="catalog-country-options" autocomplete="off" spellcheck="false" aria-describedby="catalog-country-help">
+        <datalist id="catalog-country-options">
+          <option value="US"><option value="GB"><option value="CA"><option value="AU">
+          <option value="DE"><option value="FR"><option value="IN"><option value="NG">
+          <option value="ZA"><option value="KE"><option value="BR"><option value="JP">
+          <option value="MX"><option value="PH"><option value="SG">
+        </datalist>
+        <small id="catalog-country-help">Enter a two-letter country code. Applies to SMS and long-term numbers.</small>
+      </label>
+      <label class="catalog-control catalog-search-control" for="catalog-search">Search products
+        <input id="catalog-search" type="search" placeholder="Search services, plans or countries..." autocomplete="off">
+      </label>
     </div>
     <div class="catalog-tabs" role="tablist" aria-label="Product categories">
-      <button class="catalog-tab is-active" data-catalog-tab="sms" type="button">SMS verification</button>
-      <button class="catalog-tab" data-catalog-tab="rentals" type="button">Long-term numbers</button>
-      <button class="catalog-tab" data-catalog-tab="esim" type="button">eSIM data</button>
-      <button class="catalog-tab" data-catalog-tab="proxies" type="button">Mobile proxies</button>
-      <button class="catalog-tab" data-catalog-tab="dedicated" type="button">Dedicated numbers</button>
+      <button class="catalog-tab is-active" data-catalog-tab="sms" type="button" aria-selected="true">SMS verification</button>
+      <button class="catalog-tab" data-catalog-tab="rentals" type="button" aria-selected="false">Long-term numbers</button>
+      <button class="catalog-tab" data-catalog-tab="esim" type="button" aria-selected="false">eSIM data</button>
+      <button class="catalog-tab" data-catalog-tab="proxies" type="button" aria-selected="false">Mobile proxies</button>
+      <button class="catalog-tab" data-catalog-tab="dedicated" type="button" aria-selected="false">Dedicated numbers</button>
     </div>
-    <div class="catalog-state-row"><div class="catalog-status" id="catalog-status" aria-live="polite">Loading available options…</div><span class="catalog-live-indicator"><i></i> Service listings</span></div>
+    <div class="catalog-state-row"><div class="catalog-status" id="catalog-status" aria-live="polite">Loading live catalogue…</div><span class="catalog-live-indicator"><i></i> Live listings</span></div>
     <div class="catalog-grid" id="catalog-grid"></div>
+    <p class="catalog-footnote">Prices are shown in USD before applicable VAT or local sales taxes. Any tax due is added separately at checkout based on the customer's billing location. Listings and stock can change. Product purchasing is not yet enabled while live payments and supplier fulfilment are being completed.</p>
   </section>
 
-  <section class="orders-panel" id="customer-orders" hidden>
+<section class="orders-panel" id="customer-orders" hidden>
     <div class="orders-heading"><div><span class="catalog-eyebrow">YOUR ACTIVITY</span><h2>Recent orders</h2></div><span class="orders-count" id="orders-count">0 orders</span></div>
     <div class="orders-list" id="orders-list"><p>Your recent orders will appear here.</p></div>
   </section>
@@ -232,69 +272,89 @@
  const grid=document.getElementById("catalog-grid");
  const status=document.getElementById("catalog-status");
  const refresh=document.getElementById("catalog-refresh");
+ const countryInput=document.getElementById("catalog-country");
+ const searchInput=document.getElementById("catalog-search");
  const tabs=[...document.querySelectorAll("[data-catalog-tab]")];
  const strip=document.getElementById("customer-strip");
  const ordersPanel=document.getElementById("customer-orders");
  const ordersList=document.getElementById("orders-list");
  const ordersCount=document.getElementById("orders-count");
- let catalogue=null, active="sms";
+ let catalogue=null, active="sms", loading=false;
 
  const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
  const icons={sms:"✉",rentals:"◉",esim:"⌁",proxies:"◎",dedicated:"▣"};
- const card=(category,title,meta,detail,tag="AVAILABLE")=>
-  '<article class="catalog-item catalog-'+category+'"><div class="catalog-item-visual"><span class="catalog-art-icon">'+icons[category]+'</span><i class="catalog-art-orbit"></i><small>'+esc(tag)+'</small></div><div class="catalog-item-copy"><h3>'+esc(title)+'</h3><p>'+esc(meta)+'</p><div class="catalog-item-detail">'+esc(detail)+'</div></div></article>';
+ const money=(cents,currency="USD")=>{
+  const amount=Number(cents);
+  if(!Number.isSafeInteger(amount)||amount<=0)return "Price unavailable";
+  try{return new Intl.NumberFormat("en-US",{style:"currency",currency}).format(amount/100);}
+  catch{return "$"+(amount/100).toFixed(2);}
+ };
+ const card=(category,title,meta,detail,priceCents,priceNote,tag="AVAILABLE",currency="USD")=>
+  '<article class="catalog-item catalog-'+category+'"><div class="catalog-item-visual"><span class="catalog-art-icon">'+icons[category]+'</span><i class="catalog-art-orbit"></i><small>'+esc(tag)+'</small></div><div class="catalog-item-copy"><h3>'+esc(title)+'</h3><p>'+esc(meta)+'</p><div class="catalog-item-detail">'+esc(detail)+'</div><div class="catalog-price-row"><strong>'+esc(money(priceCents,currency))+'</strong><small>'+esc(priceNote)+'</small></div></div></article>';
 
  function empty(message){
-  grid.innerHTML='<div class="catalog-empty"><span>✦</span><strong>'+esc(message)+'</strong><small>Try another category or refresh the available options.</small></div>';
+  grid.innerHTML='<div class="catalog-empty"><span>✦</span><strong>'+esc(message)+'</strong><small>Try another category, change the country code or refresh the catalogue.</small></div>';
  }
  function render(){
-  if(!catalogue){empty("Options are being refreshed.");return;}
+  if(!catalogue){empty("The catalogue is being refreshed.");return;}
   const section=catalogue.sections?.[active];
-  if(!section||!section.ok){empty(section?.message||"This collection is being updated.");status.textContent="Explore another collection";return;}
-  const rows=Array.isArray(section.items)?section.items:[];
-  if(!rows.length){empty("No options are listed in this collection right now.");status.textContent="Collection updated";return;}
+  if(!section||!section.ok){empty(section?.message||"This collection is temporarily unavailable.");status.textContent="Collection temporarily unavailable";return;}
+  const allRows=Array.isArray(section.items)?section.items:[];
+  const query=String(searchInput?.value||"").trim().toLowerCase();
+  const rows=query?allRows.filter(item=>JSON.stringify(item).toLowerCase().includes(query)):allRows;
+  if(!rows.length){
+   empty(allRows.length?"No products match that search.":"No products are listed in this collection for the selected country.");
+   status.textContent=allRows.length?"No matching products":"Collection updated";
+   return;
+  }
+  status.textContent=rows.length+" product"+(rows.length===1?"":"s")+" listed"+(active==="sms"||active==="rentals"?" for "+String(catalogue.country||"us").toUpperCase():"");
 
-  status.textContent=rows.length+" option"+(rows.length===1?"":"s")+" available in this collection";
   if(active==="sms"){
-   grid.innerHTML=rows.map(x=>card("sms",x.name||"SMS verification","Service availability varies",x.available?"Available to explore":"Currently unavailable",x.available?"AVAILABLE":"UNAVAILABLE")).join("");
+   grid.innerHTML=rows.map(x=>card("sms",x.name||"SMS verification","One-time verification · "+String(catalogue.country||"us").toUpperCase(),x.available?"Supplier stock is currently available.":"Supplier stock is not currently available.",x.priceCents,"per activation · before VAT/tax",x.available?"AVAILABLE":"OUT OF STOCK",x.currency)).join("");
   }else if(active==="esim"){
    grid.innerHTML=rows.map(x=>{
     const data=x.unlimited?"Unlimited data":(x.dataGb==null?"Data plan":x.dataGb+" GB");
     const countries=Array.isArray(x.countries)?x.countries:[];
-    const coverage=countries.slice(0,6).join(", ")+(countries.length>6?" +"+(countries.length-6)+" more":"");
-    const features=[x.validityDays?x.validityDays+" days":null,x.networkType||null].filter(Boolean).join(" · ");
-    return card("esim",x.title||"eSIM data plan",data,coverage||features||"Coverage details available", "PLAN");
+    const coverage=countries.slice(0,7).join(", ")+(countries.length>7?" +"+(countries.length-7)+" more":"");
+    const features=[x.validityDays?x.validityDays+" days":null,x.networkType||null,x.routingLocation?"Routes via "+x.routingLocation:null].filter(Boolean).join(" · ");
+    return card("esim",x.title||"eSIM data plan",data+" · "+(x.validityDays||"Flexible")+" days",coverage||features||"Coverage details available",x.priceCents,"per plan · before VAT/tax","DATA PLAN",x.currency);
    }).join("");
   }else if(active==="proxies"){
    grid.innerHTML=rows.map(x=>{
     const type=String(x.type||"mobile").replaceAll("_"," ");
-    const volume=x.dataGb!=null?x.dataGb+" GB":"Dedicated";
+    const volume=x.dataGb!=null?x.dataGb+" GB":"Plan";
     const duration=x.durationDays?x.durationDays+" days":(x.period||"Flexible term");
-    return card("proxies",x.name||"Mobile proxy",type+" · "+volume+" · "+duration,[x.country,x.carrier,x.region].filter(Boolean).join(" · ")||"Mobile network access",x.available?"AVAILABLE":"CHECK AVAILABILITY");
+    const detail=[x.country,x.carrier,x.region].filter(Boolean).join(" · ")||"Mobile network access";
+    return card("proxies",x.name||"Mobile proxy",type+" · "+volume+" · "+duration,detail,x.priceCents,"per package · before VAT/tax",x.available?"AVAILABLE":"CHECK AVAILABILITY",x.currency);
    }).join("");
   }else if(active==="dedicated"){
-   grid.innerHTML=rows.map(x=>card("dedicated",x.name||x.country||"Dedicated number",x.country||"Country option",x.inStock?"Monthly number · available":"Monthly number · not currently available",x.inStock?"IN STOCK":"OUT OF STOCK")).join("");
+   grid.innerHTML=rows.map(x=>card("dedicated",x.name||x.country||"Dedicated number",(x.name||x.country||"Country option")+" · Monthly",x.inStock?"Monthly number inventory is currently available.":"No monthly number inventory is currently reported.",x.priceCents,"per month · before VAT/tax",x.inStock?"IN STOCK":"OUT OF STOCK",x.currency)).join("");
   }else if(active==="rentals"){
    grid.innerHTML=rows.map(x=>{
     const durations=Array.isArray(x.durations)?x.durations:[];
-    const detail=durations.length?durations.map(days=>days+" days").join(" · ")+" available":"No rental durations currently listed";
-    return card("rentals",x.name||"Long-term number",x.country||"United States",detail,x.available&&durations.length?"AVAILABLE":"LIMITED");
+    const detail=durations.length?durations.map(option=>option.days+" days: "+money(option.priceCents,option.currency)).join(" · "):"No rental durations currently listed";
+    const prices=durations.map(option=>Number(option.priceCents)).filter(value=>Number.isSafeInteger(value)&&value>0);
+    const from=prices.length?Math.min(...prices):null;
+    return card("rentals",x.name||"Long-term number",String(catalogue.country||"us").toUpperCase()+" · Choose your rental period",detail,from,"from · before VAT/tax",x.available&&durations.length?"AVAILABLE":"LIMITED","USD");
    }).join("");
-  }else{
-   empty(section.message||"Number rental options are being updated.");
   }
  }
  async function load(){
-  refresh.disabled=true;refresh.textContent="↻ Refreshing…";status.textContent="Updating available options…";
+  if(loading)return;
+  const country=String(countryInput?.value||"US").trim().toLowerCase();
+  if(!/^[a-z]{2}$/.test(country)){
+   catalogue=null;empty("Enter a valid two-letter country code, such as US or GB.");status.textContent="Country code required";return;
+  }
+  loading=true;refresh.disabled=true;refresh.textContent="↻ Refreshing…";status.textContent="Updating live prices and availability…";
   try{
-   const response=await fetch("/api/catalog",{headers:{Accept:"application/json"},cache:"no-store"});
+   const response=await fetch("/api/catalog?country="+encodeURIComponent(country),{headers:{Accept:"application/json"},cache:"no-store"});
    const data=await response.json();
    if(!response.ok||!data.sections)throw new Error("Please refresh again shortly.");
    catalogue=data;render();
   }catch(error){
-   catalogue=null;empty("We couldn't load the options just now.");status.textContent="Please refresh to try again.";
+   catalogue=null;empty("We couldn't load the catalogue just now.");status.textContent="Please refresh to try again.";
   }finally{
-   refresh.disabled=false;refresh.textContent="↻ Refresh options";
+   loading=false;refresh.disabled=false;refresh.textContent="↻ Refresh catalogue";
   }
  }
  tabs.forEach(tab=>tab.addEventListener("click",()=>{
@@ -303,6 +363,9 @@
   render();
  }));
  refresh.addEventListener("click",load);
+ countryInput?.addEventListener("change",load);
+ countryInput?.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();load();}});
+ searchInput?.addEventListener("input",render);
 
  async function loadAccount(){
   try{
@@ -310,9 +373,11 @@
    const result=await response.json();
    if(!result.ok||!result.user)return;
    const user=result.user;
-   strip.innerHTML='<div class="customer-strip-mark">✓</div><div class="customer-strip-copy"><strong>Welcome back, '+esc(user.fullName.split(" ")[0])+'</strong><span>Your account is ready. Your recent activity is shown below.</span></div><button class="customer-signout" id="customer-signout" type="button">Sign out</button>';
-   document.querySelector(".dash-account-link").textContent="My account";
-   document.querySelector(".dash-account-link").href="/account.html";
+   const fullName=String(user.fullName||user.full_name||"").trim();
+   const firstName=fullName.split(/\s+/)[0]||"there";
+   strip.innerHTML='<div class="customer-strip-mark">✓</div><div class="customer-strip-copy"><strong>Welcome back, '+esc(firstName)+'</strong><span>Your account is ready. Your recent activity is shown below.</span></div><button class="customer-signout" id="customer-signout" type="button">Sign out</button>';
+   const accountLink=document.querySelector(".dash-account-link");
+   if(accountLink){accountLink.textContent="My account";accountLink.href="/account.html";}
    document.getElementById("customer-signout").addEventListener("click",async()=>{
     const button=document.getElementById("customer-signout");button.disabled=true;
     try{await fetch("/api/auth/logout",{method:"POST",credentials:"same-origin"});window.location.reload();}
@@ -335,7 +400,8 @@
  }
  load();loadAccount();
 })();
-</script><script>
+</script>
+<script>
 /* Keep the storefront account link in sync with the signed-in customer session. */
 (async()=>{
  const link=document.querySelector(".vf-account");
