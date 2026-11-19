@@ -36,9 +36,9 @@
           '<div class="big">' + esc(status) + '</div>' +
           '<small>Supplier wallet: <b>' + esc(walletLabel(provider)) + '</b></small>' +
           '<small>Catalogue entries checked: ' + esc(provider.totalServices ?? "—") + '</small>' +
-          '<small>Eligible marketing services: <b>' + esc(services) + '</b></small>' +
+          '<small>SMM services in supplier catalogue: <b>' + esc(services) + '</b></small>' +
           (provider.message ? '<small>' + esc(provider.message) + '</small>' : '') +
-          (services ? '<small>Available eligible services: ' + provider.eligibleServices.slice(0, 8).map(item => esc(item.name) + ' · supplier rate: ' + esc(item.supplierRateReported || "not reported")).join("; ") + '</small><small>Rate unit and service currency are unconfirmed; raw rates are not retail prices.</small>' : '') +
+          (services ? '<small>Sample available services: ' + provider.eligibleServices.slice(0, 8).map(item => esc(item.name) + ' · supplier rate: ' + esc(item.supplierRateReported || "not reported")).join("; ") + '</small><small>Set your own retail price per 1,000 in the Social Media Boosters product manager.</small>' : '') +
           '</article>';
       }).join("");
       host.insertAdjacentHTML("beforeend", '<p class="admin-foot">HeroSMS is checked through its retail API. Its live country, service, price and stock catalogue is combined with other suppliers on the customer marketplace. Purchases through HeroSMS remain disabled until its order, OTP polling, cancellation and refund flow has passed end-to-end tests. This report is read-only; no supplier orders are placed from this screen.</p>');
