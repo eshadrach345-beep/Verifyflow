@@ -45,12 +45,16 @@ assert.equal(get(complete, "schema").status, "ready");
 assert.equal(get(complete, "email_security").status, "needs_action");
 assert.equal(get(complete, "peakerr").required, false);
 assert.equal(get(complete, "justanotherpanel").required, false);
+assert.equal(get(complete, "peakerr_autobuy").required, false);
+assert.equal(get(complete, "justanotherpanel_autobuy").status, "optional");
 
 const incomplete = buildLaunchChecks({}, { connected: false, tables: [], migrations: [] });
 assert.equal(get(incomplete, "database").status, "needs_action");
 assert.equal(get(incomplete, "schema").status, "needs_action");
 assert.equal(get(incomplete, "monnify_credentials").status, "needs_action");
 assert.equal(get(incomplete, "voidmob_autobuy").status, "needs_action");
+assert.equal(get(incomplete, "peakerr_autobuy").status, "optional");
+assert.equal(get(incomplete, "justanotherpanel_autobuy").status, "optional");
 
 const safeDefaults = buildLaunchChecks(makeEnv({
   VOIDMOB_FULFILMENT_ENABLED: "false",
@@ -59,6 +63,15 @@ const safeDefaults = buildLaunchChecks(makeEnv({
 }), readyDatabase());
 assert.equal(get(safeDefaults, "voidmob_autobuy").status, "needs_action");
 assert.equal(get(safeDefaults, "live_orders").status, "needs_action");
+
+const smmApproved = buildLaunchChecks(makeEnv({
+  PEAKERR_FULFILMENT_ENABLED: "true",
+  PEAKERR_AUTOBUY_CONFIRMED: "true",
+  JUSTANOTHERPANEL_FULFILMENT_ENABLED: "true",
+  JUSTANOTHERPANEL_AUTOBUY_CONFIRMED: "true"
+}), readyDatabase());
+assert.equal(get(smmApproved, "peakerr_autobuy").status, "review");
+assert.equal(get(smmApproved, "justanotherpanel_autobuy").status, "review");
 
 const noSecretsReturned = JSON.stringify(complete);
 assert.equal(noSecretsReturned.includes("key-present"), false);
