@@ -14,7 +14,7 @@ assert.ok(api.includes("VERIFYFLOW_ADMIN_EMAILS"));
 assert.ok(api.includes("sameOrigin(req)"));
 assert.ok(api.includes("status='human'"));
 assert.ok(widget.includes("/api/support/chat"));
-assert.ok(widget.includes("Talk to customer support"));
+assert.ok(widget.includes("human.addEventListener"), "Customer can explicitly hand off to human support");
 assert.ok(widget.includes("setInterval"));
 assert.ok(adminClient.includes("/api/admin/support"));
 assert.ok(adminPage.includes('id="customer-support-inbox"'));
