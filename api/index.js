@@ -8,6 +8,7 @@ const routes = {
   "admin/orders": require("../api-handlers/admin/orders"),
   "admin/readiness": require("../api-handlers/admin/readiness"),
   "admin/suppliers": require("../api-handlers/admin/suppliers"),
+  "admin/smm-products": require("../api-handlers/admin/smm-products"),
   "auth/login": require("../api-handlers/auth/login"),
   "auth/logout": require("../api-handlers/auth/logout"),
   "auth/me": require("../api-handlers/auth/me"),
