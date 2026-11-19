@@ -402,7 +402,7 @@
 <a class="vf-location" href="#catalogue"><small>Explore</small><strong>All products</strong></a>
 <form class="vf-search" action="/dashboard.html#catalogue" method="get" role="search"><label class="sr-only" for="vf-dash-search">Search all products</label><input id="vf-dash-search" name="search" type="search" placeholder="Search every product, service or country..." autocomplete="off"><button type="submit" aria-label="Search all products">⌕</button></form>
 <a class="vf-account" href="/account.html"><small>Your space</small><strong>Sign in / Account</strong></a></div>
-<nav class="vf-subnav" aria-label="Product categories"><a href="#catalogue" data-nav-category="all">☰ <b>All products</b></a><a href="#catalogue" data-nav-category="sms">SMS verification</a><a href="#catalogue" data-nav-category="rentals">Number rentals</a><a href="#catalogue" data-nav-category="dedicated">Dedicated numbers</a><a href="#catalogue" data-nav-category="esim">eSIM data</a><a href="#catalogue" data-nav-category="proxies">Mobile proxies</a></nav></header><main class="dash-shell">
+<nav class="vf-subnav" aria-label="Product categories"><a href="#catalogue" data-nav-category="all">☰ <b>All products</b></a><a href="#catalogue" data-nav-category="sms">SMS verification</a><a href="#catalogue" data-nav-category="rentals">Number rentals</a><a href="#catalogue" data-nav-category="dedicated">Dedicated numbers</a><a href="#catalogue" data-nav-category="esim">eSIM data</a><a href="#catalogue" data-nav-category="proxies">Mobile proxies</a><a href="#catalogue" data-nav-category="marketing">Social Media Boosters</a></nav></header><main class="dash-shell">
 <div class="dash-wrap">
   <a class="dash-crumb" href="/">← BACK TO HOME</a>
   <div class="dash-heading">
@@ -522,8 +522,8 @@
   const label=categoryLabels[category]||"Product";
   return '<article class="catalog-item catalog-'+category+'" data-product-category="'+esc(category)+'" data-product-key="'+esc(key)+'"><div class="catalog-item-visual"><span class="catalog-art-icon">'+(icons[category]||"✦")+logo+'</span><i class="catalog-art-orbit"></i>'+(flag?'<span class="catalog-country-flag" title="'+esc(countryNames[String(country).toLowerCase()]||country)+'">'+flag+' <b>'+esc(String(countryNames[String(country).toLowerCase()]||country))+'</b></span>':'')+'<small>'+esc(tag)+'</small></div><div class="catalog-item-copy"><span class="catalog-category-label">'+esc(label)+'</span><h3>'+esc(title)+'</h3><p>'+esc(meta)+'</p><div class="catalog-item-detail">'+esc(detail)+'</div><div class="catalog-price-row"><strong>'+esc(money(priceCents,currency))+'</strong><small>'+esc(priceNote)+'</small></div></div></article>';
  };
- function empty(message){
-  grid.innerHTML='<div class="catalog-empty"><span>✦</span><strong>'+esc(message)+'</strong><small>Try another category, change the country code or refresh the catalogue.</small></div>';
+ function empty(message,hint){
+  grid.innerHTML='<div class="catalog-empty"><span>✦</span><strong>'+esc(message)+'</strong><small>'+esc(hint||"Try another category, change the country code or refresh the catalogue.")+'</small></div>';
  }
  function renderProduct(category,x){
   const key=productKey(category,x);
@@ -575,6 +575,22 @@
     .forEach(item=>results.push({category,item}));
   }
   if(!results.length){
+   const marketing=catalogue.sections?.marketing;
+   if(active==="marketing"&&marketing?.loading){
+    empty("Loading Social Media Boosters…","Checking the published storefront products now.");
+    status.textContent="Loading Social Media Boosters";
+    return;
+   }
+   if(active==="marketing"&&marketing?.ok){
+    empty("No Social Media Boosters are published yet.","Products published from the admin Product Manager will appear here automatically.");
+    status.textContent="No published social media products";
+    return;
+   }
+   if(active==="marketing"&&!marketing?.ok){
+    empty("Social Media Boosters are temporarily unavailable.","Refresh the catalogue. If this keeps happening, the SMM product database migration may need to be applied.");
+    status.textContent="Social media catalogue unavailable";
+    return;
+   }
    const anyRows=categories.some(category=>Array.isArray(catalogue.sections?.[category]?.items)&&catalogue.sections[category].items.length);
    empty(anyRows?"No products match that search.":"No products are currently listed in this category.");
    status.textContent=anyRows?"No matching products":(availableSections?"Category updated":"Some categories are temporarily unavailable");
@@ -620,8 +636,8 @@
  tabs.forEach(tab=>tab.addEventListener("click",()=>{
   active=tab.dataset.catalogTab;
   tabs.forEach(item=>{const selected=item===tab;item.classList.toggle("is-active",selected);item.setAttribute("aria-selected",String(selected));});
-  render();
   if((active==="marketing"||active==="all")&&(!catalogue?.sections?.marketing||!catalogue.sections.marketing.ok))loadMarketingCatalogue();
+  render();
  }));
  refresh.addEventListener("click",load);
  countryInput?.addEventListener("change",load);
