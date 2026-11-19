@@ -73,6 +73,7 @@
   }
   function clearForm() {
     $("smm-product-id").value = "";
+    serviceSelect.value = "";
     $("smm-platform").value = "";
     $("smm-product-name").value = "";
     $("smm-price").value = "";
