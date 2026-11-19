@@ -3,7 +3,8 @@ const vm = require("node:vm");
 
 const htmlFiles = [
   "index.html",
-  "dashboard.html",\n  "admin.html",
+  "dashboard.html",
+  "admin.html",
   "account.html",
   "payment-test.html",
   "payment-return.html"
