@@ -25,7 +25,7 @@ for (const file of htmlFiles) {
     const openingTag = html.slice(start, openEnd + 1);
     const source = html.slice(openEnd + 1, closeStart).trim();
     if (!openingTag.includes("src=") && source) {
-      const typeMatch = openingTag.match(/\\btype\\s*=\\s*["']([^"']+)["']/i);
+      const typeMatch = openingTag.match(/\btype\s*=\s*["']([^"']+)["']/i);
       const scriptType = typeMatch ? typeMatch[1].toLowerCase() : "text/javascript";
       if (scriptType === "application/ld+json") {
         // Structured data is JSON, not executable JavaScript. Parse it explicitly.
