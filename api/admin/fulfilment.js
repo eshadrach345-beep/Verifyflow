@@ -59,10 +59,11 @@ module.exports = async function handler(req, res) {
       [orderId]
     );
     if (!job.rowCount) return sendJson(res, 404, { ok: false, error: "No fulfilment job exists for this order." });
-    if (job.rows[0].status !== "pending" || !["paid", "processing"].includes(job.rows[0].order_status)) {
-      return sendJson(res, 409, { ok: false, error: "Only queued paid orders can be submitted. Unknown outcomes must be reconciled first." });
+    const retryUnknown = job.rows[0].status === "unknown" && String(body.action || "") === "retry_unknown";
+    if ((job.rows[0].status !== "pending" && !retryUnknown) || !["paid", "processing"].includes(job.rows[0].order_status)) {
+      return sendJson(res, 409, { ok: false, error: "Only pending jobs or explicitly reconciled unknown jobs can be submitted." });
     }
-    const result = await processFulfilmentForOrder(orderId);
+    const result = await processFulfilmentForOrder(orderId, { retryUnknown });
     return sendJson(res, 200, { ok: true, result });
   } catch (error) {
     console.error("[admin/fulfilment]", error.code || error.message);
