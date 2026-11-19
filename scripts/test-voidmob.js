@@ -68,8 +68,8 @@ async function main() {
     assert.equal(result.supplierOrderId, "ver_mock_123");
     assert.equal(result.chargedPriceCents, 50);
     assert.equal(calls.length, beforePurchaseCalls + 1);
-    assert.equal(calls[0].options.headers["Idempotency-Key"], "vf-order-test-0001");
-    assert.equal(calls[0].options.headers.Authorization, "Bearer mock-only-key");
+    assert.equal(calls[beforePurchaseCalls].options.headers["Idempotency-Key"], "vf-order-test-0001");
+    assert.equal(calls[beforePurchaseCalls].options.headers.Authorization, "Bearer mock-only-key");
 
     await assert.rejects(() => purchase("sms_otp", { serviceId: "svc_test", maxPriceCents: 50 }, "bad"), { code: "INVALID_IDEMPOTENCY_KEY" });
     global.fetch = async () => new Response(JSON.stringify({ success: true, data: { status: "active", id: "ren_mock_123" } }), { status: 200 });
