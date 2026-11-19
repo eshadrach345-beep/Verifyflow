@@ -1,162 +1,422 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#131921">
-<title>Your account — VerifyFlow</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<meta name="description" content="Manage your VerifyFlow profile, orders and service activity.">
+<title>My Account — VerifyFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles.css">
 <style>
-.account-page{min-height:calc(100vh - 120px);padding:42px 18px 64px;background:#eaeded}
-.account-wrap{width:min(1040px,100%);margin:0 auto}
-.account-back{display:inline-flex;align-items:center;gap:8px;color:#007185;font-weight:700;font-size:14px;margin-bottom:18px}
-.account-card{display:grid;grid-template-columns:.95fr 1.05fr;overflow:hidden;background:#fff;border:1px solid #d5d9d9;border-radius:16px;box-shadow:0 12px 36px rgba(15,17,17,.10)}
-.account-aside{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;min-height:610px;padding:44px 40px;color:#fff;background:radial-gradient(circle at 78% 15%,rgba(113,202,255,.4),transparent 32%),radial-gradient(circle at 18% 88%,rgba(130,104,255,.45),transparent 40%),linear-gradient(145deg,#111d37 0%,#1c3151 50%,#174b60 100%)}
-.account-aside:after{content:"";position:absolute;width:420px;height:420px;border:1px solid rgba(255,255,255,.22);border-radius:50%;right:-210px;bottom:-170px;box-shadow:0 0 0 38px rgba(255,255,255,.035),0 0 0 78px rgba(255,255,255,.025)}
-.account-aside>*{position:relative;z-index:1}
-.account-brand{font-size:22px;font-weight:800;letter-spacing:-.7px;color:#fff}
-.account-brand span{color:#ffd814}
-.account-aside h1{font-size:clamp(34px,4vw,48px);line-height:1.08;letter-spacing:-1.5px;margin:64px 0 16px;color:#fff}
-.account-aside p{max-width:360px;color:#d5e0ef;font-size:16px;line-height:1.75;margin:0}
-.account-perks{display:grid;gap:14px;margin-top:34px}
-.account-perk{display:flex;align-items:center;gap:12px;color:#e7eef9;font-size:14px;font-weight:600}
-.account-perk i{display:grid;place-items:center;width:29px;height:29px;border-radius:9px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);font-style:normal;color:#d8f98a}
-.account-main{padding:42px 44px 38px}
-.account-main h2{font-size:30px;letter-spacing:-.8px;margin:0 0 7px;color:#0f1111}
-.account-lead{font-size:15px;color:#565959;line-height:1.6;margin:0 0 24px}
-.account-mode{display:flex;gap:7px;padding:5px;background:#f2f4f4;border-radius:9px;margin-bottom:24px}
-.account-mode button{flex:1;border:0;background:transparent;border-radius:7px;padding:12px 8px;font:700 14px Inter,Arial;color:#56616b;cursor:pointer}
-.account-mode button.active{background:#fff;color:#0f1111;box-shadow:0 1px 5px rgba(15,17,17,.12)}
-.account-form{display:grid;gap:15px}
-.account-field{display:grid;gap:7px}
-.account-field label{font-size:13px;font-weight:750;color:#303a42}
-.account-field input{height:48px;width:100%;border:1px solid #bfc8cc;border-radius:7px;padding:0 13px;font:500 15px Inter,Arial;color:#0f1111;background:#fff;outline:none}
-.account-field input:focus{border:2px solid #e99d24;box-shadow:0 0 0 3px rgba(255,164,28,.16)}
-.account-submit{height:49px;border:1px solid #e2ba00;border-radius:24px;background:#ffd814;color:#111;font:800 15px Inter,Arial;cursor:pointer;margin-top:5px;box-shadow:0 2px 4px rgba(15,17,17,.08)}
-.account-submit:hover{background:#f7ca00}
-.account-submit:disabled{opacity:.65;cursor:wait}
-.account-message{min-height:23px;margin:0;font-size:13px;line-height:1.5;color:#b42318}
-.account-terms{font-size:12px;color:#737b81;line-height:1.55;margin:4px 0 0}
-.account-secure{display:flex;align-items:center;gap:8px;border-top:1px solid #e7e9e9;margin-top:26px;padding-top:18px;color:#66727b;font-size:12px}
-.account-secure i{font-style:normal;color:#1f7a46}
-@media(max-width:760px){.account-page{padding:22px 12px 38px}.account-card{grid-template-columns:1fr}.account-aside{min-height:0;padding:24px 23px 26px}.account-aside h1{font-size:32px;margin:27px 0 9px}.account-aside p{font-size:14px}.account-perks{grid-template-columns:1fr 1fr;margin-top:20px;gap:10px}.account-perk{font-size:12px}.account-perk i{width:25px;height:25px;flex-basis:25px}.account-main{padding:28px 22px 25px}.account-main h2{font-size:26px}}
-@media(max-width:380px){.account-perks{grid-template-columns:1fr}.account-main{padding-inline:17px}}
+.account-page{min-height:72vh;background:#eaeded;padding:28px 18px 58px}
+.account-wrap{max-width:1280px;width:100%;margin:0 auto}
+.account-breadcrumb{display:inline-block;color:#007185;font-size:13px;font-weight:700;margin:0 0 18px;text-decoration:none}
+.account-loading,.account-error{background:#fff;border:1px solid #d5d9d9;border-radius:12px;padding:30px;color:#37475a;font-size:14px}
+.account-loading strong,.account-error strong{display:block;font-size:18px;margin-bottom:7px;color:#0f1111}
+.account-hero{display:flex;align-items:center;justify-content:space-between;gap:22px;background:linear-gradient(110deg,#131921,#263c54 70%,#174b60);color:#fff;border-radius:12px;padding:26px 30px;margin-bottom:18px;box-shadow:0 5px 16px rgba(15,17,17,.10)}
+.account-hero-main{display:flex;align-items:center;gap:16px;min-width:0}
+.account-avatar{width:58px;height:58px;flex:0 0 58px;display:grid;place-items:center;border-radius:16px;background:#ffd814;color:#111;font-size:23px;font-weight:900}
+.account-hero h1{font-size:28px;line-height:1.2;letter-spacing:-.7px;margin:0 0 6px;color:#fff}
+.account-hero p{font-size:14px;color:#d7e0e8;margin:0;overflow-wrap:anywhere}
+.account-hero-actions{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.account-dashboard-link,.account-signout{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 16px;border-radius:22px;font:700 13px Inter,Arial;text-decoration:none;cursor:pointer}
+.account-dashboard-link{background:#ffd814;color:#111;border:1px solid #e2ba00}
+.account-signout{background:transparent;color:#fff;border:1px solid #8292a3}
+.account-nav{display:flex;gap:8px;overflow-x:auto;padding:7px;background:#fff;border:1px solid #d5d9d9;border-radius:10px;margin-bottom:18px}
+.account-nav button{flex:0 0 auto;border:1px solid transparent;background:transparent;color:#39434b;border-radius:22px;padding:11px 17px;font:700 13px Inter,Arial;cursor:pointer}
+.account-nav button[aria-selected=true]{background:#232f3e;color:#fff}
+.account-panel{display:block}
+.account-panel[hidden]{display:none}
+.account-card{background:#fff;border:1px solid #d5d9d9;border-radius:11px;padding:22px;box-shadow:0 2px 7px rgba(15,17,17,.045)}
+.account-card h2{font-size:20px;letter-spacing:-.3px;color:#0f1111;margin:0 0 7px}
+.account-card-intro{font-size:13px;color:#66727b;line-height:1.6;margin:0 0 18px}
+.account-overview-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:16px}
+.account-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.account-stat{background:#fff;border:1px solid #d5d9d9;border-radius:10px;padding:17px}
+.account-stat small{display:block;color:#66727b;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px}
+.account-stat strong{display:block;color:#0f1111;font-size:19px;overflow-wrap:anywhere}
+.account-stat span{display:block;color:#66727b;font-size:12px;margin-top:5px}
+.account-detail-list{display:grid;gap:0;margin:0}
+.account-detail{display:flex;justify-content:space-between;gap:18px;padding:12px 0;border-bottom:1px solid #edf0f0;font-size:13px}
+.account-detail:last-child{border-bottom:0}
+.account-detail dt{color:#66727b}
+.account-detail dd{margin:0;color:#0f1111;font-weight:700;text-align:right;overflow-wrap:anywhere}
+.account-card-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.account-text-link{color:#007185;font-size:13px;font-weight:800;text-decoration:none;white-space:nowrap}
+.account-activity-list{display:grid;gap:0}
+.activity-item{position:relative;padding:0 0 17px 22px;border-left:2px solid #e3e8ea;margin-left:6px}
+.activity-item:last-child{padding-bottom:0;border-left-color:transparent}
+.activity-item:before{content:"";position:absolute;left:-6px;top:2px;width:10px;height:10px;border-radius:50%;background:#007185;border:2px solid #fff;box-shadow:0 0 0 1px #007185}
+.activity-item strong{display:block;font-size:13px;color:#17202a;line-height:1.45}
+.activity-item p{font-size:12px;color:#66727b;line-height:1.5;margin:4px 0}
+.activity-item time{font-size:11px;color:#8a949a}
+.activity-empty,.orders-empty{padding:22px;border:1px dashed #cbd3d6;border-radius:9px;background:#f8fafa;color:#66727b;font-size:13px;line-height:1.6}
+.profile-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px}
+.profile-field{display:grid;gap:7px}
+.profile-field label{font-size:13px;font-weight:750;color:#303a42}
+.profile-field input,.profile-field select{height:46px;width:100%;border:1px solid #bfc8cc;border-radius:7px;padding:0 12px;font:500 14px Inter,Arial;color:#0f1111;background:#fff;outline:none}
+.profile-field input:focus,.profile-field select:focus{border:2px solid #e99d24;box-shadow:0 0 0 3px rgba(255,164,28,.13)}
+.profile-field input[readonly]{background:#f4f6f6;color:#647078}
+.profile-field small{font-size:11px;color:#77838a;line-height:1.45}
+.profile-actions{grid-column:1/-1;display:flex;align-items:center;gap:14px;margin-top:3px}
+.profile-save,.auth-submit{min-height:46px;border:1px solid #e2ba00;border-radius:24px;background:#ffd814;color:#111;font:800 14px Inter,Arial;cursor:pointer;padding:0 22px}
+.profile-save:disabled,.auth-submit:disabled{opacity:.65;cursor:wait}
+.profile-message{font-size:13px;color:#237044;margin:0}
+.profile-message.error{color:#b42318}
+.order-list{display:grid;gap:11px}
+.order-card{border:1px solid #d5d9d9;border-radius:10px;padding:16px;background:#fff}
+.order-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.order-name{font-size:15px;font-weight:800;color:#0f1111;margin:0 0 5px}
+.order-meta{font-size:11px;color:#66727b;line-height:1.6}
+.order-price{font-size:14px;font-weight:800;color:#0f1111;white-space:nowrap}
+.order-status{display:inline-flex;padding:6px 10px;border-radius:20px;background:#eef3f4;color:#45545b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;margin-top:10px}
+.order-status.completed,.order-status.paid{background:#e7f5ec;color:#21653c}
+.order-status.failed,.order-status.cancelled,.order-status.refunded{background:#fff0ee;color:#a33a2e}
+.order-status.processing,.order-status.awaiting_payment{background:#fff6df;color:#8a6218}
+.orders-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:16px}
+.auth-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);background:#fff;border:1px solid #d5d9d9;border-radius:13px;overflow:hidden;box-shadow:0 8px 25px rgba(15,17,17,.08)}
+.auth-aside{padding:42px;background:linear-gradient(145deg,#111d37,#1c3151 58%,#174b60);color:#fff;display:flex;flex-direction:column;justify-content:space-between;min-height:500px}
+.auth-aside h1{font-size:36px;line-height:1.1;letter-spacing:-1.2px;color:#fff;margin:56px 0 14px}
+.auth-aside p{font-size:14px;line-height:1.7;color:#d5e0ef;margin:0}
+.auth-brand{font-size:21px;font-weight:800;color:#fff}
+.auth-brand span{color:#ffd814}
+.auth-main{padding:38px 42px}
+.auth-main h2{font-size:27px;margin:0 0 7px;color:#0f1111}
+.auth-lead{font-size:14px;color:#66727b;line-height:1.6;margin:0 0 20px}
+.auth-tabs{display:flex;gap:6px;padding:5px;background:#f2f4f4;border-radius:9px;margin-bottom:20px}
+.auth-tabs button{flex:1;border:0;border-radius:7px;background:transparent;padding:11px;font:700 13px Inter,Arial;color:#56616b;cursor:pointer}
+.auth-tabs button.active{background:#fff;color:#0f1111;box-shadow:0 1px 5px rgba(15,17,17,.12)}
+.auth-form{display:grid;gap:14px}
+.auth-field{display:grid;gap:7px}
+.auth-field label{font-size:13px;font-weight:750;color:#303a42}
+.auth-field input{height:46px;width:100%;border:1px solid #bfc8cc;border-radius:7px;padding:0 12px;font:500 14px Inter,Arial;color:#0f1111;background:#fff;outline:none}
+.auth-field input:focus{border:2px solid #e99d24}
+.auth-message{min-height:20px;font-size:13px;color:#b42318;margin:0}
+.auth-terms{font-size:11px;line-height:1.6;color:#737b81;margin:0}
+@media(max-width:850px){.account-overview-grid,.orders-layout{grid-template-columns:1fr}.auth-layout{grid-template-columns:1fr}.auth-aside{min-height:0;padding:25px}.auth-aside h1{font-size:29px;margin:25px 0 9px}.auth-main{padding:28px}}
+@media(max-width:600px){.account-page{padding:20px 11px 38px}.account-hero{align-items:flex-start;flex-direction:column;padding:19px}.account-hero h1{font-size:24px}.account-hero-actions{width:100%}.account-hero-actions>*{flex:1}.account-avatar{width:48px;height:48px;flex-basis:48px;border-radius:13px}.account-summary{grid-template-columns:1fr 1fr}.account-stat:last-child{grid-column:1/-1}.account-card{padding:16px}.account-nav button{font-size:12px;padding:10px 13px}.profile-form{grid-template-columns:1fr}.profile-actions{grid-column:1;align-items:flex-start;flex-direction:column}.order-card-head{flex-direction:column}.order-price{white-space:normal}.auth-main{padding:24px 19px}.auth-aside{padding:21px}.auth-aside h1{font-size:27px}}
 </style>
 </head>
 <body>
-<div class="announcement">Your VerifyFlow account <span class="announce-divider">/</span> Everything connected in one place</div>
-<header class="vf-store-header"><div class="vf-topbar">
-<a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
-<a class="vf-location" href="/#services"><small>Explore</small><strong>All services</strong></a>
-<form class="vf-search" action="/#services" role="search"><label class="sr-only" for="account-search">Search services</label><input id="account-search" type="search" placeholder="Search SMS, eSIM, numbers, proxies..."><button type="submit" aria-label="Search services">⌕</button></form>
-<a class="vf-account" href="/dashboard.html"><small>Already exploring?</small><strong>Open dashboard</strong></a>
-</div><nav class="vf-subnav"><a href="/">☰ <b>Home</b></a><a href="/#services">SMS verification</a><a href="/#services">Number rentals</a><a href="/#services">eSIM data</a><a href="/#services">Mobile proxies</a></nav></header>
+<div class="announcement">Your VerifyFlow account <span class="announce-divider">/</span> Profile, orders and activity</div>
+<header class="vf-store-header">
+ <div class="vf-topbar">
+  <a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
+  <a class="vf-location" href="/#services"><small>Explore</small><strong>All services</strong></a>
+  <form class="vf-search" action="/#services" role="search"><label class="sr-only" for="account-search">Search services</label><input id="account-search" type="search" placeholder="Search SMS, eSIM, numbers, proxies..."><button type="submit" aria-label="Search services">⌕</button></form>
+  <a class="vf-account" href="/dashboard.html"><small>Your space</small><strong>Dashboard</strong></a>
+ </div>
+ <nav class="vf-subnav" aria-label="Account navigation"><a href="/"><b>Home</b></a><a href="/dashboard.html">Marketplace</a><a href="/account.html">My account</a><a href="/terms.html">Help & terms</a></nav>
+</header>
 <main class="account-page"><div class="account-wrap">
-<a class="account-back" href="/">← Back to VerifyFlow</a>
-<div class="account-card">
-<section class="account-aside">
-<div class="account-brand">verify<span>flow</span></div>
-<div><h1>One account.<br>Every connection.</h1><p>Sign in to keep your services and account activity together in one simple space.</p>
-<div class="account-perks"><div class="account-perk"><i>✓</i> Your service workspace</div><div class="account-perk"><i>✓</i> Order activity</div><div class="account-perk"><i>✓</i> A clearer way to stay connected</div></div></div>
-<div style="font-size:12px;color:#c0cde0">VerifyFlow · Your world, connected</div>
-</section>
-<section class="account-main">
-<h2 id="form-title">Welcome back</h2><p class="account-lead" id="form-lead">Checking your account…</p>
-<div class="account-mode" role="tablist" aria-label="Choose account action" hidden><button class="active" id="login-tab" type="button" role="tab" aria-selected="true">Sign in</button><button id="register-tab" type="button" role="tab" aria-selected="false">Create account</button></div>
-<form class="account-form" id="login-form" hidden novalidate>
-<div class="account-field"><label for="login-email">Email address</label><input id="login-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></div>
-<div class="account-field"><label for="login-password">Password</label><input id="login-password" name="password" type="password" autocomplete="current-password" required placeholder="Your password"></div>
-<button class="account-submit" type="submit">Sign in to your account</button><p class="account-message" id="login-message" role="status" aria-live="polite"></p>
-</form>
-<form class="account-form" id="register-form" hidden novalidate>
-<div class="account-field"><label for="register-name">Full name</label><input id="register-name" name="fullName" autocomplete="name" required minlength="2" maxlength="80" placeholder="Your full name"></div>
-<div class="account-field"><label for="register-email">Email address</label><input id="register-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></div>
-<div class="account-field"><label for="register-password">Create password</label><input id="register-password" name="password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required placeholder="At least 10 characters"></div>
-<button class="account-submit" type="submit">Create my account</button><p class="account-message" id="register-message" role="status" aria-live="polite"></p>
-<p class="account-terms">By creating an account, you agree to use VerifyFlow in line with our <a href="/terms.html">Terms</a> and <a href="/privacy.html">Privacy Policy</a>.</p>
-</form>
-<div class="account-secure"><i>●</i> Your password is protected and your session stays private.</div>
-</section>
-</div></div></main>
+ <a class="account-breadcrumb" href="/dashboard.html">← Back to your dashboard</a>
+ <div id="account-loading" class="account-loading"><strong>Checking your account…</strong>Just a moment while we load your customer details.</div>
+ <div id="account-error" class="account-error" hidden><strong>We couldn't load your account.</strong><span id="account-error-text">Please try again.</span><p><button class="profile-save" id="account-retry" type="button">Try again</button></p></div>
+
+ <section id="auth-view" class="auth-layout" hidden>
+  <div class="auth-aside"><div class="auth-brand">verify<span>flow</span></div><div><h1>One account.<br>Every connection.</h1><p>Sign in to view your profile, follow your orders and keep your service activity together.</p></div><small>VerifyFlow · Your world, connected</small></div>
+  <div class="auth-main">
+   <h2 id="auth-title">Welcome back</h2><p class="auth-lead" id="auth-lead">Sign in to continue to your account.</p>
+   <div class="auth-tabs" role="tablist" aria-label="Choose account action"><button type="button" id="login-tab" class="active" aria-selected="true">Sign in</button><button type="button" id="register-tab" aria-selected="false">Create account</button></div>
+   <form class="auth-form" id="login-form" novalidate>
+    <div class="auth-field"><label for="login-email">Email address</label><input id="login-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+    <div class="auth-field"><label for="login-password">Password</label><input id="login-password" name="password" type="password" autocomplete="current-password" required placeholder="Your password"></div>
+    <button class="auth-submit" type="submit">Sign in to your account</button><p class="auth-message" id="login-message" role="status" aria-live="polite"></p>
+   </form>
+   <form class="auth-form" id="register-form" hidden novalidate>
+    <div class="auth-field"><label for="register-name">Full name</label><input id="register-name" name="fullName" autocomplete="name" required minlength="2" maxlength="80" placeholder="Your full name"></div>
+    <div class="auth-field"><label for="register-email">Email address</label><input id="register-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+    <div class="auth-field"><label for="register-password">Create password</label><input id="register-password" name="password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required placeholder="At least 10 characters"></div>
+    <button class="auth-submit" type="submit">Create my account</button><p class="auth-message" id="register-message" role="status" aria-live="polite"></p>
+    <p class="auth-terms">By creating an account, you agree to our <a href="/terms.html">Terms</a> and <a href="/privacy.html">Privacy Policy</a>.</p>
+   </form>
+  </div>
+ </section>
+
+ <section id="portal-view" hidden>
+  <div class="account-hero">
+   <div class="account-hero-main"><div class="account-avatar" id="account-avatar">V</div><div><h1 id="account-heading">My account</h1><p id="account-subheading">Your profile, orders and service activity.</p></div></div>
+   <div class="account-hero-actions"><a class="account-dashboard-link" href="/dashboard.html">Marketplace ↗</a><button class="account-signout" id="signout-button" type="button">Sign out</button></div>
+  </div>
+  <nav class="account-nav" role="tablist" aria-label="Your account sections">
+   <button type="button" data-panel="overview" aria-selected="true">Overview</button>
+   <button type="button" data-panel="profile" aria-selected="false">Edit profile</button>
+   <button type="button" data-panel="orders" aria-selected="false">Orders & activity</button>
+  </nav>
+
+  <section class="account-panel" id="panel-overview">
+   <div class="account-summary">
+    <div class="account-stat"><small>Account status</small><strong>Active</strong><span>Signed in securely</span></div>
+    <div class="account-stat"><small>Total orders</small><strong id="overview-order-count">0</strong><span>Your VerifyFlow orders</span></div>
+    <div class="account-stat"><small>Member since</small><strong id="overview-joined">—</strong><span>Account creation date</span></div>
+   </div>
+   <div class="account-overview-grid">
+    <article class="account-card">
+     <div class="account-card-heading"><h2>Profile information</h2><button class="account-text-link" type="button" data-open-panel="profile">Edit profile →</button></div>
+     <dl class="account-detail-list">
+      <div class="account-detail"><dt>Full name</dt><dd id="overview-name">—</dd></div>
+      <div class="account-detail"><dt>Email address</dt><dd id="overview-email">—</dd></div>
+      <div class="account-detail"><dt>Country</dt><dd id="overview-country">Not set</dd></div>
+      <div class="account-detail"><dt>Preferred currency</dt><dd id="overview-currency">USD</dd></div>
+      <div class="account-detail"><dt>Time zone</dt><dd id="overview-timezone">Africa/Lagos</dd></div>
+     </dl>
+    </article>
+    <article class="account-card">
+     <div class="account-card-heading"><h2>Recent activity</h2><button class="account-text-link" type="button" data-open-panel="orders">View all →</button></div>
+     <div id="overview-activity" class="account-activity-list"><div class="activity-empty">Your recent activity will appear here.</div></div>
+    </article>
+   </div>
+  </section>
+
+  <section class="account-panel" id="panel-profile" hidden>
+   <article class="account-card">
+    <h2>Edit your profile</h2><p class="account-card-intro">Update the personal details and preferences used for your VerifyFlow account. Your sign-in email is read-only here.</p>
+    <form id="profile-form" class="profile-form" novalidate>
+     <div class="profile-field"><label for="profile-name">Full name</label><input id="profile-name" name="fullName" type="text" minlength="2" maxlength="80" required autocomplete="name"></div>
+     <div class="profile-field"><label for="profile-email">Email address</label><input id="profile-email" name="email" type="email" readonly><small>To protect your account, email changes are not available here.</small></div>
+     <div class="profile-field"><label for="profile-country">Country code</label><input id="profile-country" name="countryCode" type="text" maxlength="2" autocomplete="country" placeholder="NG"><small>Use the two-letter code for your country, for example NG, US or GB.</small></div>
+     <div class="profile-field"><label for="profile-currency">Preferred currency</label><select id="profile-currency" name="preferredCurrency"><option value="USD">USD — US Dollar</option><option value="NGN">NGN — Nigerian Naira</option><option value="GBP">GBP — British Pound</option><option value="EUR">EUR — Euro</option><option value="CAD">CAD — Canadian Dollar</option><option value="AUD">AUD — Australian Dollar</option><option value="GHS">GHS — Ghanaian Cedi</option><option value="KES">KES — Kenyan Shilling</option><option value="ZAR">ZAR — South African Rand</option><option value="INR">INR — Indian Rupee</option></select></div>
+     <div class="profile-field"><label for="profile-timezone">Time zone</label><input id="profile-timezone" name="timezone" type="text" maxlength="80" placeholder="Africa/Lagos" required><small>Use an IANA time zone, such as Africa/Lagos or Europe/London.</small></div>
+     <div class="profile-actions"><button class="profile-save" id="profile-save" type="submit">Save changes</button><p class="profile-message" id="profile-message" role="status" aria-live="polite"></p></div>
+    </form>
+   </article>
+  </section>
+
+  <section class="account-panel" id="panel-orders" hidden>
+   <div class="orders-layout">
+    <article class="account-card"><div class="account-card-heading"><div><h2>Your orders</h2><p class="account-card-intro" style="margin:5px 0 0">A record of the services you have ordered.</p></div><span id="orders-count" class="order-meta">0 orders</span></div><div class="order-list" id="order-list"><div class="orders-empty">Loading your orders…</div></div></article>
+    <article class="account-card"><div class="account-card-heading"><h2>Activity history</h2></div><div id="full-activity" class="account-activity-list"><div class="activity-empty">Loading your activity…</div></div></article>
+   </div>
+  </section>
+ </section>
+</div></main>
 <footer class="site-footer"><div class="footer-main"><a class="brand brand-footer" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><p>One flow. Every connection.</p><div class="footer-links"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/acceptable-use.html">Acceptable use</a></div></div><div class="footer-bottom"><span>© 2026 VerifyFlow. All rights reserved.</span><span>Designed for a world that never stands still.</span></div></footer>
 <script>
 (() => {
+ const loading=document.getElementById("account-loading");
+ const errorBox=document.getElementById("account-error");
+ const errorText=document.getElementById("account-error-text");
+ const authView=document.getElementById("auth-view");
+ const portalView=document.getElementById("portal-view");
  const loginForm=document.getElementById("login-form");
  const registerForm=document.getElementById("register-form");
  const loginTab=document.getElementById("login-tab");
  const registerTab=document.getElementById("register-tab");
- const title=document.getElementById("form-title");
- const lead=document.getElementById("form-lead");
- let mode="login";
- function show(next){
-  mode=next;
-  const login=next==="login";
+ let currentProfile=null;
+ let currentOrders=[];
+
+ const esc=value=>String(value==null?"":value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+ const nice=value=>String(value||"").replace(/[_-]+/g," ").replace(/\b\w/g,char=>char.toUpperCase());
+ const dateLabel=value=>{
+  const date=new Date(value);
+  return Number.isNaN(date.getTime())?"Date unavailable":date.toLocaleString(undefined,{year:"numeric",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+ };
+ const shortDate=value=>{
+  const date=new Date(value);
+  return Number.isNaN(date.getTime())?"—":date.toLocaleDateString(undefined,{year:"numeric",month:"short"});
+ };
+ const currencyLabel=(minor,currency)=>{
+  const amount=Number(minor||0)/100;
+  try{return new Intl.NumberFormat(undefined,{style:"currency",currency:currency||"USD"}).format(amount);}
+  catch{return (currency||"USD")+" "+amount.toFixed(2);}
+ };
+ function showError(message){
+  loading.hidden=true;authView.hidden=true;portalView.hidden=true;
+  errorText.textContent=message||"Please try again.";
+  errorBox.hidden=false;
+ }
+ function showAuth(){
+  loading.hidden=true;errorBox.hidden=true;portalView.hidden=true;authView.hidden=false;
+ }
+ function showPortal(){
+  loading.hidden=true;errorBox.hidden=true;authView.hidden=true;portalView.hidden=false;
+ }
+ function selectPanel(name){
+  document.querySelectorAll(".account-nav [data-panel]").forEach(button=>{
+   const selected=button.dataset.panel===name;
+   button.setAttribute("aria-selected",String(selected));
+  });
+  document.querySelectorAll(".account-panel").forEach(panel=>{panel.hidden=panel.id!=="panel-"+name;});
+ }
+ document.querySelectorAll(".account-nav [data-panel]").forEach(button=>button.addEventListener("click",()=>selectPanel(button.dataset.panel)));
+ document.querySelectorAll("[data-open-panel]").forEach(button=>button.addEventListener("click",()=>selectPanel(button.dataset.openPanel)));
+
+ function renderProfile(profile){
+  currentProfile=profile;
+  const name=profile.fullName||profile.displayName||"VerifyFlow customer";
+  const email=profile.email||"";
+  const initials=name.trim().split(/\s+/).slice(0,2).map(part=>part.charAt(0)).join("").toUpperCase()||"V";
+  document.getElementById("account-avatar").textContent=initials;
+  document.getElementById("account-heading").textContent="Hello, "+name.split(/\s+/)[0];
+  document.getElementById("account-subheading").textContent=email+" · Manage your profile, orders and activity.";
+  document.getElementById("overview-name").textContent=name;
+  document.getElementById("overview-email").textContent=email||"—";
+  document.getElementById("overview-country").textContent=profile.countryCode||"Not set";
+  document.getElementById("overview-currency").textContent=profile.preferredCurrency||"USD";
+  document.getElementById("overview-timezone").textContent=profile.timezone||"Africa/Lagos";
+  document.getElementById("overview-joined").textContent=shortDate(profile.createdAt);
+  document.getElementById("profile-name").value=name;
+  document.getElementById("profile-email").value=email;
+  document.getElementById("profile-country").value=profile.countryCode||"";
+  document.getElementById("profile-currency").value=profile.preferredCurrency||"USD";
+  document.getElementById("profile-timezone").value=profile.timezone||"Africa/Lagos";
+ }
+
+ function buildActivity(orders){
+  const items=[];
+  orders.forEach(order=>{
+   items.push({when:order.created_at,title:"Order placed",description:(order.product_name||"Service order")+" · "+(order.order_number||""),orderNumber:order.order_number});
+   (Array.isArray(order.events)?order.events:[]).forEach(event=>{
+    items.push({when:event.createdAt,title:event.message||nice(event.eventType||"Order updated"),description:"Order "+(order.order_number||""),orderNumber:order.order_number});
+   });
+   if(order.latest_payment&&order.latest_payment.status){
+    items.push({when:order.latest_payment.updatedAt||order.latest_payment.createdAt,title:"Payment status: "+nice(order.latest_payment.status),description:"Order "+(order.order_number||""),orderNumber:order.order_number});
+   }
+  });
+  return items.sort((a,b)=>new Date(b.when).getTime()-new Date(a.when).getTime());
+ }
+ function activityHtml(items,limit){
+  const shown=typeof limit==="number"?items.slice(0,limit):items;
+  if(!shown.length)return '<div class="activity-empty">No activity has been recorded yet. Your order updates will appear here.</div>';
+  return shown.map(item=>'<div class="activity-item"><strong>'+esc(item.title)+'</strong><p>'+esc(item.description)+'</p><time>'+esc(dateLabel(item.when))+'</time></div>').join("");
+ }
+ function renderOrders(orders){
+  currentOrders=Array.isArray(orders)?orders:[];
+  const count=currentOrders.length;
+  document.getElementById("overview-order-count").textContent=String(count);
+  document.getElementById("orders-count").textContent=count+" order"+(count===1?"":"s");
+  const list=document.getElementById("order-list");
+  if(!count){
+   list.innerHTML='<div class="orders-empty">You have no orders yet. When you place an order, its details and status will appear here.</div>';
+  }else{
+   list.innerHTML=currentOrders.map(order=>{
+    const status=String(order.status||"pending").toLowerCase().replace(/[^a-z_]/g,"");
+    return '<article class="order-card"><div class="order-card-head"><div><p class="order-name">'+esc(order.product_name||"VerifyFlow service")+'</p><div class="order-meta">Order '+esc(order.order_number||"—")+' · '+esc(dateLabel(order.created_at))+'</div></div><div class="order-price">'+esc(currencyLabel(order.total_minor,order.currency))+'</div></div><span class="order-status '+esc(status)+'">'+esc(nice(status))+'</span></article>';
+   }).join("");
+  }
+  const activity=buildActivity(currentOrders);
+  document.getElementById("overview-activity").innerHTML=activityHtml(activity,4);
+  document.getElementById("full-activity").innerHTML=activityHtml(activity);
+ }
+ async function loadProfile(fallbackUser){
+  const response=await fetch("/api/account/profile",{credentials:"same-origin",cache:"no-store",headers:{Accept:"application/json"}});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||!data.ok){
+   if(response.status===401)throw new Error("Your session has expired. Please sign in again.");
+   throw new Error(data.error||"Your profile could not be loaded.");
+  }
+  renderProfile(data.profile||fallbackUser||{});
+ }
+ async function loadOrders(){
+  const response=await fetch("/api/orders",{credentials:"same-origin",cache:"no-store",headers:{Accept:"application/json"}});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||!data.ok)throw new Error(data.error||"Your orders could not be loaded.");
+  renderOrders(data.orders||[]);
+ }
+ async function openPortal(user){
+  showPortal();
+  selectPanel("overview");
+  renderProfile({fullName:user.fullName||"",email:user.email||"",createdAt:user.createdAt||"",preferredCurrency:"USD",timezone:"Africa/Lagos"});
+  const results=await Promise.allSettled([loadProfile(user),loadOrders()]);
+  const failed=results.find(result=>result.status==="rejected");
+  if(failed){
+   const message=failed.reason&&failed.reason.message?failed.reason.message:"Some account information could not be loaded.";
+   if(message.toLowerCase().includes("session has expired")){showAuth();setAuthMode("login");return;}
+   if(!currentProfile||!currentProfile.email)showError(message);
+   else{
+    const profileMessage=document.getElementById("profile-message");
+    profileMessage.textContent=message;
+    profileMessage.classList.add("error");
+    if(!currentOrders.length){
+     document.getElementById("order-list").innerHTML='<div class="orders-empty">'+esc(message)+'</div>';
+     document.getElementById("overview-activity").innerHTML='<div class="activity-empty">Activity could not be loaded right now.</div>';
+     document.getElementById("full-activity").innerHTML='<div class="activity-empty">Activity could not be loaded right now.</div>';
+    }
+   }
+  }
+ }
+ function setAuthMode(mode){
+  const login=mode==="login";
   loginForm.hidden=!login;registerForm.hidden=login;
   loginTab.classList.toggle("active",login);registerTab.classList.toggle("active",!login);
   loginTab.setAttribute("aria-selected",String(login));registerTab.setAttribute("aria-selected",String(!login));
-  title.textContent=login?"Welcome back":"Create your account";
-  lead.textContent=login?"Sign in to continue to your dashboard.":"Set up your VerifyFlow account in a few simple steps.";
+  document.getElementById("auth-title").textContent=login?"Welcome back":"Create your account";
+  document.getElementById("auth-lead").textContent=login?"Sign in to view your profile, orders and activity.":"Create your VerifyFlow account to get started.";
   document.getElementById("login-message").textContent="";
   document.getElementById("register-message").textContent="";
  }
- loginTab.addEventListener("click",()=>show("login"));
- registerTab.addEventListener("click",()=>show("register"));
- async function submit(form,endpoint,messageId,buttonText){
+ loginTab.addEventListener("click",()=>setAuthMode("login"));
+ registerTab.addEventListener("click",()=>setAuthMode("register"));
+
+ async function submitAuth(form,endpoint,messageId,buttonLabel){
   const message=document.getElementById(messageId);
-  const button=form.querySelector("button[type=submit]");
+  const button=form.querySelector('button[type="submit"]');
   message.textContent="";
   if(!form.reportValidity())return;
-  const values=Object.fromEntries(new FormData(form).entries());
+  const payload=Object.fromEntries(new FormData(form).entries());
   button.disabled=true;button.textContent="Please wait…";
   try{
-   const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},credentials:"same-origin",body:JSON.stringify(values)});
+   const response=await fetch(endpoint,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(payload)});
    const data=await response.json().catch(()=>({}));
    if(!response.ok||!data.ok)throw new Error(data.error||"We couldn't complete that request. Please try again.");
-   window.location.assign("/dashboard.html");
+   form.reset();
+   await openPortal(data.user);
   }catch(error){message.textContent=error.message||"Something went wrong. Please try again."}
-  finally{button.disabled=false;button.textContent=buttonText}
+  finally{button.disabled=false;button.textContent=buttonLabel}
  }
- loginForm.addEventListener("submit",event=>{event.preventDefault();submit(loginForm,"/api/auth/login","login-message","Sign in to your account")});
- registerForm.addEventListener("submit",event=>{event.preventDefault();submit(registerForm,"/api/auth/register","register-message","Create my account")});
- async function checkAccount(){
-  title.textContent="Checking your account";
-  lead.textContent="Please wait while we verify your sign-in.";
+ loginForm.addEventListener("submit",event=>{event.preventDefault();submitAuth(loginForm,"/api/auth/login","login-message","Sign in to your account");});
+ registerForm.addEventListener("submit",event=>{event.preventDefault();submitAuth(registerForm,"/api/auth/register","register-message","Create my account");});
+
+ document.getElementById("profile-form").addEventListener("submit",async event=>{
+  event.preventDefault();
+  const form=event.currentTarget;
+  if(!form.reportValidity())return;
+  const button=document.getElementById("profile-save");
+  const message=document.getElementById("profile-message");
+  message.textContent="";message.classList.remove("error");
+  button.disabled=true;button.textContent="Saving…";
+  const payload={
+   fullName:document.getElementById("profile-name").value,
+   countryCode:document.getElementById("profile-country").value,
+   preferredCurrency:document.getElementById("profile-currency").value,
+   timezone:document.getElementById("profile-timezone").value
+  };
   try{
-   let response=await fetch("/api/auth/me",{credentials:"same-origin",cache:"no-store"});
-   let data=await response.json();
-   if(!response.ok){
-    await new Promise(resolve=>setTimeout(resolve,350));
-    response=await fetch("/api/auth/me",{credentials:"same-origin",cache:"no-store"});
-    data=await response.json();
-   }
-   if(data.ok&&data.user){
-    title.textContent="You are already signed in";
-    lead.textContent="Your VerifyFlow account is ready.";
-    const link=document.createElement("a");
-    link.className="account-submit";
-    link.href="/dashboard.html";
-    link.textContent="Open my dashboard";
-    link.style.display="grid";
-    link.style.placeItems="center";
-    link.style.textDecoration="none";
-    document.querySelector(".account-main").insertBefore(link,document.querySelector(".account-secure"));
-    return;
-   }
-   document.querySelector(".account-mode").hidden=false;
-   show("login");
-  }catch(error){
-   title.textContent="We could not verify your session";
-   lead.textContent="Please refresh this page to check your account again. Your account has not been changed.";
-   const retry=document.createElement("button");
-   retry.type="button";
-   retry.className="account-submit";
-   retry.textContent="Check again";
-   retry.addEventListener("click",()=>{retry.remove();checkAccount();});
-   document.querySelector(".account-main").insertBefore(retry,document.querySelector(".account-secure"));
-  }
+   const response=await fetch("/api/account/profile",{method:"PATCH",credentials:"same-origin",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(payload)});
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok||!data.ok)throw new Error(data.error||"Your profile could not be saved.");
+   renderProfile(Object.assign({},currentProfile||{},data.profile));
+   message.textContent="Your profile has been updated.";
+   selectPanel("profile");
+  }catch(error){message.textContent=error.message||"Please try again.";message.classList.add("error");}
+  finally{button.disabled=false;button.textContent="Save changes";}
+ });
+
+ document.getElementById("signout-button").addEventListener("click",async()=>{
+  const button=document.getElementById("signout-button");
+  button.disabled=true;button.textContent="Signing out…";
+  try{
+   const response=await fetch("/api/auth/logout",{method:"POST",credentials:"same-origin",headers:{Accept:"application/json"}});
+   if(!response.ok)throw new Error("Sign out could not be completed.");
+   window.location.assign("/account.html");
+  }catch(error){button.disabled=false;button.textContent="Sign out";window.alert(error.message||"Please try again.");}
+ });
+ document.getElementById("account-retry").addEventListener("click",boot);
+
+ async function boot(){
+  loading.hidden=false;errorBox.hidden=true;authView.hidden=true;portalView.hidden=true;
+  try{
+   const response=await fetch("/api/auth/me",{credentials:"same-origin",cache:"no-store",headers:{Accept:"application/json"}});
+   const data=await response.json().catch(()=>({}));
+   if(response.status===503||!response.ok&&!data.ok)throw new Error(data.error||"Your account service is temporarily unavailable.");
+   if(!data.user){showAuth();setAuthMode("login");return;}
+   await openPortal(data.user);
+  }catch(error){showError(error.message||"Please refresh to try again.");}
  }
- checkAccount();
+ boot();
 })();
 </script>
 </body></html>
