@@ -105,8 +105,11 @@ module.exports = async function handler(req, res) {
     const redirectUrl = (process.env.PUBLIC_APP_URL || "https://verifyflow.us.ci").replace(/\/+$/, "") +
       "/payment-return.html?paymentReference=" + encodeURIComponent(paymentReference);
 
+    // Sandbox orders exercise the payment flow but can never create a live supplier job.
+    const sandboxMode = String(config.environment || "").toUpperCase() !== "LIVE";
     const metadata = {
       platform: productType,
+      ...(sandboxMode ? { sandboxTest: true, noFulfilment: true } : {}),
       checkout: {
         productSnapshot: quote.productSnapshot,
         supplierInput: quote.supplierInput,
