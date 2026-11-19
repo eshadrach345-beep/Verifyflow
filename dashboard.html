@@ -209,6 +209,14 @@
  .catalog-footnote{font-size:11px}
 }
 @media(max-width:365px){.catalog-controls{grid-template-columns:1fr}}
+</style><style>
+/* Brand and country identity on marketplace cards */
+.catalog-art-icon{position:relative}
+.catalog-brand-logo{position:absolute;inset:0;width:100%;height:100%;padding:13px;object-fit:contain;border-radius:17px;background:#fff;z-index:2}
+.catalog-country-flag{position:absolute;left:10px;top:10px;z-index:3;display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border:1px solid #d5d9d9;border-radius:20px;background:#fff;color:#25313b;font:700 11px Inter,Arial,sans-serif;box-shadow:0 2px 5px #0000000d}
+.catalog-country-flag b{font-weight:700}
+.catalog-item-visual>small{z-index:3}
+@media(max-width:600px){.catalog-country-flag{font-size:10px;left:7px;top:7px;padding:4px 6px}.catalog-country-flag b{max-width:78px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.catalog-brand-logo{padding:11px}}
 </style></head><body><header class="vf-store-header"><div class="vf-topbar">
 <a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
 <a class="vf-location" href="/#services"><small>Explore</small><strong>All services</strong></a>
@@ -283,14 +291,41 @@
 
  const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
  const icons={sms:"✉",rentals:"◉",esim:"⌁",proxies:"◎",dedicated:"▣"};
+ const appBrands=[
+  ["whatsapp","whatsapp","25D366"],["telegram","telegram","26A5E4"],["google","google","4285F4"],["gmail","gmail","EA4335"],
+  ["instagram","instagram","E4405F"],["facebook","facebook","0866FF"],["tiktok","tiktok","111111"],["discord","discord","5865F2"],
+  ["microsoft","microsoft","5E5E5E"],["outlook","microsoftoutlook","0078D4"],["amazon","amazon","FF9900"],["apple","apple","111111"],
+  ["snapchat","snapchat","FFFC00"],["uber","uber","111111"],["binance","binance","F0B90B"],["paypal","paypal","003087"],
+  ["steam","steam","171A21"],["x.com","x","111111"],["twitter","x","111111"],["yahoo","yahoo","6001D2"],
+  ["twitch","twitch","9146FF"],["reddit","reddit","FF4500"],["linkedin","linkedin","0A66C2"],["openai","openai","412991"]
+ ];
+ const countryNames={us:"United States",gb:"United Kingdom",uk:"United Kingdom",ca:"Canada",ng:"Nigeria",de:"Germany",fr:"France",in:"India",au:"Australia",br:"Brazil",mx:"Mexico",jp:"Japan",kr:"South Korea",sg:"Singapore",id:"Indonesia",tr:"Turkey",ru:"Russia",ua:"Ukraine",es:"Spain",it:"Italy",nl:"Netherlands",za:"South Africa",ph:"Philippines",pk:"Pakistan",bd:"Bangladesh",vn:"Vietnam",th:"Thailand",ar:"Argentina",cl:"Chile",co:"Colombia",pl:"Poland",se:"Sweden",ch:"Switzerland",ae:"United Arab Emirates"};
+ const flagFor=value=>{
+  const raw=String(value||"").trim();if(!raw)return "";
+  let code=raw.toLowerCase();
+  if(countryNames[code])return String.fromCodePoint(...[...code.toUpperCase()].map(c=>127397+c.charCodeAt(0)));
+  const found=Object.entries(countryNames).find(([,name])=>name.toLowerCase()===raw.toLowerCase());
+  if(found)code=found[0];
+  else if(raw.length===2&&/^[a-z]{2}$/i.test(raw))code=raw.toLowerCase();
+  else return "";
+  return String.fromCodePoint(...[...code.toUpperCase()].map(c=>127397+c.charCodeAt(0)));
+ };
+ const logoFor=(title)=>{
+  const name=String(title||"").toLowerCase();
+  const match=appBrands.find(([key])=>new RegExp("(^|[^a-z0-9])"+key.replace(/[.*+?^${}()|[\]\\]/g,"\\const icons={sms:"✉",rentals:"◉",esim:"⌁",proxies:"◎",dedicated:"▣"};")+"([^a-z0-9]|$)","i").test(name));
+  return match?{url:"https://cdn.simpleicons.org/"+match[1].replace("x.com","x")+"/"+match[2],name:match[0]}:null;
+ };
  const money=(cents,currency="USD")=>{
   const amount=Number(cents);
   if(!Number.isSafeInteger(amount)||amount<=0)return "Price unavailable";
   try{return new Intl.NumberFormat("en-US",{style:"currency",currency}).format(amount/100);}
   catch{return "$"+(amount/100).toFixed(2);}
  };
- const card=(category,title,meta,detail,priceCents,priceNote,tag="AVAILABLE",currency="USD")=>
-  '<article class="catalog-item catalog-'+category+'"><div class="catalog-item-visual"><span class="catalog-art-icon">'+icons[category]+'</span><i class="catalog-art-orbit"></i><small>'+esc(tag)+'</small></div><div class="catalog-item-copy"><h3>'+esc(title)+'</h3><p>'+esc(meta)+'</p><div class="catalog-item-detail">'+esc(detail)+'</div><div class="catalog-price-row"><strong>'+esc(money(priceCents,currency))+'</strong><small>'+esc(priceNote)+'</small></div></div></article>';
+ const card=(category,title,meta,detail,priceCents,priceNote,tag="AVAILABLE",currency="USD",country="")=>{
+  const brand=logoFor(title),flag=flagFor(country);
+  const logo=brand?'<img class="catalog-brand-logo" src="'+brand.url+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">':'';
+  return '<article class="catalog-item catalog-'+category+'"><div class="catalog-item-visual"><span class="catalog-art-icon">'+icons[category]+logo+'</span><i class="catalog-art-orbit"></i>'+(flag?'<span class="catalog-country-flag" title="'+esc(countryNames[String(country).toLowerCase()]||country)+'">'+flag+' <b>'+esc(String(countryNames[String(country).toLowerCase()]||country))+'</b></span>':'')+'<small>'+esc(tag)+'</small></div><div class="catalog-item-copy"><h3>'+esc(title)+'</h3><p>'+esc(meta)+'</p><div class="catalog-item-detail">'+esc(detail)+'</div><div class="catalog-price-row"><strong>'+esc(money(priceCents,currency))+'</strong><small>'+esc(priceNote)+'</small></div></div></article>';
+ };
 
  function empty(message){
   grid.innerHTML='<div class="catalog-empty"><span>✦</span><strong>'+esc(message)+'</strong><small>Try another category, change the country code or refresh the catalogue.</small></div>';
@@ -310,14 +345,14 @@
   status.textContent=rows.length+" product"+(rows.length===1?"":"s")+" listed"+(active==="sms"||active==="rentals"?" for "+String(catalogue.country||"us").toUpperCase():"");
 
   if(active==="sms"){
-   grid.innerHTML=rows.map(x=>card("sms",x.name||"SMS verification","One-time verification · "+String(catalogue.country||"us").toUpperCase(),x.available?"Supplier stock is currently available.":"Supplier stock is not currently available.",x.priceCents,"per activation · before VAT/tax",x.available?"AVAILABLE":"OUT OF STOCK",x.currency)).join("");
+   grid.innerHTML=rows.map(x=>card("sms",x.name||"SMS verification","One-time verification · "+String(catalogue.country||"us").toUpperCase(),x.available?"Supplier stock is currently available.":"Supplier stock is not currently available.",x.priceCents,"per activation · before VAT/tax",x.available?"AVAILABLE":"OUT OF STOCK",x.currency,catalogue.country)).join("");
   }else if(active==="esim"){
    grid.innerHTML=rows.map(x=>{
     const data=x.unlimited?"Unlimited data":(x.dataGb==null?"Data plan":x.dataGb+" GB");
     const countries=Array.isArray(x.countries)?x.countries:[];
     const coverage=countries.slice(0,7).join(", ")+(countries.length>7?" +"+(countries.length-7)+" more":"");
     const features=[x.validityDays?x.validityDays+" days":null,x.networkType||null,x.routingLocation?"Routes via "+x.routingLocation:null].filter(Boolean).join(" · ");
-    return card("esim",x.title||"eSIM data plan",data+" · "+(x.validityDays||"Flexible")+" days",coverage||features||"Coverage details available",x.priceCents,"per plan · before VAT/tax","DATA PLAN",x.currency);
+    return card("esim",x.title||"eSIM data plan",data+" · "+(x.validityDays||"Flexible")+" days",coverage||features||"Coverage details available",x.priceCents,"per plan · before VAT/tax","DATA PLAN",x.currency,countries[0]||"");
    }).join("");
   }else if(active==="proxies"){
    grid.innerHTML=rows.map(x=>{
@@ -325,17 +360,17 @@
     const volume=x.dataGb!=null?x.dataGb+" GB":"Plan";
     const duration=x.durationDays?x.durationDays+" days":(x.period||"Flexible term");
     const detail=[x.country,x.carrier,x.region].filter(Boolean).join(" · ")||"Mobile network access";
-    return card("proxies",x.name||"Mobile proxy",type+" · "+volume+" · "+duration,detail,x.priceCents,"per package · before VAT/tax",x.available?"AVAILABLE":"CHECK AVAILABILITY",x.currency);
+    return card("proxies",x.name||"Mobile proxy",type+" · "+volume+" · "+duration,detail,x.priceCents,"per package · before VAT/tax",x.available?"AVAILABLE":"CHECK AVAILABILITY",x.currency,x.country||"");
    }).join("");
   }else if(active==="dedicated"){
-   grid.innerHTML=rows.map(x=>card("dedicated",x.name||x.country||"Dedicated number",(x.name||x.country||"Country option")+" · Monthly",x.inStock?"Monthly number inventory is currently available.":"No monthly number inventory is currently reported.",x.priceCents,"per month · before VAT/tax",x.inStock?"IN STOCK":"OUT OF STOCK",x.currency)).join("");
+   grid.innerHTML=rows.map(x=>card("dedicated",x.name||x.country||"Dedicated number",(x.name||x.country||"Country option")+" · Monthly",x.inStock?"Monthly number inventory is currently available.":"No monthly number inventory is currently reported.",x.priceCents,"per month · before VAT/tax",x.inStock?"IN STOCK":"OUT OF STOCK",x.currency,x.country)).join("");
   }else if(active==="rentals"){
    grid.innerHTML=rows.map(x=>{
     const durations=Array.isArray(x.durations)?x.durations:[];
     const detail=durations.length?durations.map(option=>option.days+" days: "+money(option.priceCents,option.currency)).join(" · "):"No rental durations currently listed";
     const prices=durations.map(option=>Number(option.priceCents)).filter(value=>Number.isSafeInteger(value)&&value>0);
     const from=prices.length?Math.min(...prices):null;
-    return card("rentals",x.name||"Long-term number",String(catalogue.country||"us").toUpperCase()+" · Choose your rental period",detail,from,"from · before VAT/tax",x.available&&durations.length?"AVAILABLE":"LIMITED","USD");
+    return card("rentals",x.name||"Long-term number",String(catalogue.country||"us").toUpperCase()+" · Choose your rental period",detail,from,"from · before VAT/tax",x.available&&durations.length?"AVAILABLE":"LIMITED","USD",catalogue.country);
    }).join("");
   }
  }
