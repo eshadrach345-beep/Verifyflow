@@ -1,6 +1,7 @@
 "use strict";
 
 // Single API entry point keeps the project within Vercel Hobby's function limit.
+// Nested API URLs are rewritten to /api/catalog with their original route in ?route=.
 const routes = {
   "account/profile": require("../api-handlers/account/profile"),
   "admin/fulfilment": require("../api-handlers/admin/fulfilment"),
@@ -27,13 +28,17 @@ const routes = {
 };
 
 module.exports = async function handler(req, res) {
-  const rawPath = String(req.url || "").split("?")[0];
-  const pathname = rawPath.replace(/^\/api\/?/, "").replace(/\/+$/, "");
+  const requestUrl = new URL(String(req.url || "/"), "https://verifyflow.invalid");
+  const rewrittenRoute = requestUrl.searchParams.get("route");
+  const pathname = String(rewrittenRoute || requestUrl.pathname.replace(/^\/api\/?/, ""))
+    .replace(/^\/+|\/+$/g, "");
   const route = routes[pathname];
+
   if (!route) {
     res.statusCode = 404;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     return res.end(JSON.stringify({ ok: false, error: "API route not found." }));
   }
+
   return route(req, res);
 };
