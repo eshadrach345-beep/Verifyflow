@@ -312,7 +312,7 @@
  };
  const logoFor=(title)=>{
   const name=String(title||"").toLowerCase();
-  const match=appBrands.find(([key])=>new RegExp("(^|[^a-z0-9])"+key.replace(/[.*+?^${}()|[\]\\]/g,"\\const icons={sms:"✉",rentals:"◉",esim:"⌁",proxies:"◎",dedicated:"▣"};")+"([^a-z0-9]|$)","i").test(name));
+  const match=appBrands.find(([key])=>name.includes(key));
   return match?{url:"https://cdn.simpleicons.org/"+match[1].replace("x.com","x")+"/"+match[2],name:match[0]}:null;
  };
  const money=(cents,currency="USD")=>{
