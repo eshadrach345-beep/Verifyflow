@@ -15,7 +15,7 @@ module.exports = async function handler(req, res) {
   catch { return sendJson(res, 400, { ok: false, error: "Please submit a valid request." }); }
 
   const paymentReference = String(body.paymentReference || "").trim();
-  if (!/^VFTEST_[A-F0-9]{20}$/.test(paymentReference)) {
+  if (!/^(?:VFTEST_[A-F0-9]{20}|VF_[A-F0-9]{24})$/.test(paymentReference)) {
     return sendJson(res, 400, { ok: false, error: "The payment reference is invalid." });
   }
 
