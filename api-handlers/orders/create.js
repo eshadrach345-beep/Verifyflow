@@ -46,10 +46,15 @@ module.exports = async function handler(req, res) {
       });
     }
     const config = getMonnifyConfig();
+    const selectedProvider = String(body.provider || "voidmob").toLowerCase();
+    const providerFulfilmentEnabled = selectedProvider === "herosms"
+      ? process.env.HEROSMS_FULFILMENT_ENABLED === "true" && process.env.HEROSMS_AUTOBUY_CONFIRMED === "true"
+      : selectedProvider === "voidmob" && process.env.VOIDMOB_FULFILMENT_ENABLED === "true" && process.env.VOIDMOB_AUTOBUY_CONFIRMED === "true";
+    if (!["voidmob", "herosms"].includes(selectedProvider)) {
+      return sendJson(res, 400, { ok: false, error: "Choose a supported supplier." });
+    }
     if (config.environment === "LIVE" &&
-        (process.env.VERIFYFLOW_LIVE_ORDERS_ENABLED !== "true" ||
-         process.env.VOIDMOB_FULFILMENT_ENABLED !== "true" ||
-         process.env.VOIDMOB_AUTOBUY_CONFIRMED !== "true")) {
+        (process.env.VERIFYFLOW_LIVE_ORDERS_ENABLED !== "true" || !providerFulfilmentEnabled)) {
       return sendJson(res, 503, {
         ok: false,
         error: "Live customer orders are still locked until payments, supplier auto-buy and fulfilment launch checks are complete."
@@ -60,7 +65,8 @@ module.exports = async function handler(req, res) {
     const input = {
       productId: String(body.productId || ""),
       country: String(body.country || "us").toLowerCase(),
-      durationDays: Number(body.durationDays)
+      durationDays: Number(body.durationDays),
+      provider: selectedProvider
     };
     const quote = await quoteProduct(productType, input);
     if (!Number.isSafeInteger(quote.salePriceCents) || quote.salePriceCents <= 0 ||
@@ -116,8 +122,8 @@ module.exports = async function handler(req, res) {
       await client.query("BEGIN");
       await client.query(
         "INSERT INTO vf_orders (id, user_id, order_number, provider, product_type, product_name, status, currency, subtotal_minor, total_minor, idempotency_key, checkout_key, metadata) " +
-        "VALUES ($1, $2, $3, 'voidmob', $4, $5, 'awaiting_payment', 'USD', $6, $6, $7, $8, $9::jsonb)",
-        [orderId, user.id, orderNumber, productType, quote.productName, quote.salePriceCents,
+        "VALUES ($1, $2, $3, $4, $5, $6, 'awaiting_payment', 'USD', $7, $7, $8, $9, $10::jsonb)",
+        [orderId, user.id, orderNumber, quote.provider || selectedProvider, productType, quote.productName, quote.salePriceCents,
           orderIdempotencyKey, checkoutKey, JSON.stringify(metadata)]
       );
       await client.query(
