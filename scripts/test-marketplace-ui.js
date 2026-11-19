@@ -77,6 +77,9 @@ assert.ok(adminSmm.includes('fetch("/api/admin/smm-products"'), "Admin must save
 assert.ok(adminSmm.includes("Save and publish product"), "Admin must provide an explicit publish action");
 assert.ok(smmAdminApi.includes("readProvider(provider)"), "Admin must validate chosen supplier service IDs");
 assert.ok(smmAdminApi.includes("retail_rate_minor_per_1000"), "Admin must persist a retail rate per 1,000");
+assert.ok(smmAdminApi.includes("productsTableReady"), "Admin must report whether the SMM product table is installed");
+assert.ok(smmAdminApi.includes('error.code !== "42P01"') === false, "Missing SMM table should not abort supplier catalogue loading");
+assert.ok(smmAdminApi.includes("productsMessage"), "Admin must explain when the SMM database migration is missing");
 assert.ok(smmSupplier.includes('action: "add"') && smmSupplier.includes('action: "status"'), "SMM supplier orders and status must be wired");
 assert.ok(orderCreate.includes("FROM vf_smm_products WHERE id = $1 AND is_active = TRUE"), "Checkout must quote saved active product records");
 assert.ok(orderCreate.includes("supplier_service_id"), "Checkout must use the owner-selected supplier service ID");
