@@ -49,10 +49,20 @@ module.exports = async function handler(req, res) {
   try {
     if (!await requireAdmin(req, res)) return;
     if (req.method === "GET") {
-      const [providers, products] = await Promise.all([
-        Promise.all(PROVIDERS.map(readProvider)),
-        getPool().query("SELECT * FROM vf_smm_products ORDER BY updated_at DESC LIMIT 500")
-      ]);
+      // Supplier catalogues and saved storefront products are independent.
+      // If migration 006 has not been applied, still return the full supplier
+      // service lists so the admin can inspect them and report the setup issue.
+      const providers = await Promise.all(PROVIDERS.map(readProvider));
+      let products = [], productsTableReady = true;
+      try {
+        const result = await getPool().query(
+          "SELECT * FROM vf_smm_products ORDER BY updated_at DESC LIMIT 500"
+        );
+        products = result.rows.map(productRow);
+      } catch (error) {
+        if (error.code !== "42P01") throw error;
+        productsTableReady = false;
+      }
       return sendJson(res, 200, {
         ok: true,
         providers: providers.map(provider => ({
@@ -60,7 +70,10 @@ module.exports = async function handler(req, res) {
           message: provider.message, balance: provider.balance, currency: provider.currency,
           services: provider.eligibleServices || []
         })),
-        products: products.rows.map(productRow),
+        products,
+        productsTableReady,
+        productsMessage: productsTableReady ? null :
+          "The SMM product table is not installed yet. Apply database migration 006_smm_product_manager.sql to enable saving and publishing products.",
         updatedAt: new Date().toISOString()
       });
     }
