@@ -21,17 +21,48 @@ async function main() {
   const originalFetch = global.fetch;
   const originalKey = process.env.VOIDMOB_API_KEY;
   const originalEnabled = process.env.VOIDMOB_FULFILMENT_ENABLED;
+  const originalAutoBuy = process.env.VOIDMOB_AUTOBUY_CONFIRMED;
   const calls = [];
   process.env.VOIDMOB_API_KEY = "mock-only-key";
   process.env.VOIDMOB_FULFILMENT_ENABLED = "true";
+  process.env.VOIDMOB_AUTOBUY_CONFIRMED = "true";
   global.fetch = async (url, options) => {
     calls.push({ url: String(url), options });
+    if (String(url).includes("/services?")) {
+      return new Response(JSON.stringify({ success: true, data: { services: [{
+        id: "svc_mock", name: "Mock Service", available: true, quoted_price_cents: 35,
+        ltr_3d_price_cents: 1500, ltr_7d_price_cents: 2600, ltr_14d_price_cents: 4200, ltr_30d_price_cents: 7500
+      }] } }), { status: 200 });
+    }
+    if (String(url).includes("/dedicated/countries")) {
+      return new Response(JSON.stringify({ success: true, data: [{ country: "gb", name: "United Kingdom", in_stock: true, quoted_price_cents: 1699 }] }), { status: 200 });
+    }
+    if (String(url).includes("/esim_products/prod_mock")) {
+      return new Response(JSON.stringify({ success: true, data: { product: { id: "prod_mock", title: "Mock eSIM", price_cents: 1500 } } }), { status: 200 });
+    }
+    if (String(url).includes("/proxy_plans/plan_mock")) {
+      return new Response(JSON.stringify({ success: true, data: { plan: { id: "plan_mock", name: "Mock Proxy", available: true, quoted_price_cents: 3000 } } }), { status: 200 });
+    }
     return new Response(JSON.stringify({
       success: true,
       data: { verification: { id: "ver_mock_123", status: "waiting_for_code", charged_price_cents: 50 } }
     }), { status: 201, headers: { "Content-Type": "application/json" } });
   };
   try {
+    const { quoteProduct } = require("../lib/voidmob");
+    const smsQuote = await quoteProduct("sms_otp", { productId: "svc_mock", country: "us" });
+    assert.equal(smsQuote.supplierPriceCents, 35);
+    assert.equal(smsQuote.salePriceCents, 55);
+    const rentalQuote = await quoteProduct("long_term_number", { productId: "svc_mock", country: "us", durationDays: 7 });
+    assert.equal(rentalQuote.supplierPriceCents, 2600);
+    assert.equal(rentalQuote.salePriceCents, 3640);
+    const dedicatedQuote = await quoteProduct("dedicated_number", { country: "gb" });
+    assert.equal(dedicatedQuote.salePriceCents, 2294);
+    const esimQuote = await quoteProduct("esim", { productId: "prod_mock" });
+    assert.equal(esimQuote.salePriceCents, 2025);
+    const proxyQuote = await quoteProduct("mobile_proxy", { productId: "plan_mock" });
+    assert.equal(proxyQuote.salePriceCents, 4050);
+
     const result = await purchase("sms_otp", { serviceId: "svc_test", maxPriceCents: 50 }, "vf-order-test-0001");
     assert.equal(result.supplierOrderId, "ver_mock_123");
     assert.equal(result.chargedPriceCents, 50);
@@ -47,6 +78,7 @@ async function main() {
     global.fetch = originalFetch;
     if (originalKey === undefined) delete process.env.VOIDMOB_API_KEY; else process.env.VOIDMOB_API_KEY = originalKey;
     if (originalEnabled === undefined) delete process.env.VOIDMOB_FULFILMENT_ENABLED; else process.env.VOIDMOB_FULFILMENT_ENABLED = originalEnabled;
+    if (originalAutoBuy === undefined) delete process.env.VOIDMOB_AUTOBUY_CONFIRMED; else process.env.VOIDMOB_AUTOBUY_CONFIRMED = originalAutoBuy;
   }
   console.log("VoidMob adapter tests passed (mock supplier only; no live purchase).");
 }
