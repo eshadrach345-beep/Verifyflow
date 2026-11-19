@@ -4,6 +4,7 @@
 // to /api?path=... so nested endpoints do not depend on platform catch-all routing.
 const routes = {
   "account/profile": require("../api-handlers/account/profile"),
+  "admin/access": require("../api-handlers/admin/access"),
   "admin/fulfilment": require("../api-handlers/admin/fulfilment"),
   "admin/orders": require("../api-handlers/admin/orders"),
   "admin/readiness": require("../api-handlers/admin/readiness"),
