@@ -116,12 +116,13 @@
     }
   }
 
-  fetch("/api/auth/me", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } })
+  const sessionReady = fetch("/api/auth/me", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } })
     .then(response => response.json()).then(data => { signedIn = Boolean(data.ok && data.user); }).catch(() => { signedIn = false; });
 
-  grid.addEventListener("click", event => {
+  grid.addEventListener("click", async event => {
     const button = event.target.closest("[data-vf-buy]");
     if (!button || button.disabled) return;
+    await sessionReady;
     if (!signedIn) { window.location.href = "/account.html"; return; }
     const card = button.closest(".catalog-item");
     selected = {
