@@ -130,6 +130,7 @@
       country: button.dataset.country || "us",
       productName: button.dataset.productName || "VerifyFlow service",
       estimate: Number(button.dataset.productPrice),
+      checkoutKey: key(),
       durationDays: Number(card?.querySelector("[data-rental-days]")?.value || 0)
     };
     document.getElementById("vf-checkout-product").textContent = selected.productName;
@@ -157,7 +158,7 @@
     submit.textContent = "Preparing secure checkout…";
     message.textContent = "";
     const payload = {
-      checkoutKey: key(),
+      checkoutKey: selected.checkoutKey,
       productType: selected.productType,
       productId: selected.productId,
       country: selected.country
@@ -171,7 +172,10 @@
       });
       const data = await response.json().catch(() => ({}));
       if (response.status === 401) { window.location.href = "/account.html"; return; }
-      if (!response.ok || !data.ok) throw new Error(data.error || "Secure checkout could not be prepared.");
+      if (!response.ok || !data.ok) {
+        if (response.status === 502) selected.checkoutKey = key();
+        throw new Error(data.error || "Secure checkout could not be prepared.");
+      }
       window.location.assign(data.checkoutUrl);
     } catch (error) {
       message.textContent = error.message || "Please try again.";
