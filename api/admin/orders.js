@@ -41,12 +41,16 @@ module.exports = async function handler(req, res) {
          END) AS platform,
          o.status, o.currency, o.subtotal_minor, o.total_minor,
          o.supplier_order_id, o.created_at, o.updated_at,
+         j.status AS fulfilment_status, j.supplier_status,
+         j.supplier_cost_minor, j.supplier_currency,
+         j.last_error_code, j.last_error_message,
          u.email AS customer_email,
          p.status AS payment_status,
          p.amount_minor AS payment_amount_minor,
          p.payment_reference
        FROM vf_orders o
        JOIN vf_users u ON u.id = o.user_id
+       LEFT JOIN vf_fulfilment_jobs j ON j.order_id = o.id
        LEFT JOIN LATERAL (
          SELECT status, amount_minor, payment_reference
          FROM vf_payments
@@ -70,6 +74,12 @@ module.exports = async function handler(req, res) {
       subtotalMinor: Number(row.subtotal_minor || 0),
       totalMinor: Number(row.total_minor || 0),
       supplierOrderId: row.supplier_order_id,
+      fulfilmentStatus: row.fulfilment_status || "not_queued",
+      supplierStatus: row.supplier_status,
+      supplierCostMinor: row.supplier_cost_minor == null ? null : Number(row.supplier_cost_minor),
+      supplierCurrency: row.supplier_currency || "USD",
+      lastErrorCode: row.last_error_code,
+      lastErrorMessage: row.last_error_message,
       customerEmail: row.customer_email,
       paymentStatus: row.payment_status || "not_started",
       paymentAmountMinor: row.payment_amount_minor == null ? null : Number(row.payment_amount_minor),
@@ -80,7 +90,7 @@ module.exports = async function handler(req, res) {
 
     const fundingMap = new Map();
     for (const order of orders) {
-      if (!["paid", "processing"].includes(order.status) || order.paymentStatus !== "paid") continue;
+      if (!["paid", "processing", "completed", "failed"].includes(order.status) || order.paymentStatus !== "paid") continue;
       const key = order.supplier + "::" + order.platform;
       const current = fundingMap.get(key) || {
         supplier: order.supplier,
@@ -88,11 +98,20 @@ module.exports = async function handler(req, res) {
         currency: order.currency,
         orders: 0,
         amountMinor: 0,
-        awaitingSupplierSubmission: 0
+        supplierCostMinor: 0,
+        supplierCurrency: order.supplierCurrency,
+        ordersWithQuotedCost: 0,
+        awaitingSupplierSubmission: 0,
+        needsAttention: 0
       };
       current.orders += 1;
       if (current.currency === order.currency) current.amountMinor += order.totalMinor;
+      if (order.supplierCostMinor != null && current.supplierCurrency === order.supplierCurrency) {
+        current.supplierCostMinor += order.supplierCostMinor;
+        current.ordersWithQuotedCost += 1;
+      }
       if (!order.supplierOrderId) current.awaitingSupplierSubmission += 1;
+      if (["failed", "unknown"].includes(order.fulfilmentStatus)) current.needsAttention += 1;
       fundingMap.set(key, current);
     }
 
@@ -104,7 +123,7 @@ module.exports = async function handler(req, res) {
         b.awaitingSupplierSubmission - a.awaitingSupplierSubmission ||
         b.amountMinor - a.amountMinor
       ),
-      note: "Funding figures are customer order totals, not supplier costs. Supplier purchase and funding are not automated."
+      note: "Supplier cost is the saved supplier quote or actual charge in USD. Customer totals are sales revenue. Supplier deposits are not transferred automatically."
     });
   } catch (error) {
     console.error("[admin/orders]", error.code || error.message);
