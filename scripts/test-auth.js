@@ -18,10 +18,10 @@ async function main() {
   assert.equal(hashToken(token), hashToken(token));
 
   assert.equal(sameOrigin({
-    headers: { origin: "https://verifyflow.us.ci", host: "verifyflow-five.vercel.app" }
+    headers: { origin: "https://verifyflow.us.ci", host: "verifyflow.us.ci" }
   }), true);
   assert.equal(sameOrigin({
-    headers: { origin: "https://evil.example", host: "verifyflow-five.vercel.app" }
+    headers: { origin: "https://evil.example", host: "verifyflow.us.ci" }
   }), false);
 
   console.log("Customer authentication helper tests passed (passwords, cookies, origin checks).");
