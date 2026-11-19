@@ -72,6 +72,16 @@ Do not set these flags just to test the website. Tests use mocked supplier respo
 
 For launch, set `MONNIFY_INTERNATIONAL_ENABLED=true` only after the merchant account has actually been enabled for the relevant USD checkout route. Keep the application in SANDBOX while testing; the supplier auto-buy flags are independent of Monnify's environment.
 
+## Social marketing supplier connections
+
+VerifyFlow has a protected, read-only supplier monitor for Peakerr and JustAnotherPanel at `/api/admin/suppliers`. The admin dashboard can display each supplier wallet balance and synchronize its current service list. Set these server-side Vercel environment variables:
+
+- `PEAKERR_API_KEY`
+- `JUSTANOTHERPANEL_API_KEY`
+- Optional pricing controls: `VERIFYFLOW_SMM_MARKUP_PERCENT=40` and `VERIFYFLOW_SMM_MIN_MARKUP_CENTS=25`
+
+The supplier keys are never sent to browser code. The monitor currently reads the documented `balance` and `services` actions only; it does not place orders. The customer-facing catalogue allowlist is restricted to clearly described creative/marketing work (for example content creation, video editing, design, advertising campaign management and audits). Engagement inflation, purchased traffic, reviews, backlinks and similar metric-manipulation services are excluded. If a provider has no eligible services, its eligible count will correctly show zero. Supplier service rates and currency must be confirmed before any future checkout or fulfilment integration is enabled.
+
 ## Fulfilment and exceptions
 
 Supplier orders are submitted with a stable per-order idempotency key. If a request times out or its outcome is uncertain, the job is marked `unknown` and VerifyFlow will not create a new purchase key. The admin's reconciliation action resubmits only with the same key so VoidMob can return the original result or report that it is still processing.
