@@ -1,3 +1,4 @@
+const { getCatalog: getHeroSmsCatalog } = require("../lib/herosms");
 const VOIDMOB_BASE = "https://dashboard.voidmob.com/api/v1";
 
 const PRICE_RULES = {
@@ -133,7 +134,7 @@ module.exports = async function handler(req, res) {
     Accept: "application/json"
   };
 
-  const [services, esim, proxies, dedicated] = await Promise.all([
+  const [services, esim, proxies, dedicated, heroSms] = await Promise.all([
     requestedCountry === "us"
       ? safeRead(
           () => supplierGet("/services", headers),
@@ -155,7 +156,10 @@ module.exports = async function handler(req, res) {
     safeRead(
       () => supplierGet("/dedicated/countries", headers),
       data => Array.isArray(data) ? data : []
-    )
+    ),
+    process.env.HEROSMS_API_KEY
+      ? safeRead(() => getHeroSmsCatalog(requestedCountry), data => data)
+      : Promise.resolve({ ok: false, items: [], rentals: [], countries: [], message: "HeroSMS retail API key is not configured." })
   ]);
 
   const smsItems = services.items.map(service => ({
@@ -169,7 +173,7 @@ module.exports = async function handler(req, res) {
       : null
   }));
 
-  const rentalItems = services.items.map(service => {
+  const voidMobRentalItems = services.items.map(service => {
     const priceFields = [
       [3, service.ltr_3d_price_cents],
       [7, service.ltr_7d_price_cents],
@@ -231,9 +235,19 @@ module.exports = async function handler(req, res) {
     billingPeriod: "monthly"
   }));
 
+  const mergedSmsItems = [
+    ...smsItems.map(item => ({ ...item, provider: "voidmob" })),
+    ...(heroSms.ok ? (heroSms.items || []) : [])
+  ];
+  const mergedRentalItems = [
+    ...voidMobRentalItems.map(item => ({ ...item, provider: "voidmob" })),
+    ...(heroSms.ok ? (heroSms.rentals || []) : [])
+  ];
+  const smsOk = services.ok || heroSms.ok;
+  const rentalOk = services.ok || heroSms.ok;
   const sections = {
-    sms: { ok: services.ok, items: smsItems, message: services.message },
-    rentals: { ok: services.ok, items: rentalItems, message: services.message },
+    sms: { ok: smsOk, items: mergedSmsItems, message: smsOk ? null : "SMS catalogues are temporarily unavailable." },
+    rentals: { ok: rentalOk, items: mergedRentalItems, message: rentalOk ? null : "Number rental catalogues are temporarily unavailable." },
     esim: { ok: esim.ok, items: esimItems, message: esim.message },
     proxies: { ok: proxies.ok, items: proxyItems, message: proxies.message },
     dedicated: { ok: dedicated.ok, items: dedicatedItems, message: dedicated.message }
@@ -247,9 +261,13 @@ module.exports = async function handler(req, res) {
     currency: "USD",
     taxNote: "Displayed prices are before applicable VAT or local sales taxes. These are added separately at checkout based on the customer's billing location.",
     sections,
+    supplierCoverage: {
+      heroSms: { connected: heroSms.ok, countryName: heroSms.ok ? heroSms.countryName : null, countries: heroSms.ok ? heroSms.countries : [] },
+      voidMob: { connected: Boolean(process.env.VOIDMOB_API_KEY) }
+    },
     summary: {
-      sms: smsItems.length,
-      rentals: rentalItems.length,
+      sms: mergedSmsItems.length,
+      rentals: mergedRentalItems.length,
       esim: esimItems.length,
       proxies: proxyItems.length,
       dedicated: dedicatedItems.length
