@@ -10,17 +10,18 @@ async function main() {
     const missing = await readAccount();
     assert.equal(missing.configured, false);
     process.env.HEROSMS_API_KEY = "mock-key";
-    global.fetch = async (url, options) => {
-      assert.equal(String(url), "https://partners-api.hero-sms.com/api/v1/balance");
-      assert.equal(options.headers.apikey, "mock-key");
-      return new Response(JSON.stringify({ status: "success", data: { rub: 1200.29, usd: 180.11 } }), { status: 200 });
+    global.fetch = async input => {
+      const url = new URL(String(input));
+      assert.equal(url.origin + url.pathname, "https://hero-sms.com/stubs/handler_api.php");
+      assert.equal(url.searchParams.get("api_key"), "mock-key");
+      assert.equal(url.searchParams.get("action"), "getBalance");
+      return new Response("ACCESS_BALANCE:180.11", { status: 200 });
     };
     const ok = await readAccount();
     assert.equal(ok.connected, true);
-    assert.equal(ok.rub, 1200.29);
-    assert.equal(ok.usd, 180.11);
-    assert.equal(ok.mode, "account_balance_only");
-    global.fetch = async () => new Response(JSON.stringify({ status: "error", error: "unauthorized" }), { status: 401 });
+    assert.equal(ok.balance, 180.11);
+    assert.equal(ok.mode, "retail_api");
+    global.fetch = async () => new Response("BAD_KEY", { status: 200 });
     const bad = await readAccount();
     assert.equal(bad.connected, false);
     assert.match(bad.message, /rejected/i);
@@ -29,6 +30,6 @@ async function main() {
     if (oldKey === undefined) delete process.env.HEROSMS_API_KEY;
     else process.env.HEROSMS_API_KEY = oldKey;
   }
-  console.log("HeroSMS Account API tests passed (read-only balance check; no number purchases).");
+  console.log("HeroSMS retail API account tests passed.");
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
