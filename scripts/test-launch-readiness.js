@@ -42,6 +42,7 @@ const complete = buildLaunchChecks(makeEnv(), readyDatabase());
 assert.equal(complete.every(item => item.required ? item.status === "ready" || item.status === "review" : true), true);
 assert.equal(get(complete, "database").status, "ready");
 assert.equal(get(complete, "schema").status, "ready");
+assert.equal(get(complete, "email_security").status, "needs_action");
 assert.equal(get(complete, "peakerr").required, false);
 assert.equal(get(complete, "justanotherpanel").required, false);
 

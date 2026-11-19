@@ -106,6 +106,8 @@ Vercel currently reports the connected OmniPulse team on the Hobby plan. Its cur
 
 The protected admin dashboard includes a live configuration report at `/api/admin/readiness`. It checks the PostgreSQL connection, required schema migrations and tables, admin allowlist, required server-side environment-variable presence, and owner confirmation flags. The report never returns secret values.
 
+The current sign-up flow activates accounts immediately. Although the database includes email-verification and password-reset token tables, the verification-email, resend and self-service password-reset flows are not implemented. Add a transactional email provider with a verified sender domain and complete those flows before opening public registration. The admin readiness panel reports this as an outstanding required item.
+
 The report distinguishes configured variables from manual verification. In particular, it cannot prove that Monnify approved the business, that USD card processing is enabled on the merchant account, that supplier permissions and balances are adequate, or that legal/tax obligations have been satisfied. The Peakerr and JustAnotherPanel entries remain optional, read-only monitors; neither provider is wired into customer checkout or fulfilment.
 
 Before live launch, configure and verify the following on the **VerifyFlow** Vercel project:
