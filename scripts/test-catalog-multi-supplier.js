@@ -9,9 +9,9 @@ function response() {
 async function main() {
   const oldFetch = global.fetch;
   const oldVoid = process.env.VOIDMOB_API_KEY;
-  const oldHero = process.env.HEROSMS_API_KEY;
+  const oldHero = process.env.HEROSMS_RETAIL_API_KEY;
   process.env.VOIDMOB_API_KEY = "void-test";
-  process.env.HEROSMS_API_KEY = "hero-test";
+  process.env.HEROSMS_RETAIL_API_KEY = "hero-test";
   global.fetch = async (input, options = {}) => {
     const url = new URL(String(input));
     if (url.hostname === "dashboard.voidmob.com") {
@@ -47,7 +47,7 @@ async function main() {
   } finally {
     global.fetch = oldFetch;
     if (oldVoid === undefined) delete process.env.VOIDMOB_API_KEY; else process.env.VOIDMOB_API_KEY = oldVoid;
-    if (oldHero === undefined) delete process.env.HEROSMS_API_KEY; else process.env.HEROSMS_API_KEY = oldHero;
+    if (oldHero === undefined) delete process.env.HEROSMS_RETAIL_API_KEY; else process.env.HEROSMS_RETAIL_API_KEY = oldHero;
   }
   console.log("Multi-supplier catalogue tests passed (HeroSMS and VoidMob inventory merged).");
 }
