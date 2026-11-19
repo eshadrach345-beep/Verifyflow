@@ -245,9 +245,11 @@ module.exports = async function handler(req, res) {
   ];
   const smsOk = services.ok || heroSms.ok;
   const rentalOk = services.ok || heroSms.ok;
+  const smsMessage = mergedSmsItems.length ? null : (!heroSms.ok && requestedCountry !== "us" ? services.message : null);
+  const rentalMessage = mergedRentalItems.length ? null : (!heroSms.ok && requestedCountry !== "us" ? services.message : null);
   const sections = {
-    sms: { ok: smsOk, items: mergedSmsItems, message: smsOk ? null : "SMS catalogues are temporarily unavailable." },
-    rentals: { ok: rentalOk, items: mergedRentalItems, message: rentalOk ? null : "Number rental catalogues are temporarily unavailable." },
+    sms: { ok: smsOk, items: mergedSmsItems, message: smsOk ? smsMessage : "SMS catalogues are temporarily unavailable." },
+    rentals: { ok: rentalOk, items: mergedRentalItems, message: rentalOk ? rentalMessage : "Number rental catalogues are temporarily unavailable." },
     esim: { ok: esim.ok, items: esimItems, message: esim.message },
     proxies: { ok: proxies.ok, items: proxyItems, message: proxies.message },
     dedicated: { ok: dedicated.ok, items: dedicatedItems, message: dedicated.message }
