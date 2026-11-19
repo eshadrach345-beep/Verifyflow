@@ -555,7 +555,7 @@
    return card("rentals",x.name||"Long-term number",String(catalogue.country||"us").toUpperCase()+" · Choose your rental period",detail,from,"from · before VAT/tax",x.available&&durations.length?("AVAILABLE · "+String(x.provider||"SUPPLIER").toUpperCase()):"LIMITED","USD",catalogue.country,key);
   }
   if(category==="marketing"){
-   return card("marketing",x.name||"Social media service",x.platform||"Social Media Boosters",x.description||("Choose a quantity between "+x.min+" and "+x.max+" and enter the public destination link."),x.pricePer1000Minor,"per 1,000 · USD · before applicable tax","AVAILABLE","USD","",key);
+   return card("marketing",(x.platform||"Social media")+" "+(x.name||"service"),x.description||"Social Media Boosters", "Choose a quantity between "+x.min+" and "+x.max+" and enter the public destination link.",x.pricePer1000Minor,"per 1,000 · USD · before applicable tax","AVAILABLE","USD","",key);
   }
   return "";
  }
