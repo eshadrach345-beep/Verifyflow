@@ -110,7 +110,7 @@ module.exports = async function handler(req, res) {
     return json(res, 400, { ok: false, error: "Enter a valid two-letter country code." });
   }
 
-  if (!process.env.VOIDMOB_API_KEY) {
+  if (!process.env.VOIDMOB_API_KEY && !process.env.HEROSMS_API_KEY) {
     const unavailable = unavailableSection();
     return json(res, 200, {
       ok: false,
