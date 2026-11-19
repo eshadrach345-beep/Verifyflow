@@ -28,7 +28,8 @@ function retailPriceCents(supplierPrice, category) {
   const rule = PRICE_RULES[category];
   const percent = envNumber("VERIFYFLOW_" + category.toUpperCase() + "_MARKUP_PERCENT", rule.percent);
   const minimum = envNumber("VERIFYFLOW_" + category.toUpperCase() + "_MIN_MARKUP_CENTS", rule.minimumMarkupCents);
-  const percentagePrice = Math.ceil(cost * (1 + percent / 100) - 1e-9);\n  return Math.max(percentagePrice, cost + minimum);
+  const percentagePrice = Math.ceil(cost * (1 + percent / 100) - 1e-9);
+  return Math.max(percentagePrice, cost + minimum);
 }
 
 async function supplierGet(path, headers) {
