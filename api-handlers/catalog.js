@@ -158,7 +158,7 @@ module.exports = async function handler(req, res) {
       data => Array.isArray(data) ? data : []
     ),
     process.env.HEROSMS_API_KEY
-      ? safeRead(() => getHeroSmsCatalog(requestedCountry), data => data)
+      ? safeRead(() => getHeroSmsCatalog(requestedCountry), data => ({ smsItems: data.items || [], rentalItems: data.rentals || [], countries: data.countries || [], countryName: data.countryName }))
       : Promise.resolve({ ok: false, items: [], rentals: [], countries: [], message: "HeroSMS retail API key is not configured." })
   ]);
 
@@ -237,11 +237,11 @@ module.exports = async function handler(req, res) {
 
   const mergedSmsItems = [
     ...smsItems.map(item => ({ ...item, provider: "voidmob" })),
-    ...(heroSms.ok ? (heroSms.items || []) : [])
+    ...(heroSms.ok ? (heroSms.items?.smsItems || []) : [])
   ];
   const mergedRentalItems = [
     ...voidMobRentalItems.map(item => ({ ...item, provider: "voidmob" })),
-    ...(heroSms.ok ? (heroSms.rentals || []) : [])
+    ...(heroSms.ok ? (heroSms.items?.rentalItems || []) : [])
   ];
   const smsOk = services.ok || heroSms.ok;
   const rentalOk = services.ok || heroSms.ok;
@@ -262,7 +262,7 @@ module.exports = async function handler(req, res) {
     taxNote: "Displayed prices are before applicable VAT or local sales taxes. These are added separately at checkout based on the customer's billing location.",
     sections,
     supplierCoverage: {
-      heroSms: { connected: heroSms.ok, countryName: heroSms.ok ? heroSms.countryName : null, countries: heroSms.ok ? heroSms.countries : [] },
+      heroSms: { connected: heroSms.ok, countryName: heroSms.ok ? heroSms.items?.countryName : null, countries: heroSms.ok ? heroSms.items?.countries || [] : [] },
       voidMob: { connected: Boolean(process.env.VOIDMOB_API_KEY) }
     },
     summary: {
