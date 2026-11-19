@@ -27,7 +27,7 @@
 <button class="vf-location vf-services-trigger" id="vf-services-trigger" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="vf-services-menu"><small>Explore</small><strong>All services <span aria-hidden="true">⌄</span></strong></button>
 <form class="vf-search" action="/dashboard.html#catalogue" method="get" role="search"><label class="sr-only" for="vf-product-search">Search all VerifyFlow products</label><input id="vf-product-search" name="search" type="search" placeholder="Search all products, services and countries..." autocomplete="off"><button type="submit" aria-label="Search all products">⌕</button></form>
 <a class="vf-account" href="/account.html"><small>Your account</small><strong>Sign in / Register</strong></a></div>
-<nav class="vf-subnav" aria-label="Product categories"><a href="/dashboard.html#catalogue">☰ <b>All products</b></a><a href="/dashboard.html?category=sms#catalogue">SMS verification</a><a href="/dashboard.html?category=rentals#catalogue">Number rentals</a><a href="/dashboard.html?category=dedicated#catalogue">Dedicated numbers</a><a href="/dashboard.html?category=esim#catalogue">eSIM data</a><a href="/dashboard.html?category=proxies#catalogue">Mobile proxies</a></nav>
+<nav class="vf-subnav" aria-label="Product categories"><a href="/dashboard.html#catalogue">☰ <b>All products</b></a><a href="/dashboard.html?category=sms#catalogue">SMS verification</a><a href="/dashboard.html?category=rentals#catalogue">Number rentals</a><a href="/dashboard.html?category=dedicated#catalogue">Dedicated numbers</a><a href="/dashboard.html?category=esim#catalogue">eSIM data</a><a href="/dashboard.html?category=proxies#catalogue">Mobile proxies</a><a href="/dashboard.html?category=marketing#catalogue">Social Media Boosters</a></nav>
 <div class="vf-services-menu" id="vf-services-menu" hidden>
   <div class="vf-services-menu-head"><div><span>VERIFYFLOW MARKETPLACE</span><strong>Explore every service</strong></div><button type="button" id="vf-services-close" aria-label="Close services menu">×</button></div>
   <div class="vf-services-menu-grid">
@@ -256,6 +256,38 @@
       grid.replaceChildren(...data.items.map(makeCard));
     })
     .catch(() => showMessage("Social Media Boosters are temporarily unavailable right now. Open the marketplace to try again."));
+})();
+</script>
+<script>
+/* Accessible All services disclosure: opens a category menu instead of scrolling the page. */
+(() => {
+  const trigger = document.getElementById("vf-services-trigger");
+  const menu = document.getElementById("vf-services-menu");
+  const closeButton = document.getElementById("vf-services-close");
+  if (!trigger || !menu) return;
+  const setOpen = open => {
+    menu.hidden = !open;
+    trigger.setAttribute("aria-expanded", String(open));
+    if (open) closeButton?.focus();
+    else trigger.focus();
+  };
+  trigger.addEventListener("click", () => setOpen(menu.hidden));
+  closeButton?.addEventListener("click", () => setOpen(false));
+  menu.addEventListener("click", event => {
+    if (event.target.closest("a")) {
+      menu.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+    }
+  });
+  document.addEventListener("click", event => {
+    if (!menu.hidden && !menu.contains(event.target) && !trigger.contains(event.target)) {
+      menu.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+    }
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !menu.hidden) setOpen(false);
+  });
 })();
 </script>
 </body></html>
