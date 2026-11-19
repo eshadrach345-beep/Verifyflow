@@ -233,9 +233,19 @@
   try{return new Intl.NumberFormat(undefined,{style:"currency",currency:currency||"USD"}).format(amount);}
   catch{return (currency||"USD")+" "+amount.toFixed(2);}
  };
+ function friendlyErrorMessage(value,fallback){
+  if(typeof value==="string"&&value.trim())return value.trim();
+  if(value&&typeof value==="object"){
+   if(typeof value.message==="string"&&value.message.trim())return value.message.trim();
+   if(typeof value.error==="string"&&value.error.trim())return value.error.trim();
+   if(value.message&&typeof value.message==="object")return friendlyErrorMessage(value.message,fallback);
+   if(value.error&&typeof value.error==="object")return friendlyErrorMessage(value.error,fallback);
+  }
+  return fallback;
+ }
  function showError(message){
   loading.hidden=true;authView.hidden=true;portalView.hidden=true;
-  errorText.textContent=message||"Please try again.";
+  errorText.textContent=friendlyErrorMessage(message,"Please try again.");
   errorBox.hidden=false;
  }
  function showAuth(){
@@ -344,7 +354,7 @@
   const data=await response.json().catch(()=>({}));
   if(!response.ok||!data.ok){
    if(response.status===401)throw new Error("Your session has expired. Please sign in again.");
-   throw new Error(data.error||"Your profile could not be loaded.");
+   throw new Error(friendlyErrorMessage(data.error,"Your profile could not be loaded."));
   }
   renderProfile(data.profile||fallbackUser||{});
  }
@@ -362,7 +372,7 @@
  async function loadOrders(){
   const response=await fetch("/api/orders",{credentials:"same-origin",cache:"no-store",headers:{Accept:"application/json"}});
   const data=await response.json().catch(()=>({}));
-  if(!response.ok||!data.ok)throw new Error(data.error||"Your orders could not be loaded.");
+  if(!response.ok||!data.ok)throw new Error(friendlyErrorMessage(data.error,"Your orders could not be loaded."));
   renderOrders(data.orders||[]);
  }
  async function openPortal(user){
@@ -372,7 +382,7 @@
   const results=await Promise.allSettled([loadProfile(user),loadOrders()]);
   const failed=results.find(result=>result.status==="rejected");
   if(failed){
-   const message=failed.reason&&failed.reason.message?failed.reason.message:"Some account information could not be loaded.";
+   const message=friendlyErrorMessage(failed.reason,"Some account information could not be loaded.");
    if(message.toLowerCase().includes("session has expired")){showAuth();setAuthMode("login");return;}
    if(!currentProfile||!currentProfile.email)showError(message);
    else{
@@ -475,10 +485,10 @@
   try{
    const response=await fetch("/api/auth/me",{credentials:"same-origin",cache:"no-store",headers:{Accept:"application/json"}});
    const data=await response.json().catch(()=>({}));
-   if(response.status===503||!response.ok&&!data.ok)throw new Error(data.error||"Your account service is temporarily unavailable.");
+   if(response.status===503||!response.ok&&!data.ok)throw new Error(friendlyErrorMessage(data.error,"Your account service is temporarily unavailable."));
    if(!data.user){showAuth();setAuthMode("login");return;}
    await openPortal(data.user);
-  }catch(error){showError(error.message||"Please refresh to try again.");}
+  }catch(error){showError(friendlyErrorMessage(error,"Please refresh to try again."));}
  }
  boot();
 })();
