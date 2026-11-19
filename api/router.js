@@ -1,7 +1,7 @@
 "use strict";
 
-// Single API entry point keeps the project within Vercel Hobby's function limit.
-// Nested API URLs are rewritten to /api/catalog with their original route in ?route=.
+// One fixed Vercel Function handles every API route.
+// vercel.json rewrites /api/<route> to /api/router?route=<route>.
 const routes = {
   "account/profile": require("../api-handlers/account/profile"),
   "admin/fulfilment": require("../api-handlers/admin/fulfilment"),

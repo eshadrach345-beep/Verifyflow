@@ -1,6 +1,12 @@
 {
   "version": 2,
   "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/api/:route*",
+      "destination": "/api/router?route=:route*"
+    }
+  ],
   "headers": [{
     "source": "/(.*)",
     "headers": [
