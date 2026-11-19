@@ -19,9 +19,8 @@ async function main() {
   global.fetch = async (url, options) => {
     calls.push({ url: String(url), authorization: options.headers.Authorization });
     let data;
-    if (String(url).includes("/services?")) {
-      const country = new URL(String(url)).searchParams.get("country");
-      data = { country, services: [{
+    if (String(url).endsWith("/services")) {
+      data = { country: "us", services: [{
         id: "svc_telegram", name: "Telegram", available: true,
         quoted_price_cents: 35, base_price_cents: 40, price_ceiling_cents: 50,
         ltr_3d_price_cents: 1500, ltr_7d_price_cents: 0,
@@ -54,12 +53,12 @@ async function main() {
 
   try {
     const res = response();
-    await handler({ method: "GET", query: { country: "gb" } }, res);
+    await handler({ method: "GET", query: { country: "us" } }, res);
     const body = JSON.parse(res.body);
 
     assert.equal(res.statusCode, 200);
     assert.equal(body.ok, true);
-    assert.equal(body.country, "gb");
+    assert.equal(body.country, "us");
     assert.equal(body.summary.sms, 1);
     assert.equal(body.summary.rentals, 1);
     assert.equal(body.summary.esim, 1);
@@ -79,13 +78,21 @@ async function main() {
     assert.equal(JSON.stringify(body).includes("quoted_price_cents"), false);
     assert.equal(Object.hasOwn(body, "providers"), false);
     assert.equal(calls.length, 4);
-    assert(calls.some(call => call.url.includes("/services?country=gb")));
+    assert(calls.some(call => call.url.endsWith("/services")));
     assert(calls.every(call => call.authorization === "Bearer test-key"));
     assert(calls.every(call => call.url.startsWith("https://dashboard.voidmob.com/api/v1/")));
 
     const invalidRes = response();
     await handler({ method: "GET", query: { country: "United States" } }, invalidRes);
     assert.equal(invalidRes.statusCode, 400);
+
+    const gbRes = response();
+    await handler({ method: "GET", query: { country: "gb" } }, gbRes);
+    const gbBody = JSON.parse(gbRes.body);
+    assert.equal(gbBody.sections.sms.ok, true);
+    assert.equal(gbBody.sections.sms.items.length, 0);
+    assert.match(gbBody.sections.sms.message, /US numbers only/i);
+    assert.equal(gbBody.sections.rentals.items.length, 0);
 
     const failureRes = response();
     global.fetch = async () => new Response(JSON.stringify({

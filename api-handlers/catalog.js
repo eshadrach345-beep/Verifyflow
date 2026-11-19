@@ -134,10 +134,16 @@ module.exports = async function handler(req, res) {
   };
 
   const [services, esim, proxies, dedicated] = await Promise.all([
-    safeRead(
-      () => supplierGet("/services?country=" + encodeURIComponent(requestedCountry), headers),
-      data => Array.isArray(data.services) ? data.services : []
-    ),
+    requestedCountry === "us"
+      ? safeRead(
+          () => supplierGet("/services", headers),
+          data => Array.isArray(data.services) ? data.services : []
+        )
+      : Promise.resolve({
+          ok: true,
+          items: [],
+          message: "VoidMob SMS verification and long-term rentals currently support US numbers only."
+        }),
     safeRead(
       () => supplierList("/esim_products", "products", headers, 100),
       data => data
