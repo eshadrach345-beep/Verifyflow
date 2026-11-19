@@ -1,6 +1,7 @@
 "use strict";
 
-// Single Vercel function for every VerifyFlow API endpoint.
+// One Vercel function handles every API path. vercel.json rewrites /api/*
+// to /api?path=... so nested endpoints do not depend on platform catch-all routing.
 const routes = {
   "account/profile": require("../api-handlers/account/profile"),
   "admin/fulfilment": require("../api-handlers/admin/fulfilment"),
@@ -28,12 +29,16 @@ const routes = {
 };
 
 module.exports = async function handler(req, res) {
-  let pathname = "/";
-  try { pathname = new URL(String(req.url || "/"), "https://verifyflow.invalid").pathname; } catch {}
-  let route = pathname.replace(/^\/api\/?/, "").replace(/^\/+|\/+$/g, "");
-  if (!route && req.query && req.query.path) {
+  let route = "";
+  if (req.query && req.query.path) {
     route = Array.isArray(req.query.path) ? req.query.path.join("/") : String(req.query.path);
+  } else {
+    try {
+      const pathname = new URL(String(req.url || "/"), "https://verifyflow.invalid").pathname;
+      route = pathname.replace(/^\/api\/?/, "").replace(/^\/+|\/+$/g, "");
+    } catch {}
   }
+
   try { route = decodeURIComponent(route); } catch {
     res.statusCode = 400;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
