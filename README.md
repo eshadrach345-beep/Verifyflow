@@ -45,7 +45,7 @@ The existing NGN 100 sandbox page uses a dedicated test order and never submits 
 
 ### USD / international checkout
 
-Supplier catalogue prices are in USD, so retail checkout requests a USD card transaction. Monnify must enable USD international payments on this particular merchant account before `MONNIFY_INTERNATIONAL_ENABLED=true` is set. This capability is not assumed to be enabled. Monnify's international USD card route may have card-network/country restrictions; confirm the currently approved methods and customer countries with Monnify before launch.
+Supplier catalogue prices are in USD, so retail checkout requests a USD card transaction. Monnify must enable USD international payments on this particular merchant account before `MONNIFY_INTERNATIONAL_ENABLED=true` is set. This capability is not assumed to be enabled. Monnify's current documentation says international USD checkout is available to customers in 150+ countries, but supports Mastercard only and requires activation under Settings > Contract Setup. The international USD settlement documentation states T+3 settlement and a 15% rolling reserve held for 90 days. Monnify's current pricing help lists a 4% international-card collection fee; verify the applicable fee and reserve terms in your own merchant contract. These costs are not included in VerifyFlow's displayed gross-margin estimate.
 
 Do not switch `MONNIFY_ENVIRONMENT` to LIVE until Monnify has approved VerifyFlow's actual business model and product categories in writing, live credentials are installed, the webhook is configured, and payment/fulfilment/refund tests have passed. Live payments are also guarded by `MONNIFY_LIVE_ENABLED=true` and `MONNIFY_PRODUCT_APPROVAL_CONFIRMED=true`. Retail order creation in LIVE additionally requires `VERIFYFLOW_LIVE_ORDERS_ENABLED=true`.
 
@@ -87,6 +87,8 @@ VoidMob supplier deposits are not automated. The admin dashboard separates custo
 The protected operations dashboard is available at `/admin.html`. Set `VERIFYFLOW_ADMIN_EMAILS` as a server-side comma-separated list of the exact authorized VerifyFlow account email addresses. Admin access requires an active signed-in session and an email allowlist match.
 
 The admin dashboard shows recent orders, customer sale totals, supplier cost estimates/charges, fulfilment status and error details. The fulfilment queue allows an admin to submit a queued paid order after the supplier auto-buy safeguards are enabled. An unknown outcome has a separate same-key reconciliation action. Never create a new supplier purchase to resolve an uncertain outcome.
+
+Vercel currently reports the connected OmniPulse team on the Hobby plan. Its current plan terms describe Hobby as for personal, non-commercial use. Verify the plan is appropriate for a commercial storefront and upgrade before taking live customer orders if required by Vercel's terms.
 
 ## Tax and launch readiness
 
