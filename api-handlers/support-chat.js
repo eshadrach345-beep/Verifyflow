@@ -135,7 +135,7 @@ async function admin(req,res) {
 }
 module.exports = async function handler(req,res) {
   try {
-    if (req.url && new URL(String(req.url),"https://verifyflow.invalid").pathname.includes("/admin/support")) return await admin(req,res);
+    if ((req.query && String(req.query.path || "").startsWith("admin/support")) || (req.url && new URL(String(req.url),"https://verifyflow.invalid").pathname.includes("/admin/support"))) return await admin(req,res);
     return await customer(req,res);
   } catch(error) {
     console.error("[support]",error.code||error.message);
