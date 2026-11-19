@@ -8,7 +8,7 @@ VerifyFlow is a customer-facing marketplace for SMS verification, long-term numb
 2. VerifyFlow re-checks the supplier price on the server. Browser-submitted prices are never trusted.
 3. The server saves an order, a supplier-price snapshot and a payment record, then requests a hosted Monnify checkout in USD.
 4. The Monnify return page and webhook both verify the transaction directly with Monnify. The webhook signature is checked in LIVE mode.
-5. Only a verified, correctly priced and correctly denominated payment can create a durable VoidMob fulfilment job.
+5. Only a verified, correctly priced and correctly denominated payment can create a durable fulfilment job for the supplier saved with the product.
 6. The supplier request uses a permanent per-order idempotency key. Supplier order ID, status, cost and service details are saved against the order.
 7. Customers see their orders in their account and can refresh a pending supplier status. The admin dashboard shows sales, estimated supplier costs, queue status and jobs requiring attention.
 
@@ -82,19 +82,22 @@ For launch, set `MONNIFY_INTERNATIONAL_ENABLED=true` only after the merchant acc
 
 ## Social marketing supplier connections
 
-VerifyFlow has a protected, read-only supplier monitor for Peakerr and JustAnotherPanel at `/api/admin/suppliers`. The admin dashboard can display each supplier wallet balance and synchronize its current service list. Set these server-side Vercel environment variables:
+Peakerr and JustAnotherPanel are connected through their standard SMM API v2 endpoints. Set these server-side Vercel environment variables:
 
 - `PEAKERR_API_KEY`
 - `JUSTANOTHERPANEL_API_KEY`
-The supplier keys are never sent to browser code. The monitor reads the `balance` and `services` actions only; it does not place orders. The customer-facing catalogue allowlist is restricted to clearly described creative/marketing work (for example content creation, video editing, design, advertising campaign management and audits). Engagement inflation, purchased traffic, reviews, backlinks and similar metric-manipulation services are excluded.
 
-The admin screen displays the raw supplier-reported service rate only. It does not assume that a rate is USD, per 1,000 units, or denominated in the wallet currency. JustAnotherPanel's public API page documents the wallet currency in the balance response and shows a service rate example, but does not specify the unit for that service rate. Verify the actual currency and unit for each service directly with the supplier before displaying retail prices or accepting customer payments. Peakerr's API response schema must also be verified against its account documentation. The monitor is read-only and no customer checkout or fulfilment is connected.
+The supplier keys remain on the server. The protected Admin page at `/admin.html` includes **Social Media Boosters — Product Manager**. It loads the supplier service catalogues, lets the owner select the exact supplier and service ID, set a storefront product name/platform/description, and set a USD retail price per 1,000. Saving a product stores it in PostgreSQL and publishes it through `/api/marketing-catalog`; only saved active products appear on the public website. The customer enters the destination URL and quantity, and the server recalculates the total from the saved retail price and checks the supplier's minimum/maximum quantity before creating checkout.
+
+The supplier service rate and wallet currency are retained as reported account data for reference; they do not set the customer-facing retail price. Keep the retail price and service selection under owner control. The server sends the saved supplier service ID, target link and quantity to the selected provider after verified payment. Provider API errors and uncertain outcomes are recorded in the fulfilment queue; an uncertain request must be checked in the supplier dashboard before another purchase is attempted.
+
+The customer-facing SMM catalogue is sourced from the saved product table, not directly from supplier API credentials or raw service responses. The admin catalogue endpoint requires an active session and the `VERIFYFLOW_ADMIN_EMAILS` allowlist.
 
 ## Fulfilment and exceptions
 
 **Final purchase safety gate:** supplier purchases are blocked unless Monnify is in LIVE mode, `VERIFYFLOW_LIVE_ORDERS_ENABLED=true`, and both fulfilment confirmation flags for the selected supplier are enabled. Orders created while Monnify is in SANDBOX are permanently marked as test/no-fulfilment orders, so changing environment variables later cannot turn an old sandbox order into a supplier purchase. Keep all live flags off during testing.
 
-Supplier orders are submitted with a stable per-order idempotency key. If a request times out or its outcome is uncertain, the job is marked `unknown` and VerifyFlow will not create a new purchase key. The admin's reconciliation action resubmits only with the same key so VoidMob can return the original result or report that it is still processing.
+Supplier order requests use provider-specific safeguards. VoidMob supports the saved per-order idempotency key. The SMM API add-order actions do not provide the same idempotency guarantee in this integration; if a Peakerr or JustAnotherPanel request times out or its result is unclear, the job is marked `unknown` and automatic retry is disabled. Check the supplier dashboard first to avoid a duplicate charge.
 
 Supplier services such as eSIMs and mobile proxies can take time to provision. Customers can refresh their supplier status from the account page. The current implementation does not run a background polling worker.
 
@@ -104,7 +107,7 @@ VoidMob supplier deposits are not automated. The admin dashboard separates custo
 
 ## Admin dashboard
 
-The protected operations dashboard is available at `/admin.html`. Set `VERIFYFLOW_ADMIN_EMAILS` as a server-side comma-separated list of the exact authorized VerifyFlow account email addresses. Admin access requires an active signed-in session and an email allowlist match.
+The protected operations dashboard is available at `/admin.html`. Set `VERIFYFLOW_ADMIN_EMAILS` as a server-side comma-separated list of the exact authorized VerifyFlow account email addresses. Admin access requires an active signed-in session and an email allowlist match. The Social Media Boosters product manager saves storefront listings and supplier mappings to the database; migration `006_smm_product_manager` must be applied before products can be saved.
 
 The admin dashboard shows recent orders, customer sale totals, supplier cost estimates/charges, fulfilment status and error details. The fulfilment queue allows an admin to submit a queued paid order after the supplier auto-buy safeguards are enabled. An unknown outcome has a separate same-key reconciliation action. Never create a new supplier purchase to resolve an uncertain outcome.
 
@@ -118,7 +121,7 @@ New registrations remain pending until customers verify their email. Verificatio
 
 Transactional email uses the Resend API. Configure `RESEND_API_KEY` and `VERIFYFLOW_EMAIL_FROM` on the VerifyFlow Vercel project using a sender address on a domain you control and have verified with the provider. Keep `PUBLIC_APP_URL` set to the final HTTPS customer-facing domain. Email delivery is not proven until a real message reaches an inbox; the admin readiness panel marks configured email as needing manual verification.
 
-The report distinguishes configured variables from manual verification. In particular, it cannot prove that Monnify approved the business, that USD card processing is enabled on the merchant account, that supplier permissions and balances are adequate, or that legal/tax obligations have been satisfied. The Peakerr and JustAnotherPanel entries remain optional, read-only monitors; neither provider is wired into customer checkout or fulfilment.
+The report distinguishes configured variables from manual verification. In particular, it cannot prove that Monnify approved the business, that USD card processing is enabled on the merchant account, that supplier permissions and balances are adequate, or that legal/tax obligations have been satisfied. Peakerr and JustAnotherPanel auto-fulfilment each have their own disabled-by-default switches and must be tested and explicitly approved before live supplier purchases.
 
 Before live launch, configure and verify the following on the **VerifyFlow** Vercel project:
 
