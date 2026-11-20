@@ -3,6 +3,7 @@
 const { getSessionUser, sendJson } = require("../../lib/auth");
 const { readProvider } = require("../../lib/smm-catalog");
 const { readAccount: readHeroSmsAccount } = require("../../lib/herosms-account");
+const { readRetailStatus: readHeroSmsRetailStatus } = require("../../lib/herosms-retail-status");
 const { readAccount: readVoidMobAccount } = require("../../lib/voidmob-account");
 
 function adminEmails() {
@@ -23,9 +24,10 @@ module.exports = async function handler(req, res) {
     if (!allowed.includes(String(user.email || "").toLowerCase())) {
       return sendJson(res, 403, { ok: false, error: "You do not have admin access." });
     }
-    const [providers, heroSms, voidMob] = await Promise.all([
+    const [providers, heroSms, heroSmsRetail, voidMob] = await Promise.all([
       Promise.all([readProvider("peakerr"), readProvider("justanotherpanel")]),
       readHeroSmsAccount(),
+      readHeroSmsRetailStatus(),
       readVoidMobAccount()
     ]);
     return sendJson(res, 200, {
@@ -35,6 +37,7 @@ module.exports = async function handler(req, res) {
         ...provider, eligibleServices
       })),
       heroSms,
+      heroSmsRetail,
       voidMob,
     });
   } catch (error) {
