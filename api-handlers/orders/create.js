@@ -3,7 +3,8 @@
 const { randomBytes, randomUUID } = require("node:crypto");
 const { getPool, getSessionUser, sendJson, readJson, sameOrigin } = require("../../lib/auth");
 const { getMonnifyConfig, initializeTransaction } = require("../../lib/monnify");
-const { quoteProduct } = require("../../lib/voidmob");
+const { quoteProduct: quoteVoidmobProduct } = require("../../lib/voidmob");
+const { quoteProduct: quoteHeroSmsProduct } = require("../../lib/herosms");
 const { getCheckoutAmount } = require("../../lib/checkout-currency");
 const { ensureWalletAccount, postWalletTransaction } = require("../../lib/wallet");
 const { enqueuePaidOrder, processFulfilmentForOrder } = require("../../lib/fulfilment");
@@ -216,9 +217,12 @@ module.exports = async function handler(req, res) {
         productId: selection.productId,
         country: selection.country,
         durationDays: Number(body.durationDays),
-        provider: selection.provider
+        provider: selection.provider,
+        verificationType: String(body.verificationType || "sms").toLowerCase()
       };
-      quote = await quoteProduct(productType, input);
+      quote = selection.provider === "herosms"
+        ? await quoteHeroSmsProduct(productType, input)
+        : await quoteVoidmobProduct(productType, input);
     }
 
     const fulfilmentSwitches = {

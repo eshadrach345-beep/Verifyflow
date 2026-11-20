@@ -24,6 +24,7 @@ const routes = {
   "db-status": require("../api-handlers/db-status"),
   "health": require("../api-handlers/health"),
   "herosms/webhook": require("../api-handlers/herosms-webhook"),
+  "herosms/offers": require("../api-handlers/herosms/offers"),
   "orders": require("../api-handlers/orders"),
   "orders/create": require("../api-handlers/orders/create"),
   "orders/refresh": require("../api-handlers/orders/refresh"),

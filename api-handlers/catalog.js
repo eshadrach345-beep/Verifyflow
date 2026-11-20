@@ -274,6 +274,7 @@ module.exports = async function handler(req, res) {
     }),
     name: item.name,
     available: Boolean(item.available),
+    supportsVerificationMethods: true,
     priceCents: Number(item.priceCents),
     currency: "USD"
   })) : [];
