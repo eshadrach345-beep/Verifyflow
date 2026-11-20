@@ -24,12 +24,16 @@
       const voidMobCard = '<article class="admin-card"><strong>VoidMob</strong><div class="big">' + esc(voidMob.connected ? "API connected" : "API not connected") + '</div>' +
         '<small>Wallet balance: <b>' + esc(voidMob.balanceFormatted || "—") + '</b></small>' +
         '<small>' + esc(voidMob.message || "Read-only account check.") + '</small></article>';
-      const hero = data.heroSms || { connected: false, accountKeyConfigured: false, retailApiConfigured: false, message: "HeroSMS status unavailable." };
-      const accountStatus = hero.connected ? "Account balance API connected" : hero.accountKeyConfigured ? "Account balance API rejected / unavailable" : "Account balance API not configured";
-      const heroCard = '<article class="admin-card"><strong>HeroSMS</strong><div class="big">' + esc(accountStatus) + '</div>' +
+      const hero = data.heroSms || { connected: false, accountKeyConfigured: false, retailApiConfigured: false, message: "HeroSMS account balance status unavailable." };
+      const retail = data.heroSmsRetail || { configured: false, connected: false, countryCount: 0, message: "HeroSMS retail catalogue status unavailable." };
+      const retailStatus = retail.connected ? "Retail catalogue API connected" : retail.configured ? "Retail catalogue API not responding" : "Retail catalogue key not configured";
+      const accountStatus = hero.connected ? "Account balance connected" : hero.accountKeyConfigured ? "Account balance key rejected / unavailable" : "Account balance key not configured";
+      const heroCard = '<article class="admin-card"><strong>HeroSMS</strong><div class="big">' + esc(retailStatus) + '</div>' +
+        '<small>Retail catalogue check: <b>' + esc(retail.countryCount || 0) + ' countries' + '</b></small>' +
+        '<small>Account balance API: <b>' + esc(accountStatus) + '</b></small>' +
         '<small>Account balance: <b>' + esc(hero.balance == null ? "—" : Number(hero.balance).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " " + (hero.currency || "USD")) + '</b></small>' +
-        '<small>Retail catalogue key: <b>' + esc(hero.retailApiConfigured ? "Configured" : "Not configured") + '</b></small>' +
-        '<small>' + esc(hero.message || "Account balance and retail catalogue credentials are checked separately.") + '</small></article>';
+        '<small>' + esc(retail.message || "Retail catalogue and account balance are checked independently.") + '</small>' +
+        (hero.message ? '<small>' + esc(hero.message) + '</small>' : '') + '</article>';
       host.innerHTML = voidMobCard + heroCard + data.providers.map(provider => {
         const status = provider.connected ? "Connected" : "Not connected";
         const services = Number(provider.eligibleCount || 0);
@@ -42,7 +46,7 @@
           (services ? '<small>Sample available services: ' + provider.eligibleServices.slice(0, 8).map(item => esc(item.name) + ' · supplier rate: ' + esc(item.supplierRateReported || "not reported")).join("; ") + '</small><small>Set your own retail price per 1,000 in the Social Media Boosters product manager.</small>' : '') +
           '</article>';
       }).join("");
-      host.insertAdjacentHTML("beforeend", '<p class="admin-foot">HeroSMS is checked through its retail API. Its live country, service, price and stock catalogue is combined with other suppliers on the customer marketplace. Purchases through HeroSMS remain disabled until its order, OTP polling, cancellation and refund flow has passed end-to-end tests. This report is read-only; no supplier orders are placed from this screen.</p>');
+      host.insertAdjacentHTML("beforeend", '<p class="admin-foot">HeroSMS retail catalogue connectivity is checked separately from its account-balance API. Its live country, service, price and stock catalogue is combined with other suppliers on the customer marketplace. Purchases through HeroSMS remain disabled until its order, OTP polling, cancellation and refund flow has passed end-to-end tests. This report is read-only; no supplier orders are placed from this screen.</p>');
     } catch (error) {
       host.innerHTML = '<div class="empty">' + esc(error.message || "Supplier report unavailable.") + '</div>';
     }
