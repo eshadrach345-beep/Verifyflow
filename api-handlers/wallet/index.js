@@ -51,7 +51,7 @@ module.exports = async function handler(req, res) {
     console.error("[wallet/get]", error.code || error.message);
     const schemaMismatch = ["42P01", "42P10"].includes(error.code);
     return sendJson(res, 503, { ok: false, error: schemaMismatch
-      ? "Your wallet database setup is incomplete. Apply the latest VerifyFlow database migrations, then refresh your wallet."
+      ? "Your wallet database setup is incomplete. Apply db/migrations/009_wallet_smm_schema_repair.sql (or run npm run db:migrate), then refresh your wallet."
       : "Your wallet is temporarily unavailable." });
   }
 };
