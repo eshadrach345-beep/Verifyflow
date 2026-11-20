@@ -1,6 +1,6 @@
 "use strict";
 (() => {
-  const host = document.getElementById("supplier-connections");
+  const host = document.getElementById("supplier-connections-content");
   if (!host) return;
   const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"

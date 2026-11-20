@@ -29,7 +29,8 @@
 <form class="vf-search" action="/dashboard.html#catalogue" method="get" role="search"><label class="sr-only" for="vf-product-search">Search all VerifyFlow products</label><input id="vf-product-search" name="search" type="search" placeholder="Search all products, services and countries..." autocomplete="off"><button type="submit" aria-label="Search all products">⌕</button></form>
 <a class="vf-account" href="/account.html"><small>Your account</small><strong>Sign in / Register</strong></a></div>
 <nav class="vf-subnav" aria-label="Product categories"><a href="/dashboard.html#catalogue">☰ <b>All products</b></a><a href="/dashboard.html?category=sms#catalogue">SMS verification</a><a href="/dashboard.html?category=rentals#catalogue">Number rentals</a><a href="/dashboard.html?category=dedicated#catalogue">Dedicated numbers</a><a href="/dashboard.html?category=esim#catalogue">eSIM data</a><a href="/dashboard.html?category=proxies#catalogue">Mobile proxies</a><a href="/dashboard.html?category=marketing#catalogue">Social Media Boosters</a></nav>
-<div class="vf-services-menu" id="vf-services-menu" hidden>
+<div class="vf-services-backdrop" id="vf-services-backdrop" hidden></div>
+<aside class="vf-services-menu" id="vf-services-menu" role="dialog" aria-modal="true" aria-label="All VerifyFlow services" hidden>
   <div class="vf-services-menu-head"><div><span>VERIFYFLOW MARKETPLACE</span><strong>Explore every service</strong></div><button type="button" id="vf-services-close" aria-label="Close services menu">×</button></div>
   <div class="vf-services-menu-grid">
     <a href="/dashboard.html#catalogue"><span>☰</span><b>All products</b><small>Browse every available category</small></a>
@@ -41,7 +42,7 @@
     <a href="/dashboard.html?category=marketing#catalogue"><span>✦</span><b>Social Media Boosters</b><small>Published social media services</small></a>
   </div>
   <div class="vf-services-menu-foot"><a href="#services">See all categories on this page ↓</a></div>
-</div>
+</aside>
 </header>
 <main>
 <section class="hero">
@@ -260,35 +261,45 @@
 })();
 </script>
 <script>
-/* Accessible All services disclosure: opens a category menu instead of scrolling the page. */
+/* Accessible All services off-canvas drawer. */
 (() => {
-  const trigger = document.getElementById("vf-services-trigger");
-  const menu = document.getElementById("vf-services-menu");
-  const closeButton = document.getElementById("vf-services-close");
-  if (!trigger || !menu) return;
-  const setOpen = open => {
-    menu.hidden = !open;
-    trigger.setAttribute("aria-expanded", String(open));
-    if (open) closeButton?.focus();
-    else trigger.focus();
+  const init = () => {
+    const trigger = document.getElementById("vf-services-trigger");
+    const menu = document.getElementById("vf-services-menu");
+    const backdrop = document.getElementById("vf-services-backdrop");
+    const closeButton = document.getElementById("vf-services-close");
+    if (!trigger || !menu || !backdrop || trigger.dataset.drawerReady) return;
+    trigger.dataset.drawerReady = "true";
+    const setOpen = open => {
+      menu.hidden = !open;
+      backdrop.hidden = !open;
+      trigger.setAttribute("aria-expanded", String(open));
+      document.body.classList.toggle("vf-services-open", open);
+      if (open) closeButton?.focus();
+      else trigger.focus();
+    };
+    trigger.addEventListener("click", () => setOpen(menu.hidden));
+    closeButton?.addEventListener("click", () => setOpen(false));
+    backdrop.addEventListener("click", () => setOpen(false));
+    menu.addEventListener("click", event => {
+      if (event.target.closest("a")) setOpen(false);
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !menu.hidden) setOpen(false);
+      if (event.key === "Tab" && !menu.hidden) {
+        const focusable = [...menu.querySelectorAll('a[href],button:not([disabled])')];
+        if (!focusable.length) return;
+        const first = focusable[0], last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault(); last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault(); first.focus();
+        }
+      }
+    });
   };
-  trigger.addEventListener("click", () => setOpen(menu.hidden));
-  closeButton?.addEventListener("click", () => setOpen(false));
-  menu.addEventListener("click", event => {
-    if (event.target.closest("a")) {
-      menu.hidden = true;
-      trigger.setAttribute("aria-expanded", "false");
-    }
-  });
-  document.addEventListener("click", event => {
-    if (!menu.hidden && !menu.contains(event.target) && !trigger.contains(event.target)) {
-      menu.hidden = true;
-      trigger.setAttribute("aria-expanded", "false");
-    }
-  });
-  document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && !menu.hidden) setOpen(false);
-  });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
+  else init();
 })();
 </script>
 <aside id="vf-support-widget" class="vf-support-widget" aria-label="VerifyFlow customer support">

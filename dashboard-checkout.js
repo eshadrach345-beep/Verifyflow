@@ -77,7 +77,7 @@ document.body.insertAdjacentHTML("beforeend", `
     if (category === "sms") return { type: "sms_otp", id: item.id, available: item.available === true, price: item.priceCents };
     if (category === "rentals") { const durations = (item.durations || []).filter(x => Number.isSafeInteger(Number(x.priceCents)) && Number(x.priceCents) > 0).map(x => ({ days: Number(x.days), price: Number(x.priceCents) })); return { type: "long_term_number", id: item.id, available: item.available === true, price: Math.min(...durations.map(x => x.price)), durations }; }
     if (category === "esim") return { type: "esim", id: item.id, available: true, price: item.priceCents };
-    if (category === "proxies") return { type: "mobile_proxy", id: item.id, available: item.available !== false, price: item.priceCents };
+    if (category === "proxies") return { type: "mobile_proxy", id: item.id, available: item.available !== false, price: item.priceCents, planType: String(item.type || "shared").toLowerCase() };
     if (category === "dedicated") return { type: "dedicated_number", id: item.id, available: item.inStock === true, price: item.priceCents };
     if (category === "marketing") return { type: "smm_service", id: item.id, available: true, price: item.pricePer1000Minor, min: item.min, max: item.max };
     return null;
@@ -98,6 +98,51 @@ document.body.insertAdjacentHTML("beforeend", `
       }
       if (!product.id || !Number.isSafeInteger(Number(product.price)) || Number(product.price) <= 0) return;
       const durations = product.durations || [];
+      if (category === "proxies" && product.planType === "shared") {
+        let proxyOptions = [];
+        try { proxyOptions = JSON.parse(card.dataset.proxyOptions || "[]"); } catch { proxyOptions = []; }
+        if (proxyOptions.length > 1) {
+          const area = document.createElement("div");
+          area.className = "vf-buy-area vf-proxy-buy-area";
+          area.innerHTML = '<label class="vf-rental-price">Plan duration<select data-proxy-duration>' +
+            proxyOptions.map((option,index) => '<option value="' + index + '">' +
+              esc(option.durationDays || option.period || "Plan term") + (option.durationDays ? ' days' : '') +
+              (Number(option.discountPercent)>0 ? ' · Save ' + esc(option.discountPercent) + '% per GB' : '') +
+              '</option>').join("") +
+            '</select><small data-proxy-price-summary></small></label>' +
+            '<button class="vf-buy-button" type="button" data-vf-buy="true" data-product-type="mobile_proxy" data-product-id="' +
+            esc(proxyOptions[0].id) + '" data-product-name="' + esc(item.name || "Shared mobile proxy") +
+            '" data-product-price="' + esc(proxyOptions[0].priceCents) + '">Continue to checkout →</button>';
+          card.querySelector(".catalog-item-copy")?.appendChild(area);
+          const select = area.querySelector("[data-proxy-duration]");
+          const buy = area.querySelector("[data-vf-buy]");
+          const rateLabel = card.querySelector(".catalog-price-row strong");
+          const priceNote = card.querySelector(".catalog-price-row small");
+          const applyProxyTerm = () => {
+            const option = proxyOptions[Number(select.value)] || proxyOptions[0];
+            if (!option) return;
+            const days = Number(option.durationDays) || 0;
+            const durationLabel = days ? days + " days" : (option.period || "Selected term");
+            const rate = Number(option.pricePerGbCents || 0);
+            const total = Number(option.priceCents || 0);
+            const discount = Number(option.discountPercent || 0);
+            buy.dataset.productId = option.id;
+            buy.dataset.productPrice = String(total);
+            buy.dataset.productName = (item.name || "Shared mobile proxy") + " · " + durationLabel;
+            if (rateLabel && rate > 0) rateLabel.textContent = money(rate);
+            if (priceNote) priceNote.textContent = (rate > 0 ? "per GB · " : "") +
+              "Package total " + money(total) + " · " + durationLabel +
+              (discount > 0 ? " · " + discount + "% lower per GB" : "") + " · before VAT/tax";
+            const summary = area.querySelector("[data-proxy-price-summary]");
+            if (summary) summary.textContent = "Package total: " + money(total) +
+              (rate > 0 ? " · " + money(rate) + " per GB" : "") +
+              (discount > 0 ? " · " + discount + "% lower per GB than the shortest term" : "");
+          };
+          select.addEventListener("change",applyProxyTerm);
+          applyProxyTerm();
+          return;
+        }
+      }
       if (category === "marketing") {
         const min = Number(product.min), max = Number(product.max);
         const area = document.createElement("div");
@@ -178,9 +223,26 @@ document.body.insertAdjacentHTML("beforeend", `
   const sessionReady = fetch("/api/auth/me", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } })
     .then(response => response.json()).then(data => { signedIn = Boolean(data.ok && data.user); }).catch(() => { signedIn = false; });
 
+  function activateServiceCard(card) {
+    const targetInput = card.querySelector("[data-smm-link]");
+    if (targetInput) {
+      targetInput.focus();
+      targetInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    const buyButton = card.querySelector("[data-vf-buy]");
+    if (buyButton && !buyButton.disabled) buyButton.click();
+  }
+
   grid.addEventListener("click", async event => {
-    const button = event.target.closest("[data-vf-buy]");
-    if (!button || button.disabled) return;
+    let button = event.target.closest("[data-vf-buy]");
+    if (!button) {
+      const cardTile = event.target.closest(".catalog-item");
+      if (!cardTile || event.target.closest("button,a,input,select,textarea,label")) return;
+      activateServiceCard(cardTile);
+      return;
+    }
+    if (button.disabled) return;
     await sessionReady;
     if (!signedIn) { window.location.href = "/account.html"; return; }
     await refreshWalletBalance();
@@ -242,6 +304,13 @@ document.body.insertAdjacentHTML("beforeend", `
       wrap.hidden = true;
     }
     dialog.showModal();
+  });
+
+  grid.addEventListener("keydown", event => {
+    const tile = event.target.closest(".catalog-item[tabindex='0']");
+    if (!tile || event.target !== tile || !["Enter"," "].includes(event.key)) return;
+    event.preventDefault();
+    activateServiceCard(tile);
   });
 
   document.getElementById("vf-duration-select").addEventListener("change", event => {

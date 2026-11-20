@@ -643,11 +643,11 @@
   const base=item.id??item.productId??item.country??item.title??item.name??item.full_title??"";
   return String(base);
  };
- const card=(category,title,meta,detail,priceCents,priceNote,tag="AVAILABLE",currency="USD",country="",key="")=>{
+ const card=(category,title,meta,detail,priceCents,priceNote,tag="AVAILABLE",currency="USD",country="",key="",extraAttributes="")=>{
   const brand=logoFor(title,category),flag=flagFor(country);
   const logo='<img class="catalog-brand-logo" src="'+esc(brand.url)+'" data-fallback="'+esc(brand.fallback)+'" alt="'+esc(title)+' logo" loading="lazy" onerror="if(this.dataset.fallback&&this.src!==this.dataset.fallback){this.src=this.dataset.fallback}else{this.hidden=true}">';
   const label=categoryLabels[category]||"Product";
-  return '<article class="catalog-item catalog-'+category+'" data-product-category="'+esc(category)+'" data-product-key="'+esc(key)+'"><div class="catalog-item-visual"><span class="catalog-art-icon">'+logo+'</span><i class="catalog-art-orbit"></i>'+(flag?'<span class="catalog-country-flag" title="'+esc(countryNames[String(country).toLowerCase()]||country)+'">'+flag+' <b>'+esc(String(countryNames[String(country).toLowerCase()]||country))+'</b></span>':'')+'<small>'+esc(tag)+'</small></div><div class="catalog-item-copy"><span class="catalog-category-label">'+esc(label)+'</span><h3>'+esc(title)+'</h3><p>'+esc(meta)+'</p><div class="catalog-item-detail">'+esc(detail)+'</div><div class="catalog-price-row"><strong>'+esc(money(priceCents,currency))+'</strong><small>'+esc(priceNote)+'</small></div></div></article>';
+  return '<article class="catalog-item catalog-'+category+'" role="group" tabindex="0" aria-label="Select '+esc(title)+'" data-product-category="'+esc(category)+'" data-product-key="'+esc(key)+'"'+extraAttributes+'><div class="catalog-item-visual"><span class="catalog-art-icon">'+logo+'</span><i class="catalog-art-orbit"></i>'+(flag?'<span class="catalog-country-flag" title="'+esc(countryNames[String(country).toLowerCase()]||country)+'">'+flag+' <b>'+esc(String(countryNames[String(country).toLowerCase()]||country))+'</b></span>':'')+'<small>'+esc(tag)+'</small></div><div class="catalog-item-copy"><span class="catalog-category-label">'+esc(label)+'</span><h3>'+esc(title)+'</h3><p>'+esc(meta)+'</p><div class="catalog-item-detail">'+esc(detail)+'</div><div class="catalog-price-row"><strong>'+esc(money(priceCents,currency))+'</strong><small>'+esc(priceNote)+'</small></div></div></article>';
  };
  function empty(message,hint){
   grid.innerHTML='<div class="catalog-empty"><span>✦</span><strong>'+esc(message)+'</strong><small>'+esc(hint||"Try another category, change the country code or refresh the catalogue.")+'</small></div>';
@@ -683,15 +683,27 @@
   if(category==="proxies"){
    const type=String(x.type||"shared").toLowerCase();
    const shared=type==="shared";
+   const options=Array.isArray(x.durationOptions)&&x.durationOptions.length?x.durationOptions:[{
+    id:x.id,durationDays:Number(x.durationDays)||0,period:x.period||"",priceCents:x.priceCents,
+    pricePerGbCents:x.pricePerGbCents,available:x.available!==false,discountPercent:0
+   }];
+   const selected=options[0];
    const volume=shared?(x.dataGb!=null?x.dataGb+" GB":"Data package"):"Unlimited traffic";
-   const duration=x.durationDays?x.durationDays+" days":(x.period|| (shared?"30 days":"Monthly term"));
+   const duration=selected.durationDays?selected.durationDays+" days":(selected.period||x.period||"Monthly term");
    const location=[x.country,x.carrier,x.region].filter(Boolean).join(" · ");
-   const detail=String(x.description|| (shared
-    ? "Pay for a set amount of data on a shared pool of real 4G/5G mobile carrier IPs. Plans are valid for 30 days and support HTTP(S) or SOCKS5, with rotating or sticky sessions where supported."
-    : "A dedicated mobile proxy routes traffic through your own real 4G/5G carrier device. It is billed by day, week or month and includes unmetered traffic for the selected term."));
-   const rate=shared&&Number(x.pricePerGbCents)>0?" · "+money(x.pricePerGbCents,"USD")+"/GB":"";
-   const priceNote=shared?volume+" total"+rate+" · 30 days · before VAT/tax":"unmetered · per "+duration+" · before VAT/tax";
-   return card("proxies",x.name||"Mobile proxy", (shared?"Shared mobile proxy · ":"Dedicated mobile proxy · ")+volume+" · "+duration,detail+(location?" Location: "+location:""),x.priceCents,priceNote,x.available?"AVAILABLE":"CHECK AVAILABILITY",x.currency,x.country||"",key);
+   const detail=String(x.description||(shared
+    ? "Shared mobile proxy data is priced by the gigabyte. Choose an available plan duration; longer terms may offer a lower per-GB rate. Package totals and the exact term are shown before checkout."
+    : "A dedicated mobile proxy routes traffic through a real 4G/5G carrier device. It includes unmetered traffic for the displayed plan term."));
+   const rate=shared&&Number(selected.pricePerGbCents)>0?Number(selected.pricePerGbCents):0;
+   const discount=Number(selected.discountPercent||0);
+   const discountNote=discount>0?" · "+discount+"% lower per GB vs "+(options[0].durationDays||"shortest")+"-day term":"";
+   const priceNote=shared&&rate>0
+    ? "per GB · Package total "+money(selected.priceCents,"USD")+" · "+volume+" · "+duration+discountNote+" · before VAT/tax"
+    : shared?volume+" package · "+duration+" · before VAT/tax":"unmetered · per "+duration+" · before VAT/tax";
+   const proxyOptionsAttribute=' data-proxy-options="'+esc(JSON.stringify(options))+'"';
+   return card("proxies",x.name||"Mobile proxy",(shared?"Shared mobile proxy · ":"Dedicated mobile proxy · ")+volume+" · "+duration,
+    detail+(location?" Location: "+location:""),shared&&rate>0?rate:selected.priceCents,priceNote,
+    x.available?"AVAILABLE":"CHECK AVAILABILITY",x.currency,x.country||"",key,proxyOptionsAttribute);
   }
   if(category==="dedicated"){
    const detail="A private phone number reserved for your use on a monthly plan. Use it to receive ongoing SMS messages and verification codes on services that accept dedicated or rented numbers. Platform rules differ, so check that your intended service accepts this number type before buying.";
@@ -713,6 +725,44 @@
   return "";
  }
 
+ function proxyDurationOption(plan){
+  const price=Number(plan.priceCents||0),dataGb=Number(plan.dataGb||0);
+  const rate=Number(plan.pricePerGbCents)>0?Number(plan.pricePerGbCents):(dataGb>0&&price>0?Math.ceil(price/dataGb):null);
+  return {id:String(plan.id||""),durationDays:Number(plan.durationDays)||0,period:String(plan.period||""),
+   priceCents:price,pricePerGbCents:rate,available:plan.available!==false,discountPercent:0};
+ }
+ function groupProxyPlanRows(sourceRows){
+  const groups=new Map(),separate=[];
+  for(const plan of sourceRows){
+   const type=String(plan.type||"shared").toLowerCase();
+   const dataGb=Number(plan.dataGb),days=Number(plan.durationDays);
+   if(type!=="shared"||plan.available===false||!Number.isFinite(dataGb)||dataGb<=0||!Number.isSafeInteger(days)||days<1){
+    separate.push(plan);continue;
+   }
+   const name=String(plan.name||"mobile proxy").toLowerCase()
+    .replace(/\b\d+(?:\.\d+)?\s*(?:days?|d|weeks?|w|months?|mo)\b/g," ")
+    .replace(/\b(?:daily|weekly|monthly)\b/g," ").replace(/\s+/g," ").trim();
+   const family=[name,dataGb,String(plan.country||""),String(plan.carrier||""),String(plan.region||""),type].join("|");
+   if(!groups.has(family))groups.set(family,[]);
+   groups.get(family).push(plan);
+  }
+  for(const variants of groups.values()){
+   const days=variants.map(plan=>Number(plan.durationDays));
+   const distinctDays=new Set(days);
+   if(variants.length<2||distinctDays.size!==variants.length){separate.push(...variants);continue;}
+   const sorted=[...variants].sort((a,b)=>Number(a.durationDays)-Number(b.durationDays));
+   const baseRate=Number(proxyDurationOption(sorted[0]).pricePerGbCents||0);
+   const options=sorted.map(plan=>{
+    const option=proxyDurationOption(plan);
+    const rate=Number(option.pricePerGbCents||0);
+    option.discountPercent=baseRate>0&&rate>0&&rate<baseRate
+      ?Math.round((1-rate/baseRate)*100):0;
+    return option;
+   });
+   separate.push({...sorted[0],durationOptions:options});
+  }
+  return separate;
+ }
  function render(){
   if(loadMore)loadMore.hidden=true;
   if(!catalogue){empty("The catalogue is being refreshed.");return;}
@@ -730,7 +780,8 @@
    const section=catalogue.sections?.[category];
    if(!section?.ok) continue;
    availableSections++;
-   const rows=Array.isArray(section.items)?section.items:[];
+   const sourceRows=Array.isArray(section.items)?section.items:[];
+   const rows=category==="proxies"?groupProxyPlanRows(sourceRows):sourceRows;
    // Published social booster services are always shown from the lowest retail
    // price per 1,000 to the highest. This is recalculated on every catalogue load,
    // so newly bulk-imported services automatically land in the right price order.
@@ -962,7 +1013,7 @@
   const data=await response.json();
   if(!response.ok||!data.ok||!data.user)return;
   const user=data.user;
-  const firstName=String(user.fullName||user.full_name||"").trim().split(/\\s+/)[0];
+  const firstName=String(user.fullName||user.full_name||"").trim().split(/\s+/)[0];
   link.href="/account.html";
   link.innerHTML="<small>"+(firstName?"Welcome, "+firstName:"Your account")+"</small><strong>My Account</strong>";
   link.setAttribute("aria-label","Open your VerifyFlow account");

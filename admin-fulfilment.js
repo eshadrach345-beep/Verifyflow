@@ -1,6 +1,6 @@
 "use strict";
 (() => {
-  const body = document.getElementById("fulfilment-queue");
+  const body = document.getElementById("fulfilment-queue-body");
   if (!body) return;
   const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
