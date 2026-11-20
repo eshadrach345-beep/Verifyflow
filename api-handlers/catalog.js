@@ -270,7 +270,8 @@ module.exports = async function handler(req, res) {
   const heroSmsItems = heroSms.ok ? (heroSms.items?.smsItems || []).map(item => ({
     id: sealCatalogProductToken({
       provider: "herosms", productType: "sms_otp",
-      productId: String(item.id), country: String(item.countryCode || requestedCountry).toLowerCase()
+      productId: String(item.id), country: String(item.countryCode || requestedCountry).toLowerCase(),
+      countryId: Number(item.countryId), productName: String(item.name || item.id)
     }),
     name: item.name,
     available: Boolean(item.available),
@@ -281,7 +282,8 @@ module.exports = async function handler(req, res) {
   const heroSmsRentalItems = heroSms.ok ? (heroSms.items?.rentalItems || []).map(item => ({
     id: sealCatalogProductToken({
       provider: "herosms", productType: "long_term_number",
-      productId: String(item.id), country: String(item.countryCode || requestedCountry).toLowerCase()
+      productId: String(item.id), country: String(item.countryCode || requestedCountry).toLowerCase(),
+      countryId: Number(item.countryId), productName: String(item.name || item.id)
     }),
     name: item.name,
     countryCode: String(item.countryCode || requestedCountry).toUpperCase(),
