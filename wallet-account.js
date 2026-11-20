@@ -70,7 +70,7 @@
       return;
     }
     submit.disabled = true;
-    submit.textContent = "Preparing Monnify checkout…";
+    submit.textContent = "Preparing Squad checkout…";
     try {
       const response = await fetch("/api/wallet/deposit", {
         method: "POST", credentials: "same-origin",
@@ -85,12 +85,12 @@
       if (!response.ok || !data.ok || typeof data.checkoutUrl !== "string") {
         throw new Error(data.error || "Wallet funding could not be started.");
       }
-      fundMessage.textContent = "Monnify checkout is ready. Your balance will update after the payment is verified.";
+      fundMessage.textContent = "Squad checkout is ready. Your balance will update after the payment is verified.";
       window.location.assign(data.checkoutUrl);
     } catch (error) {
       fundMessage.textContent = error.message || "Please try again.";
       submit.disabled = false;
-      submit.textContent = "Fund wallet with Monnify ↗";
+      submit.textContent = "Fund wallet with Squad ↗";
     }
   });
 
