@@ -49,6 +49,9 @@ module.exports = async function handler(req, res) {
     });
   } catch (error) {
     console.error("[wallet/get]", error.code || error.message);
-    return sendJson(res, 503, { ok: false, error: "Your wallet is temporarily unavailable." });
+    const schemaMismatch = ["42P01", "42P10"].includes(error.code);
+    return sendJson(res, 503, { ok: false, error: schemaMismatch
+      ? "Your wallet database setup is incomplete. Apply the latest VerifyFlow database migrations, then refresh your wallet."
+      : "Your wallet is temporarily unavailable." });
   }
 };
