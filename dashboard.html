@@ -532,6 +532,12 @@
       <label class="catalog-control catalog-search-control" for="catalog-search">Search products
         <input id="catalog-search" name="search" type="search" placeholder="Search every product, service or country..." autocomplete="off">
       </label>
+      <label class="catalog-control smm-filter-control" id="smm-platform-filter-wrap" for="smm-platform-filter" hidden>Social platform
+        <select id="smm-platform-filter"><option value="">All platforms</option></select>
+      </label>
+      <label class="catalog-control smm-filter-control" id="smm-subcategory-filter-wrap" for="smm-subcategory-filter" hidden>Service type
+        <select id="smm-subcategory-filter"><option value="">All service types</option></select>
+      </label>
     </div>
     <div class="catalog-tabs" role="tablist" aria-label="Product categories">
       <button class="catalog-tab is-active" data-catalog-tab="all" type="button" aria-selected="true">All products</button>
@@ -565,6 +571,10 @@
  const refresh=document.getElementById("catalog-refresh");
  const countryInput=document.getElementById("catalog-country");
  const searchInput=document.getElementById("catalog-search");
+ const platformFilter=document.getElementById("smm-platform-filter");
+ const subcategoryFilter=document.getElementById("smm-subcategory-filter");
+ const platformFilterWrap=document.getElementById("smm-platform-filter-wrap");
+ const subcategoryFilterWrap=document.getElementById("smm-subcategory-filter-wrap");
  const tabs=[...document.querySelectorAll("[data-catalog-tab]")];
  const strip=document.getElementById("customer-strip");
  const ordersPanel=document.getElementById("customer-orders");
@@ -868,8 +878,10 @@
        return validA?priceA-priceB:String(a.name||"").localeCompare(String(b.name||""));
       })
     : rows;
-   orderedRows.filter(item=>!query||JSON.stringify(item).toLowerCase().includes(query)||(categoryLabels[category]||"").toLowerCase().includes(query))
-    .forEach(item=>results.push({category,item}));
+   orderedRows.filter(item=>
+      (category!=="marketing"||(!platformFilter?.value||item.platform===platformFilter.value)&&(!subcategoryFilter?.value||item.subcategory===subcategoryFilter.value)) &&
+      (!query||JSON.stringify(item).toLowerCase().includes(query)||(categoryLabels[category]||"").toLowerCase().includes(query))
+    ).forEach(item=>results.push({category,item}));
   }
   results.sort((a,b)=>a.category===b.category&&a.category==="sms"?smsPopularity(a.item)-smsPopularity(b.item):0);
   if(!results.length){
@@ -925,6 +937,20 @@
    if(reloadRequested){reloadRequested=false;load();}
   }
  }
+ function updateMarketingFilters(){
+  const items=Array.isArray(catalogue?.sections?.marketing?.items)?catalogue.sections.marketing.items:[];
+  const fill=(select,values,label)=>{
+   if(!select)return;
+   const current=select.value;
+   select.innerHTML='<option value="">'+label+'</option>'+values.map(value=>'<option value="'+esc(value)+'">'+esc(value)+'</option>').join("");
+   if(values.includes(current))select.value=current;
+  };
+  fill(platformFilter,[...new Set(items.map(item=>item.platform||"Other"))].sort((a,b)=>a.localeCompare(b)),"All platforms");
+  fill(subcategoryFilter,[...new Set(items.map(item=>item.subcategory||"Other"))].sort((a,b)=>a.localeCompare(b)),"All service types");
+  const visible=active==="marketing";
+  if(platformFilterWrap)platformFilterWrap.hidden=!visible;
+  if(subcategoryFilterWrap)subcategoryFilterWrap.hidden=!visible;
+ }
  async function loadMarketingCatalogue(){
   if(!catalogue||catalogue.sections?.marketing?.loading)return;
   catalogue.sections.marketing={ok:false,items:[],loading:true,message:"Loading eligible services…"};
@@ -935,15 +961,19 @@
    if(!response.ok||!data.ok)throw new Error(data.message||"Marketing services are temporarily unavailable.");
    catalogue.sections.marketing={ok:true,items:Array.isArray(data.items)?data.items:[],message:null};
   }catch(error){catalogue.sections.marketing={ok:false,items:[],message:error.message||"Marketing services are temporarily unavailable."};}
+  updateMarketingFilters();
   if(active==="marketing"||active==="all")render();
  }
  tabs.forEach(tab=>tab.addEventListener("click",()=>{
   active=tab.dataset.catalogTab;renderedCount=PAGE_SIZE;
+  updateMarketingFilters();
   tabs.forEach(item=>{const selected=item===tab;item.classList.toggle("is-active",selected);item.setAttribute("aria-selected",String(selected));});
   if((active==="marketing"||active==="all")&&(!catalogue?.sections?.marketing||!catalogue.sections.marketing.ok))loadMarketingCatalogue();
   render();
  }));
 
+ platformFilter?.addEventListener("change",()=>{renderedCount=PAGE_SIZE;render();});
+ subcategoryFilter?.addEventListener("change",()=>{renderedCount=PAGE_SIZE;render();});
  if(loadMore)loadMore.addEventListener("click",()=>{renderedCount+=PAGE_SIZE;render();});
  if(categoryToggle&&categoryMenu){
   const categoryBackdrop=document.getElementById("vf-category-backdrop");
