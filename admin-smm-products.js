@@ -164,13 +164,16 @@
   });
   serviceSelect.addEventListener("change", updateServiceInfo);
   $("smm-reset").addEventListener("click", clearForm);
-  selectAllButton.addEventListener("click", () => {
+  function selectAllServices() {
     const services = currentSupplier()?.services || [];
     services.forEach(item => selectedServices.add(item.id));
     renderSelectionList();
     message.textContent = "Selected all " + services.length.toLocaleString() + " services in " +
       (currentSupplier()?.label || "this supplier") + ". Review the list, then publish when ready.";
-  });
+    $("smm-bulk-publisher")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  selectAllButton.addEventListener("click", selectAllServices);
+  selectAllTop?.addEventListener("click", selectAllServices);
   selectVisible.addEventListener("change", () => {
     visibleServices().forEach(item => selectVisible.checked
       ? selectedServices.add(item.id) : selectedServices.delete(item.id));
