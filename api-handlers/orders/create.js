@@ -386,7 +386,7 @@ module.exports = async function handler(req, res) {
     }
   } catch (error) {
     console.error("[orders/create]", error.code || error.message);
-    const status = error.status === 404 ? 404 : error.status === 409 ? 409 :
+    const status = error.status === 400 ? 400 : error.status === 404 ? 404 : error.status === 409 ? 409 :
       error.code === "SUPPLIER_NOT_CONFIGURED" ? 503 :
       error.code === "COUNTRY_UNAVAILABLE" || error.code === "INVALID_DURATION" ? 400 : 503;
     const messages = {
@@ -400,7 +400,8 @@ module.exports = async function handler(req, res) {
       CHECKOUT_EXCHANGE_RATE_INVALID: "The local checkout exchange rate is invalid. Please contact support.",
       SUPPLIER_NOT_CONFIGURED: "The supplier catalogue is temporarily unavailable.",
       SUPPLIER_PRICE_INVALID: "A current product price could not be confirmed.",
-      INVALID_PRODUCT: "Please select a valid product from the catalogue."
+      INVALID_PRODUCT: "Please select a valid product from the catalogue.",
+      INVALID_CATALOG_SELECTION: "That product selection is no longer valid. Refresh the catalogue and try again."
     };
     return sendJson(res, status, { ok: false, error: messages[error.code] || "We couldn't prepare this order. Please refresh the catalogue and try again." });
   }
