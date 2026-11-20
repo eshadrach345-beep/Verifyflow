@@ -693,14 +693,14 @@
  function renderProduct(category,x){
   const key=productKey(category,x);
   if(category==="sms"){
-   return card("sms",x.name||"SMS verification","One-time verification · "+String(catalogue.country||"us").toUpperCase(), "Receive a one-time SMS code on a temporary number for account or service verification. Availability and acceptance depend on the selected platform and country.",x.priceCents,"per activation · before VAT/tax",x.available?"AVAILABLE":"OUT OF STOCK",x.currency,catalogue.country,key);
+   return card("sms",x.name||"SMS verification","One-time verification · "+String(catalogue.country||"us").toUpperCase(), "Receive an SMS code on a temporary number for this service.",x.priceCents,"per activation · before VAT/tax",x.available?"AVAILABLE":"OUT OF STOCK",x.currency,catalogue.country,key);
   }
   if(category==="esim"){
    const data=x.unlimited?"Unlimited data":(x.dataGb==null?"Data plan":x.dataGb+" GB");
    const countries=Array.isArray(x.countries)?x.countries:[];
    const coverage=countries.slice(0,7).join(", ")+(countries.length>7?" +"+(countries.length-7)+" more":"");
    const features=[x.validityDays?x.validityDays+" days":null,x.networkType||null,x.routingLocation?"Routes via "+x.routingLocation:null].filter(Boolean).join(" · ");
-   const detail="Install a digital SIM profile on an unlocked, eSIM-compatible phone or tablet to use mobile data without inserting a physical SIM. Check device compatibility, coverage and validity before purchase. "+(coverage||features||"Plan coverage and features are shown above.");
+   const detail="Digital mobile data for an unlocked, eSIM-compatible device. Check coverage and validity before purchase.";
    return card("esim",x.title||"eSIM data plan",data+" · "+(x.validityDays||"Flexible")+" days",detail,x.priceCents,"per plan · before VAT/tax","DATA PLAN",x.currency,countries[0]||"",key);
   }
   if(category==="proxies"){
@@ -715,39 +715,39 @@
    const volume=shared?(selectedVolume?selectedVolume+" GB":"Data package"):"Unlimited traffic";
    const duration=selected.durationDays?selected.durationDays+" days":(selected.period||x.period||"Monthly term");
    const location=[x.country,x.carrier,x.region].filter(Boolean).join(" · ");
-   const detail=String(x.description||(shared
-    ? "A Shared mobile proxy is charged by the gigabyte. Choose a data allowance below; larger packages reduce the effective price per GB. Each shared data package has a fixed validity period shown at checkout."
-    : "A dedicated mobile proxy routes traffic through a real 4G/5G carrier device. It includes unmetered traffic, with daily, weekly or monthly rental periods where available."));
+   const detail=shared
+    ? "Pay per GB. Choose your data allowance and validity; longer terms may lower the rate."
+    : "Real 4G/5G mobile IP with unlimited traffic for the selected rental term.";
    const rate=shared?Number(selected.pricePerGbCents||0):Number(selected.pricePerDayCents||0);
    const discount=Number(selected.discountPercent||0);
    const discountUnit=shared?"per GB":"per day";
-   const discountNote=discount>0?" · Save "+discount+"% "+discountUnit+" vs "+(selected.discountBasis||"the entry-level option"):"";
+   const discountNote=discount>0?" · Save "+discount+"% "+discountUnit:"";
    const priceNote=shared&&rate>0
-    ? "PRICE PER GB · "+volume+" package · "+duration+" validity · package total "+money(selected.priceCents,"USD")+discountNote+" · before VAT/tax"
-    : shared?volume+" package · "+duration+" validity · before VAT/tax"
-    : "UNLIMITED TRAFFIC · "+duration+" · effective "+money(rate)+" per day · plan total "+money(selected.priceCents,"USD")+discountNote+" · before VAT/tax";
+    ? "per GB · "+duration+" · total "+money(selected.priceCents,"USD")+discountNote
+    : shared?volume+" · "+duration
+    : "Unlimited traffic · "+duration+" · total "+money(selected.priceCents,"USD")+discountNote;
    const proxyOptionsAttribute=' data-proxy-options="'+esc(JSON.stringify(options))+'"'+(shared?' data-proxy-metered="true"':"");
-   const productTitle=options.length>1?(shared?"Shared Mobile Proxy":"Dedicated Mobile Proxy"):(x.name||"Mobile proxy");
-   return card("proxies",productTitle,(shared?"Pay-per-GB shared proxy · ":"Dedicated mobile proxy · ")+volume+" · "+duration,
-    detail+(location?" Location: "+location:""),shared&&rate>0?rate:selected.priceCents,priceNote,
+   const productTitle=shared?"Shared Mobile Proxy":"Dedicated Mobile Proxy";
+   return card("proxies",productTitle,(shared?"Pay per GB · ":"Mobile IP · ")+volume+" · "+duration,
+    detail,shared&&rate>0?rate:selected.priceCents,priceNote,
     x.available?"AVAILABLE":"CHECK AVAILABILITY",x.currency,x.country||"",key,proxyOptionsAttribute);
   }
   if(category==="dedicated"){
-   const detail="A private phone number reserved for your use on a monthly plan. Use it to receive ongoing SMS messages and verification codes on services that accept dedicated or rented numbers. Platform rules differ, so check that your intended service accepts this number type before buying.";
-   return card("dedicated",x.name||x.country||"Dedicated number",(x.name||x.country||"Country option")+" · Monthly",detail+" "+(x.inStock?"Numbers are currently available.":"No monthly number inventory is currently reported."),x.priceCents,"per month · before VAT/tax",x.inStock?"IN STOCK":"OUT OF STOCK",x.currency,x.country,key);
+   const detail="Private number for ongoing SMS and verification. Check that your intended service accepts dedicated numbers.";
+   return card("dedicated",x.name||x.country||"Dedicated number",(x.name||x.country||"Country option")+" · Monthly",detail,x.priceCents,"per month · before VAT/tax",x.inStock?"IN STOCK":"OUT OF STOCK",x.currency,x.country,key);
   }
   if(category==="rentals"){
    const durations=Array.isArray(x.durations)?x.durations:[];
    const detail=(x.availableCount!=null?x.availableCount+" numbers · ":"")+(durations.length?durations.map(option=>option.days+" days: "+money(option.priceCents,option.currency)).join(" · "):"No rental durations currently listed");
    const prices=durations.map(option=>Number(option.priceCents)).filter(value=>Number.isSafeInteger(value)&&value>0);
    const from=prices.length?Math.min(...prices):null;
-   const description="Keep the same phone number for a chosen multi-day period so you can receive follow-up SMS messages and repeat verification codes, rather than relying on a one-time activation. Useful for supported services such as WhatsApp, Telegram and other apps that accept rented numbers. Availability varies by country and platform.";
-   return card("rentals",x.name||"Long-term number",String(catalogue.country||"us").toUpperCase()+" · Choose your rental period",description+" "+detail,from,"from · before VAT/tax",x.available&&durations.length?"AVAILABLE":"LIMITED","USD",catalogue.country,key);
+   const description="Keep the same number for a selected period and receive follow-up SMS on supported services.";
+   return card("rentals",x.name||"Long-term number",String(catalogue.country||"us").toUpperCase()+" · Choose your rental period",description,from,"from · before VAT/tax",x.available&&durations.length?"AVAILABLE":"LIMITED","USD",catalogue.country,key);
   }
   if(category==="marketing"){
    const serviceName=(x.platform||"Social media")+" "+(x.name||"service");
-   const detail="A social media engagement service for the platform and action shown in this product name. Submit the public profile or post URL, then choose a quantity within the stated limits. Confirm the link is public and read the product notes before ordering.";
-   return card("marketing",serviceName,x.description||"Social media engagement service",detail,x.pricePer1000Minor,"per 1,000 · USD · before applicable tax","AVAILABLE","USD","",key);
+   const detail="Order this service for a public profile or post. Quantity limits apply.";
+   return card("marketing",serviceName,"Quantity "+Number(x.min||0).toLocaleString()+"–"+Number(x.max||0).toLocaleString()+" · per 1,000",detail,x.pricePer1000Minor,"per 1,000 · USD · before applicable tax","AVAILABLE","USD","",key);
   }
   return "";
  }
