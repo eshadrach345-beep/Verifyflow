@@ -52,8 +52,9 @@ async function main() {
   assert.equal(smmAdmin.body.ok, false);
 
   const support = await request("support/chat");
-  assert.equal(support.status, 401);
-  assert.equal(support.body.ok, false);
+  assert.equal(support.status, 200);
+  assert.equal(support.body.ok, true);
+  assert.equal(support.body.guest, true, "Guests can use the instant site-help assistant without signing in");
 
   const adminSupport = await request("admin/support");
   assert.equal(adminSupport.status, 401);
