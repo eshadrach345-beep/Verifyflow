@@ -33,7 +33,8 @@ const routes = {
   "wallet/deposit": require("../api-handlers/wallet/deposit"),
   "payments/create-test": require("../api-handlers/payments/create-test"),
   "payments/verify": require("../api-handlers/payments/verify"),
-  "payments/webhook": require("../api-handlers/payments/webhook")
+  "payments/webhook": require("../api-handlers/payments/webhook"),
+  "payments/squad-webhook": require("../api-handlers/payments/squad-webhook")
 };
 
 module.exports = async function handler(req, res) {
