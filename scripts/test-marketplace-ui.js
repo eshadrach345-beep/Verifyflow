@@ -76,8 +76,15 @@ assert.ok(dashboard.includes('data-product-category="'), "Catalogue cards must c
 assert.ok(dashboard.includes('data-product-key="'), "Catalogue cards must carry a stable product key");
 assert.ok(checkout.includes('card.dataset.productCategory'), "Checkout must read the rendered card category");
 assert.ok(checkout.includes('card.dataset.productKey'), "Checkout must resolve the rendered card product key");
-assert.ok(checkout.includes('row.provider||row.providerLabel||""'),
-  "Checkout matching must distinguish supplier rows sharing a product identifier");
+assert.ok(dashboard.includes("return String(base);") && !dashboard.includes("item.provider||item.providerLabel"),
+  "Customer catalogue selection keys must not expose supplier routing");
+assert.ok(checkout.includes("card.dataset.productKey"), "Checkout must resolve opaque product selection tokens");
+assert.ok(!checkout.includes("selected.provider") && !checkout.includes("selected.country"),
+  "Customer checkout requests must not submit supplier routing details");
+assert.ok(fs.readFileSync("api-handlers/catalog.js", "utf8").includes("sealCatalogProductToken"),
+  "Public supplier catalogue IDs must be encrypted before they reach the customer");
+assert.ok(fs.readFileSync("api-handlers/orders/create.js", "utf8").includes("openCatalogProductToken"),
+  "Checkout must validate and resolve encrypted catalogue selections on the server");
 assert.ok(checkout.includes('visibleRows(category)'), "Checkout must search within the card's original category");
 
 assert.ok(dashboard.includes('id="catalog-country"') && dashboard.includes("populateCountryOptions(data.countries)"),
