@@ -131,3 +131,24 @@
  .vf-support-reply-form .admin-btn{width:100%!important}
  .admin-table-wrap table{min-width:820px!important}
 }
+
+
+/* Admin is intentionally a high-contrast light operations workspace. */
+.admin-quick-action-button{width:100%!important;text-align:left!important;font:inherit!important;color:inherit!important;cursor:pointer!important}
+.admin-quick-action-button:disabled{opacity:.55!important;cursor:not-allowed!important}
+.admin-quick-action-button:not(:disabled):hover{border-color:#7fbdb4!important;background:#edf8f5!important}
+.admin-shell{font-size:15px!important}
+.admin-top h1{font-size:clamp(30px,4vw,42px)!important;line-height:1.15!important}
+.admin-top p,.admin-section>p,.admin-foot,.muted{font-size:14px!important;line-height:1.7!important}
+.admin-section h2{font-size:22px!important;line-height:1.35!important}
+.admin-card strong{font-size:16px!important}
+.admin-card small{font-size:13px!important;line-height:1.65!important}
+.admin-shell input,.admin-shell select,.admin-shell textarea{font:500 14px/1.5 Inter,Arial,sans-serif!important}
+@media(max-width:600px){
+ .admin-shell{padding:18px 10px 40px!important}
+ .admin-top h1{font-size:28px!important}
+ .admin-top p,.admin-section>p,.admin-foot,.muted{font-size:13px!important}
+ .admin-section h2{font-size:19px!important}
+ .admin-quick-action b{font-size:14px!important}
+ .admin-quick-action span{font-size:12px!important}
+}
