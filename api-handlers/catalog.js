@@ -30,7 +30,13 @@ function retailPriceCents(supplierPrice, category) {
   const percent = envNumber("VERIFYFLOW_" + category.toUpperCase() + "_MARKUP_PERCENT", rule.percent);
   const minimum = envNumber("VERIFYFLOW_" + category.toUpperCase() + "_MIN_MARKUP_CENTS", rule.minimumMarkupCents);
   const percentagePrice = Math.ceil(cost * (1 + percent / 100) - 1e-9);
-  return Math.max(percentagePrice, cost + minimum);
+  const currentPrice = Math.max(percentagePrice, cost + minimum);
+  // Preserve all existing OTP prices at $1.00 or above. For cheaper OTP options,
+  // guarantee at least a $0.70 margin (about NGN 900 at the current exchange rate).
+  if (category === "sms" && currentPrice < 100) {
+    return Math.max(percentagePrice, cost + Math.max(minimum, 70));
+  }
+  return currentPrice;
 }
 
 async function supplierGet(path, headers) {
