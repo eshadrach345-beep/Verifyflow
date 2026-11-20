@@ -161,7 +161,7 @@ module.exports = async function handler(req, res) {
       data => data
     ),
     safeRead(
-      () => supplierList("/proxy_plans?type=all", "plans", headers, 200),
+      () => supplierList("/proxy_plans?type=all&available=true", "plans", headers, 200),
       data => data
     ),
     safeRead(
