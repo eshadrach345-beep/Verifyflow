@@ -28,10 +28,10 @@
       }
       body.innerHTML = jobs.map(job => {
         const action = ["paid", "processing"].includes(job.order_status) && job.fulfilment_status === "pending" ? "submit" :
-          ["paid", "processing"].includes(job.order_status) && job.fulfilment_status === "unknown" ? "retry_unknown" : null;
+          ["paid", "processing"].includes(job.order_status) && job.fulfilment_status === "unknown" && job.supplier === "voidmob" ? "retry_unknown" : null;
         const actionLabel = action === "retry_unknown" ? "Reconcile safely" : "Submit";
         return '<tr><td><b>' + esc(job.order_number) + '</b></td>' +
-          '<td>' + esc(job.product_name) + '<br><span class="muted">' + esc(job.product_type) + '</span></td>' +
+          '<td>' + esc(job.product_name) + '<br><span class="muted">' + esc(job.product_type) + ' · ' + esc(job.supplier || "supplier") + '</span></td>' +
           '<td><span class="status ' + esc(job.fulfilment_status) + '">' + esc(job.fulfilment_status) + '</span></td>' +
           '<td>' + esc(job.supplier_status || "—") + '</td>' +
           '<td>' + (job.supplier_cost_minor == null ? "—" : esc(money(job.supplier_cost_minor, job.supplier_currency))) + '</td>' +

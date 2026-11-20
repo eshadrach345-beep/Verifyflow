@@ -47,6 +47,19 @@ async function main() {
   assert.equal(orders.status, 401);
   assert.equal(orders.body.ok, false);
 
+  const smmAdmin = await request("admin/smm-products");
+  assert.equal(smmAdmin.status, 401);
+  assert.equal(smmAdmin.body.ok, false);
+
+  const support = await request("support/chat");
+  assert.equal(support.status, 200);
+  assert.equal(support.body.ok, true);
+  assert.equal(support.body.guest, true, "Guests can use the instant site-help assistant without signing in");
+
+  const adminSupport = await request("admin/support");
+  assert.equal(adminSupport.status, 401);
+  assert.equal(adminSupport.body.ok, false);
+
   const unknown = await request("not-a-real-route");
   assert.equal(unknown.status, 404);
   assert.equal(unknown.body.error, "API route not found.");

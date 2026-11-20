@@ -1,11 +1,11 @@
 "use strict";
 
-const { readProvider } = require("../lib/smm-catalog");
+const { getPool } = require("../lib/auth");
 
 function sendJson(res, status, body) {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Cache-Control", "private, no-store");
+  res.setHeader("Cache-Control", "no-store");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.end(JSON.stringify(body));
 }
@@ -16,35 +16,22 @@ module.exports = async function handler(req, res) {
     return sendJson(res, 405, { ok: false, error: "Method not allowed." });
   }
   try {
-    const providers = await Promise.all([
-      readProvider("peakerr"),
-      readProvider("justanotherpanel")
-    ]);
-    const items = providers.flatMap(provider => (provider.eligibleServices || []).map(service => ({
-      id: service.id,
-      name: service.name,
-      category: service.category,
-      provider: provider.provider,
-      providerLabel: provider.label,
-      min: service.min,
-      max: service.max,
-      refill: service.refill,
-      cancel: service.cancel
-    })));
-    const connected = providers.some(provider => provider.connected);
-    return sendJson(res, 200, {
-      ok: connected,
-      items,
-      providers: providers.map(provider => ({
-        provider: provider.provider,
-        label: provider.label,
-        connected: provider.connected,
-        eligibleCount: provider.eligibleCount
-      })),
-      message: connected ? null : "Marketing suppliers are not connected right now."
-    });
+    const result = await getPool().query(
+      "SELECT id, platform, product_name, description, min_quantity, max_quantity, retail_rate_minor_per_1000 " +
+      "FROM vf_smm_products WHERE is_active = TRUE ORDER BY platform, product_name"
+    );
+    const items = result.rows.map(row => ({
+      id: row.id,
+      platform: row.platform,
+      name: row.product_name,
+      description: row.description,
+      min: Number(row.min_quantity),
+      max: Number(row.max_quantity),
+      pricePer1000Minor: Number(row.retail_rate_minor_per_1000)
+    }));
+    return sendJson(res, 200, { ok: true, items, count: items.length, updatedAt: new Date().toISOString() });
   } catch (error) {
     console.error("[marketing-catalog]", error.code || error.message);
-    return sendJson(res, 503, { ok: false, message: "Marketing services are temporarily unavailable." });
+    return sendJson(res, 503, { ok: false, message: "Social media products are temporarily unavailable." });
   }
 };

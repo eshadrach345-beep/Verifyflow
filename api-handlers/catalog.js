@@ -263,10 +263,6 @@ module.exports = async function handler(req, res) {
     currency: "USD",
     taxNote: "Displayed prices are before applicable VAT or local sales taxes. These are added separately at checkout based on the customer's billing location.",
     sections,
-    supplierCoverage: {
-      heroSms: { connected: heroSms.ok, countryName: heroSms.ok ? heroSms.items?.countryName : null, countries: heroSms.ok ? heroSms.items?.countries || [] : [] },
-      voidMob: { connected: Boolean(process.env.VOIDMOB_API_KEY) }
-    },
     summary: {
       sms: mergedSmsItems.length,
       rentals: mergedRentalItems.length,

@@ -10,8 +10,23 @@ module.exports = async function handler(req, res) {
     if (!user) return sendJson(res, 401, { ok: false, error: "Please sign in to view your orders." });
     const result = await getPool().query(
       `SELECT o.id, o.order_number, o.product_type, o.product_name, o.status, o.currency,
-              o.total_minor, o.created_at, o.updated_at, o.supplier_order_id,
-              o.metadata->'fulfilment'->'serviceData' AS service_data,
+              o.total_minor, o.created_at, o.updated_at,
+              EXISTS (SELECT 1 FROM vf_fulfilment_jobs delivery_job WHERE delivery_job.order_id = o.id AND delivery_job.status IN ('submitted','completed')) AS has_active_delivery,
+              o.metadata->'fulfilment'->'customerDelivery' AS customer_delivery,
+              jsonb_strip_nulls(jsonb_build_object(
+                'status', o.metadata->'fulfilment'->>'status',
+                'phone_number', COALESCE(o.metadata#>>'{fulfilment,customerDelivery,phoneNumber}', o.metadata#>>'{fulfilment,serviceData,phoneNumber}', o.metadata#>>'{fulfilment,serviceData,phone_number}', o.metadata#>>'{fulfilment,serviceData,phone}', o.metadata#>>'{fulfilment,serviceData,number}'),
+                'code', o.metadata#>>'{fulfilment,customerDelivery,code}',
+                'expires_at', COALESCE(o.metadata#>>'{fulfilment,serviceData,expires_at}', o.metadata#>>'{fulfilment,serviceData,activationEndTime}', o.metadata#>>'{fulfilment,serviceData,endDate}'),
+                'activation_code', COALESCE(o.metadata#>>'{fulfilment,serviceData,activation_code}', o.metadata#>>'{fulfilment,serviceData,activationCode}', o.metadata#>>'{fulfilment,serviceData,qr_code}'),
+                'smdp_address', COALESCE(o.metadata#>>'{fulfilment,serviceData,smdp_address}', o.metadata#>>'{fulfilment,serviceData,smdpAddress}'),
+                'gateway', o.metadata#>'{fulfilment,serviceData,gateway}',
+                'remains', o.metadata#>>'{fulfilment,serviceData,remains}',
+                'startCount', COALESCE(o.metadata#>>'{fulfilment,serviceData,start_count}', o.metadata#>>'{fulfilment,serviceData,startCount}'),
+                'quantity', o.metadata#>>'{checkout,productSnapshot,quantity}',
+                'targetUrl', o.metadata#>>'{checkout,productSnapshot,targetUrl}',
+                'message', o.metadata#>>'{fulfilment,customerDelivery,message}'
+              )) AS customer_service,
               (SELECT j.status FROM vf_fulfilment_jobs j WHERE j.order_id = o.id LIMIT 1) AS fulfilment_status,
               COALESCE((
                 SELECT json_agg(

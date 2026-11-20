@@ -46,31 +46,86 @@ module.exports = async function handler(req, res) {
       });
     }
     const config = getMonnifyConfig();
-    const selectedProvider = String(body.provider || "voidmob").toLowerCase();
-    const providerFulfilmentEnabled = selectedProvider === "herosms"
-      ? process.env.HEROSMS_FULFILMENT_ENABLED === "true" && process.env.HEROSMS_AUTOBUY_CONFIRMED === "true"
-      : selectedProvider === "voidmob" && process.env.VOIDMOB_FULFILMENT_ENABLED === "true" && process.env.VOIDMOB_AUTOBUY_CONFIRMED === "true";
-    if (!["voidmob", "herosms"].includes(selectedProvider)) {
+    const productType = String(body.productType || "");
+    let selectedProvider = String(body.provider || "voidmob").toLowerCase();
+    let quote;
+
+    if (productType === "smm_service") {
+      const productId = String(body.productId || "");
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(productId)) {
+        return sendJson(res, 400, { ok: false, error: "Choose a valid social media product from the catalogue." });
+      }
+      const productResult = await getPool().query(
+        "SELECT id, provider, supplier_service_id, platform, product_name, description, min_quantity, max_quantity, retail_rate_minor_per_1000, supplier_rate, supplier_currency " +
+        "FROM vf_smm_products WHERE id = $1 AND is_active = TRUE LIMIT 1",
+        [productId]
+      );
+      if (!productResult.rowCount) return sendJson(res, 404, { ok: false, error: "That social media product is no longer available." });
+      const product = productResult.rows[0];
+      selectedProvider = String(product.provider);
+      const quantity = Number(body.quantity);
+      if (!Number.isSafeInteger(quantity) || quantity < Number(product.min_quantity) || quantity > Number(product.max_quantity)) {
+        return sendJson(res, 400, { ok: false, error: "Choose a quantity within the supplier's limits." });
+      }
+      let target;
+      try {
+        target = new URL(String(body.targetUrl || "").trim());
+        if (!["https:", "http:"].includes(target.protocol) || target.username || target.password) throw new Error("invalid");
+      } catch {
+        return sendJson(res, 400, { ok: false, error: "Enter a valid public profile or content URL." });
+      }
+      const salePriceCents = Math.ceil(Number(product.retail_rate_minor_per_1000) * quantity / 1000);
+      const supplierRate = product.supplier_rate == null ? null : Number(product.supplier_rate);
+      const supplierPriceCents = String(product.supplier_currency || "").trim().toUpperCase() === "USD" &&
+        Number.isFinite(supplierRate) && supplierRate > 0
+        ? Math.ceil(supplierRate * quantity / 1000 * 100)
+        : null;
+      const productName = String(product.platform) + " " + String(product.product_name);
+      quote = {
+        provider: selectedProvider, productName, salePriceCents, supplierPriceCents,
+        supplierCurrency: product.supplier_currency || null,
+        supplierInput: {
+          serviceId: String(product.supplier_service_id),
+          link: target.toString(),
+          quantity
+        },
+        productSnapshot: {
+          productId: String(product.id), platform: String(product.platform),
+          productName: String(product.product_name), supplierServiceId: String(product.supplier_service_id),
+          supplier: selectedProvider, quantity, targetUrl: target.toString(),
+          retailRateMinorPer1000: Number(product.retail_rate_minor_per_1000),
+          minQuantity: Number(product.min_quantity), maxQuantity: Number(product.max_quantity)
+        }
+      };
+    } else {
+      const input = {
+        productId: String(body.productId || ""),
+        country: String(body.country || "us").toLowerCase(),
+        durationDays: Number(body.durationDays),
+        provider: selectedProvider
+      };
+      quote = await quoteProduct(productType, input);
+    }
+
+    const fulfilmentSwitches = {
+      voidmob: process.env.VOIDMOB_FULFILMENT_ENABLED === "true" && process.env.VOIDMOB_AUTOBUY_CONFIRMED === "true",
+      herosms: process.env.HEROSMS_FULFILMENT_ENABLED === "true" && process.env.HEROSMS_AUTOBUY_CONFIRMED === "true",
+      peakerr: process.env.PEAKERR_FULFILMENT_ENABLED === "true" && process.env.PEAKERR_AUTOBUY_CONFIRMED === "true",
+      justanotherpanel: process.env.JUSTANOTHERPANEL_FULFILMENT_ENABLED === "true" && process.env.JUSTANOTHERPANEL_AUTOBUY_CONFIRMED === "true"
+    };
+    if (!Object.hasOwn(fulfilmentSwitches, selectedProvider)) {
       return sendJson(res, 400, { ok: false, error: "Choose a supported supplier." });
     }
     if (config.environment === "LIVE" &&
-        (process.env.VERIFYFLOW_LIVE_ORDERS_ENABLED !== "true" || !providerFulfilmentEnabled)) {
+        (process.env.VERIFYFLOW_LIVE_ORDERS_ENABLED !== "true" || !fulfilmentSwitches[selectedProvider])) {
       return sendJson(res, 503, {
         ok: false,
         error: "Live customer orders are still locked until payments, supplier auto-buy and fulfilment launch checks are complete."
       });
     }
 
-    const productType = String(body.productType || "");
-    const input = {
-      productId: String(body.productId || ""),
-      country: String(body.country || "us").toLowerCase(),
-      durationDays: Number(body.durationDays),
-      provider: selectedProvider
-    };
-    const quote = await quoteProduct(productType, input);
     if (!Number.isSafeInteger(quote.salePriceCents) || quote.salePriceCents <= 0 ||
-        !Number.isSafeInteger(quote.supplierPriceCents) || quote.supplierPriceCents <= 0) {
+        (productType !== "smm_service" && (!Number.isSafeInteger(quote.supplierPriceCents) || quote.supplierPriceCents <= 0))) {
       return sendJson(res, 503, { ok: false, error: "A current price could not be confirmed for this product." });
     }
 
@@ -105,8 +160,11 @@ module.exports = async function handler(req, res) {
     const redirectUrl = (process.env.PUBLIC_APP_URL || "https://verifyflow.us.ci").replace(/\/+$/, "") +
       "/payment-return.html?paymentReference=" + encodeURIComponent(paymentReference);
 
+    // Sandbox orders exercise the payment flow but can never create a live supplier job.
+    const sandboxMode = String(config.environment || "").toUpperCase() !== "LIVE";
     const metadata = {
-      platform: productType,
+      platform: quote.productSnapshot?.platform || productType,
+      ...(sandboxMode ? { sandboxTest: true, noFulfilment: true } : {}),
       checkout: {
         productSnapshot: quote.productSnapshot,
         supplierInput: quote.supplierInput,

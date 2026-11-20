@@ -2,9 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#131921">
-<meta name="description" content="One platform for SMS verification, number rentals, eSIM data and mobile connectivity.">
-<title>VerifyFlow — Your world, connected</title>
+<meta name="theme-color" content="#111b2c">
+<meta name="description" content="Explore SMS verification, long-term and dedicated phone numbers, eSIM data plans and mobile connectivity products on VerifyFlow. Compare live availability and manage orders in one place.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://verifyflow.us.ci/">
+<meta property="og:type" content="website"><meta property="og:site_name" content="VerifyFlow">
+<meta property="og:title" content="VerifyFlow — SMS Verification, eSIM Data & Phone Numbers">
+<meta property="og:description" content="Browse SMS verification, phone number rentals, dedicated numbers, eSIM plans and mobile connectivity products in one marketplace.">
+<meta property="og:url" content="https://verifyflow.us.ci/">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="VerifyFlow — Your digital world, connected">
+<meta name="twitter:description" content="Explore SMS verification, number rentals, eSIM data and mobile connectivity products in one place.">
+<title>VerifyFlow | SMS Verification, eSIM Data & Phone Numbers</title>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://verifyflow.us.ci/#organization","name":"VerifyFlow","url":"https://verifyflow.us.ci/"},{"@type":"WebSite","@id":"https://verifyflow.us.ci/#website","name":"VerifyFlow","url":"https://verifyflow.us.ci/","publisher":{"@id":"https://verifyflow.us.ci/#organization"},"potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://verifyflow.us.ci/dashboard.html?search={search_term_string}#catalogue"},"query-input":"required name=search_term_string"}}]}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles.css">
@@ -13,14 +24,28 @@
 <div class="announcement"><span class="announce-pulse"></span> A smarter way to stay connected <span class="announce-divider">/</span> <a href="#services">Explore the platform <b>↗</b></a></div>
 <header class="vf-store-header"><div class="vf-topbar">
 <a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
-<a class="vf-location" href="#services"><small>Explore</small><strong>All services</strong></a>
-<form class="vf-search" action="#services" role="search"><label class="sr-only" for="vf-product-search">Search VerifyFlow services</label><input id="vf-product-search" type="search" placeholder="Search SMS, eSIM, numbers, proxies..." autocomplete="off"><button type="submit" aria-label="Search services">⌕</button></form>
+<button class="vf-location vf-services-trigger" id="vf-services-trigger" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="vf-services-menu"><small>Explore</small><strong>All services <span aria-hidden="true">⌄</span></strong></button>
+<form class="vf-search" action="/dashboard.html#catalogue" method="get" role="search"><label class="sr-only" for="vf-product-search">Search all VerifyFlow products</label><input id="vf-product-search" name="search" type="search" placeholder="Search all products, services and countries..." autocomplete="off"><button type="submit" aria-label="Search all products">⌕</button></form>
 <a class="vf-account" href="/account.html"><small>Your account</small><strong>Sign in / Register</strong></a></div>
-<nav class="vf-subnav" aria-label="Service categories"><a href="#services">☰ <b>All services</b></a><a href="#services">SMS verification</a><a href="#services">Number rentals</a><a href="#services">eSIM data</a><a href="#services">Mobile proxies</a><a href="#why">Why VerifyFlow</a></nav></header>
+<nav class="vf-subnav" aria-label="Product categories"><a href="/dashboard.html#catalogue">☰ <b>All products</b></a><a href="/dashboard.html?category=sms#catalogue">SMS verification</a><a href="/dashboard.html?category=rentals#catalogue">Number rentals</a><a href="/dashboard.html?category=dedicated#catalogue">Dedicated numbers</a><a href="/dashboard.html?category=esim#catalogue">eSIM data</a><a href="/dashboard.html?category=proxies#catalogue">Mobile proxies</a><a href="/dashboard.html?category=marketing#catalogue">Social Media Boosters</a></nav>
+<div class="vf-services-menu" id="vf-services-menu" hidden>
+  <div class="vf-services-menu-head"><div><span>VERIFYFLOW MARKETPLACE</span><strong>Explore every service</strong></div><button type="button" id="vf-services-close" aria-label="Close services menu">×</button></div>
+  <div class="vf-services-menu-grid">
+    <a href="/dashboard.html#catalogue"><span>☰</span><b>All products</b><small>Browse every available category</small></a>
+    <a href="/dashboard.html?category=sms#catalogue"><span>✉</span><b>SMS verification</b><small>One-time verification services</small></a>
+    <a href="/dashboard.html?category=rentals#catalogue"><span>◉</span><b>Long-term numbers</b><small>Rental numbers and durations</small></a>
+    <a href="/dashboard.html?category=dedicated#catalogue"><span>▣</span><b>Dedicated numbers</b><small>Dedicated number options</small></a>
+    <a href="/dashboard.html?category=esim#catalogue"><span>⌁</span><b>eSIM data</b><small>Digital data plans and coverage</small></a>
+    <a href="/dashboard.html?category=proxies#catalogue"><span>◎</span><b>Mobile proxies</b><small>Mobile network proxy plans</small></a>
+    <a href="/dashboard.html?category=marketing#catalogue"><span>✦</span><b>Social Media Boosters</b><small>Published social media services</small></a>
+  </div>
+  <div class="vf-services-menu-foot"><a href="#services">See all categories on this page ↓</a></div>
+</div>
+</header>
 <main>
 <section class="hero">
 <div class="hero-grid"></div><div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> THE CONNECTIVITY SUPERPLATFORM</div>
-<h1>Your digital world.<br><span>One seamless flow.</span></h1>
+<h1>SMS verification.<br><span>One seamless flow.</span></h1>
 <p class="hero-intro">SMS verification, global eSIM data, number rentals and mobile proxies — brought together in one beautifully simple workspace.</p>
 <div class="hero-buttons"><a class="button button-lime" href="#services">Explore the platform <span>↗</span></a><a class="text-link" href="#how">Discover how it works <span>→</span></a></div>
 <div class="hero-proof"><div class="proof-avatars"><i>V</i><i>+</i><i>↗</i></div><span>BUILT TO KEEP YOU MOVING</span></div></div>
@@ -93,25 +118,28 @@
 <section class="marketplace-section" id="services">
   <div class="marketplace-wrap">
     <div class="marketplace-kicker">THE VERIFYFLOW MARKETPLACE</div>
-    <div class="marketplace-heading"><div><h2>Explore everything<br><span>in one place.</span></h2><p>Browse the connectivity categories planned for the VerifyFlow platform.</p></div><div class="marketplace-tools"><label class="marketplace-search"><span>⌕</span><input id="marketplace-search" type="search" placeholder="Find a service..." aria-label="Find a service"></label><a class="marketplace-viewall" href="/dashboard.html">Open dashboard <b>↗</b></a></div></div>
+    <div class="marketplace-heading"><div><h2>Browse by <span>category.</span></h2><p>Explore live catalogue categories, compare what is available and find the product that fits your needs.</p></div><div class="marketplace-tools"><form class="marketplace-search" action="/dashboard.html#catalogue" method="get" role="search"><span aria-hidden="true">⌕</span><label class="sr-only" for="marketplace-search">Search all products</label><input id="marketplace-search" name="search" type="search" placeholder="Search every product..." aria-label="Search every product"></form><a class="marketplace-viewall" href="/dashboard.html#catalogue">All products <b>↗</b></a></div></div>
     <div class="marketplace-grid">
-      <a class="market-card market-card-feature" href="/dashboard.html"><div class="market-card-top"><span>01 · SMS SERVICES</span><b>EXPLORE ↗</b></div><div class="market-art market-art-otp"><div class="market-phone"><small>VERIFYFLOW</small><strong>Verification<br>code</strong><div class="market-code"><i>4</i><i>8</i><i>2</i><i>9</i><i>1</i><i>6</i></div><em>Message preview</em></div><span class="market-orbit"></span></div><div class="market-card-copy"><div><h3>SMS verification</h3><p>On-demand numbers for verification messages on supported services.</p></div><span class="market-arrow">↗</span></div></a>
-      <a class="market-card" href="/dashboard.html"><div class="market-card-top"><span>02 · NUMBER RENTALS</span><b>EXPLORE ↗</b></div><div class="market-art market-art-rental"><div class="market-sim"><small>YOUR NUMBER</small><strong>+1 ··· ····</strong><span>Flexible rental periods</span></div><div class="market-ring"></div></div><div class="market-card-copy"><div><h3>Long-term numbers</h3><p>Number rentals for longer-term use, subject to availability.</p></div><span class="market-arrow">↗</span></div></a>
-      <a class="market-card" href="/dashboard.html"><div class="market-card-top"><span>03 · DEDICATED LINES</span><b>EXPLORE ↗</b></div><div class="market-art market-art-dedicated"><div class="market-device"><span>DEDICATED</span><strong>01</strong><small>Monthly number concept</small></div><div class="market-signal"><i></i><i></i><i></i><i></i></div></div><div class="market-card-copy"><div><h3>Dedicated numbers</h3><p>Monthly number options for ongoing connectivity needs.</p></div><span class="market-arrow">↗</span></div></a>
-      <a class="market-card" href="/dashboard.html"><div class="market-card-top"><span>04 · GLOBAL DATA</span><b>EXPLORE ↗</b></div><div class="market-art market-art-esim"><div class="market-esim"><span>eSIM</span><strong>WORLD<br>DATA</strong><i>⌁</i></div><div class="market-wave"></div></div><div class="market-card-copy"><div><h3>eSIM data plans</h3><p>Digital data plans for supported destinations and devices.</p></div><span class="market-arrow">↗</span></div></a>
-      <a class="market-card" href="/dashboard.html"><div class="market-card-top"><span>05 · NETWORK ACCESS</span><b>EXPLORE ↗</b></div><div class="market-art market-art-proxy"><div class="market-node n1"></div><div class="market-node n2"></div><div class="market-node n3"></div><div class="market-node n4"></div><div class="market-connect"></div><div class="market-proxy-core">VF</div></div><div class="market-card-copy"><div><h3>Mobile proxies</h3><p>Mobile network proxy options and pool access, where available.</p></div><span class="market-arrow">↗</span></div></a>
-      <a class="market-card" href="/dashboard.html"><div class="market-card-top"><span>06 · ACCOUNT TOOLS</span><b>EXPLORE ↗</b></div><div class="market-art market-art-dashboard"><div class="mini-window"><div class="mini-window-bar"><i></i><i></i><i></i></div><div class="mini-sidebar"></div><div class="mini-content"><b></b><b></b><span></span><span></span><span></span></div></div></div><div class="market-card-copy"><div><h3>Customer dashboard</h3><p>Your personal space for account and service activity.</p></div><span class="market-arrow">↗</span></div></a>
-      <a class="market-card" href="/dashboard.html"><div class="market-card-top"><span>07 · ORDERS & ACTIVITY</span><b>EXPLORE ↗</b></div><div class="market-art market-art-orders"><div class="order-stack"><div><i>✓</i><span>Order activity</span><b>•••</b></div><div><i>↗</i><span>Service status</span><b>•••</b></div><div><i>⌁</i><span>Recent updates</span><b>•••</b></div></div></div><div class="market-card-copy"><div><h3>Orders & activity</h3><p>Review your orders and service updates in one place.</p></div><span class="market-arrow">↗</span></div></a>
-      <a class="market-card" href="/dashboard.html"><div class="market-card-top"><span>08 · SECURE CHECKOUT</span><b>EXPLORE ↗</b></div><div class="market-art market-art-checkout"><div class="checkout-card"><span>CHECKOUT</span><strong>•••• 2048</strong><div><i></i><i></i><i></i></div></div><div class="checkout-shine"></div></div><div class="market-card-copy"><div><h3>Payments & checkout</h3><p>A clear checkout experience for the services you choose.</p></div><span class="market-arrow">↗</span></div></a>
+      <a class="market-card market-card-feature" href="/dashboard.html?category=sms#catalogue"><div class="market-card-top"><span>01 · SMS SERVICES</span><b>EXPLORE ↗</b></div><div class="market-art market-art-otp"><div class="market-phone"><small>VERIFYFLOW</small><strong>Verification<br>code</strong><div class="market-code"><i>4</i><i>8</i><i>2</i><i>9</i><i>1</i><i>6</i></div><em>Message preview</em></div><span class="market-orbit"></span></div><div class="market-card-copy"><div><h3>SMS verification</h3><p>Browse supported services, countries and live number availability for one-time verification.</p></div><span class="market-arrow">↗</span></div></a>
+      <a class="market-card" href="/dashboard.html?category=rentals#catalogue"><div class="market-card-top"><span>02 · NUMBER RENTALS</span><b>EXPLORE ↗</b></div><div class="market-art market-art-rental"><div class="market-sim"><small>YOUR NUMBER</small><strong>+1 ··· ····</strong><span>Flexible rental periods</span></div><div class="market-ring"></div></div><div class="market-card-copy"><div><h3>Long-term numbers</h3><p>Compare supported rental periods and available number options.</p></div><span class="market-arrow">↗</span></div></a>
+      <a class="market-card" href="/dashboard.html?category=dedicated#catalogue"><div class="market-card-top"><span>03 · DEDICATED LINES</span><b>EXPLORE ↗</b></div><div class="market-art market-art-dedicated"><div class="market-device"><span>DEDICATED</span><strong>01</strong><small>Monthly number concept</small></div><div class="market-signal"><i></i><i></i><i></i><i></i></div></div><div class="market-card-copy"><div><h3>Dedicated numbers</h3><p>Explore dedicated number inventory in the countries currently supported.</p></div><span class="market-arrow">↗</span></div></a>
+      <a class="market-card" href="/dashboard.html?category=esim#catalogue"><div class="market-card-top"><span>04 · GLOBAL DATA</span><b>EXPLORE ↗</b></div><div class="market-art market-art-esim"><div class="market-esim"><span>eSIM</span><strong>WORLD<br>DATA</strong><i>⌁</i></div><div class="market-wave"></div></div><div class="market-card-copy"><div><h3>eSIM data plans</h3><p>Discover digital data plans, validity periods and supported destinations.</p></div><span class="market-arrow">↗</span></div></a>
+      <a class="market-card" href="/dashboard.html?category=proxies#catalogue"><div class="market-card-top"><span>05 · NETWORK ACCESS</span><b>EXPLORE ↗</b></div><div class="market-art market-art-proxy"><div class="market-node n1"></div><div class="market-node n2"></div><div class="market-node n3"></div><div class="market-node n4"></div><div class="market-connect"></div><div class="market-proxy-core">VF</div></div><div class="market-card-copy"><div><h3>Mobile proxies</h3><p>Compare mobile network proxy options and supported plans where available.</p></div><span class="market-arrow">↗</span></div></a>
+      <a class="market-card" href="/dashboard.html?category=marketing#catalogue"><div class="market-card-top"><span>06 · CREATIVE & MARKETING</span><b>EXPLORE ↗</b></div><div class="market-art market-art-dashboard"><div class="mini-window"><div class="mini-window-bar"><i></i><i></i><i></i></div><div class="mini-sidebar"></div><div class="mini-content"><b></b><b></b><span></span><span></span><span></span></div></div></div><div class="market-card-copy"><div><h3>Social Media Boosters</h3><p>Browse social media services and choose the option that fits your needs.</p></div><span class="market-arrow">↗</span></div></a>
     </div>
-    <div class="marketplace-foot"><span><i></i> Explore VerifyFlow services</span><span>Options and coverage vary by country and product.</span></div>
+    <section class="home-smm-section" aria-labelledby="home-smm-title">
+      <div class="home-smm-heading"><div><span>LIVE STOREFRONT PRODUCTS</span><h3 id="home-smm-title">Social Media Boosters</h3><p>Explore published services for supported social platforms. Supplier details stay behind the scenes.</p></div><a href="/dashboard.html?category=marketing#catalogue">Browse all boosters ↗</a></div>
+      <div class="home-smm-grid" id="home-smm-grid" aria-live="polite"><div class="home-smm-empty">Loading published social media products…</div></div>
+    </section>
+    <div class="marketplace-assurance"><div><strong>One searchable catalogue</strong><span>Search products, services and country options from one place.</span></div><div><strong>Clear product details</strong><span>Review clear product details before checkout.</span></div><div><strong>Orders in one account</strong><span>Keep account activity and order updates together.</span></div></div>
+    <div class="marketplace-foot"><span><i></i> Explore the VerifyFlow catalogue</span><span>Listings, supplier coverage and checkout eligibility vary by product and country.</span></div>
   </div>
 </section>
 <section class="manifesto" id="why"><div class="manifesto-inner"><div class="manifesto-left"><div class="eyebrow"><span class="eyebrow-line"></span> A BETTER WAY TO CONNECT</div><h2>Less switching.<br><span>More doing.</span></h2><p>Digital services should feel straightforward. VerifyFlow brings different connectivity essentials into one considered experience, so you can focus on what you're here to do.</p><a class="button button-outline" href="/dashboard.html">Visit your dashboard <span>↗</span></a></div><div class="manifesto-points"><div class="manifesto-point"><span>01</span><div><h3>One clear home</h3><p>A single place to explore services and, as features launch, manage your activity.</p></div><b>↗</b></div><div class="manifesto-point"><span>02</span><div><h3>Know what you're choosing</h3><p>Clear product details and service terms before you make a decision.</p></div><b>↗</b></div><div class="manifesto-point"><span>03</span><div><h3>Designed to keep it simple</h3><p>A consistent experience across the services you use.</p></div><b>↗</b></div></div></div></section>
 <section class="how-section section-wrap" id="how"><div class="eyebrow eyebrow-dark">GET STARTED IN THREE STEPS</div><div class="how-heading"><h2>Easy in.<br><span>Easy onward.</span></h2><p>We're building a smoother way to discover and manage connectivity services.</p></div><div class="steps-grid"><div class="step"><span class="step-number">01</span><div class="step-symbol">＋</div><h3>Start with VerifyFlow</h3><p>Visit the dashboard and get familiar with the platform.</p></div><div class="step"><span class="step-number">02</span><div class="step-symbol">⌕</div><h3>Find your service</h3><p>Explore the service categories and review what each one offers.</p></div><div class="step"><span class="step-number">03</span><div class="step-symbol">↗</div><h3>Stay in the flow</h3><p>As account and order features become available, manage activity in one place.</p></div></div></section>
 <section class="closing-cta"><div class="closing-orb"></div><div class="eyebrow"><span class="eyebrow-line"></span> READY WHEN YOU ARE</div><h2>Your next connection<br>starts <span>here.</span></h2><p>Explore the VerifyFlow platform and see what's possible.</p><a class="button button-lime" href="/dashboard.html">Explore VerifyFlow <span>↗</span></a></section>
 </main>
-<footer class="site-footer"><div class="footer-main"><a class="brand brand-footer" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><p>One flow. Every connection.</p><div class="footer-links"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/acceptable-use.html">Acceptable use</a></div></div><div class="footer-bottom"><span>© <span id="year"></span> VerifyFlow. All rights reserved.</span><span>Designed for a world that never stands still.</span></div></footer>
+<footer class="site-footer"><div class="footer-main"><a class="brand brand-footer" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><p>One flow. Every connection.</p><div class="footer-links"><a href="/faq.html">FAQ</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/acceptable-use.html">Acceptable use</a></div></div><div class="footer-bottom"><span>© <span id="year"></span> VerifyFlow. All rights reserved.</span><span>Designed for a world that never stands still.</span></div></footer>
 <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
 
 <script>
@@ -158,12 +186,12 @@
 </script>
 
 <script>
-const vfSearch=document.getElementById("vf-product-search");
-const vfMarketplaceSearch=document.getElementById("marketplace-search");
-const vfCards=[...document.querySelectorAll(".market-card")];
-function vfFilter(value){const q=value.trim().toLowerCase();vfCards.forEach(card=>{card.hidden=!!q&&!card.textContent.toLowerCase().includes(q);});}
-vfSearch?.addEventListener("input",()=>{if(vfMarketplaceSearch)vfMarketplaceSearch.value=vfSearch.value;vfFilter(vfSearch.value);});
-vfMarketplaceSearch?.addEventListener("input",()=>{if(vfSearch)vfSearch.value=vfMarketplaceSearch.value;vfFilter(vfMarketplaceSearch.value);});
+(() => {
+ const headerSearch=document.getElementById("vf-product-search");
+ const categorySearch=document.getElementById("marketplace-search");
+ const sync=(source,target)=>source?.addEventListener("input",()=>{if(target&&target.value!==source.value)target.value=source.value;});
+ sync(headerSearch,categorySearch);sync(categorySearch,headerSearch);
+})();
 </script><script>
 /* Keep the storefront account link in sync with the signed-in customer session. */
 (async()=>{
@@ -181,4 +209,96 @@ vfMarketplaceSearch?.addEventListener("input",()=>{if(vfSearch)vfSearch.value=vf
  }catch(error){/* Keep the normal sign-in link if session status cannot be checked. */}
 })();
 </script>
+<script>
+/* Load only public SMM storefront fields; supplier identities and internal IDs never reach this page. */
+(() => {
+  const grid = document.getElementById("home-smm-grid");
+  if (!grid) return;
+  const destination = "/dashboard.html?category=marketing#catalogue";
+  const formatPrice = value => {
+    const amount = Number(value);
+    if (!Number.isSafeInteger(amount) || amount <= 0) return "Price shown at checkout";
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount / 100) + " / 1,000";
+  };
+  const showMessage = message => {
+    const node = document.createElement("p");
+    node.className = "home-smm-empty";
+    node.textContent = message;
+    grid.replaceChildren(node);
+  };
+  const makeCard = item => {
+    const link = document.createElement("a");
+    link.className = "home-smm-card";
+    link.href = destination;
+    const platform = document.createElement("span");
+    platform.className = "home-smm-platform";
+    platform.textContent = String(item.platform || "Social media");
+    const title = document.createElement("strong");
+    title.textContent = String(item.name || "Social media service");
+    const description = document.createElement("p");
+    description.textContent = String(item.description || "Social Media Boosters");
+    const limits = document.createElement("small");
+    limits.textContent = "Quantity " + Number(item.min || 0).toLocaleString() + "–" + Number(item.max || 0).toLocaleString();
+    const price = document.createElement("b");
+    price.className = "home-smm-price";
+    price.textContent = formatPrice(item.pricePer1000Minor);
+    link.append(platform, title, description, limits, price);
+    return link;
+  };
+  fetch("/api/marketing-catalog", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } })
+    .then(async response => {
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok || !Array.isArray(data.items)) throw new Error(data.message || "Catalogue unavailable");
+      if (!data.items.length) {
+        showMessage("No Social Media Boosters have been published yet. Published products will appear here.");
+        return;
+      }
+      grid.replaceChildren(...data.items.map(makeCard));
+    })
+    .catch(() => showMessage("Social Media Boosters are temporarily unavailable right now. Open the marketplace to try again."));
+})();
+</script>
+<script>
+/* Accessible All services disclosure: opens a category menu instead of scrolling the page. */
+(() => {
+  const trigger = document.getElementById("vf-services-trigger");
+  const menu = document.getElementById("vf-services-menu");
+  const closeButton = document.getElementById("vf-services-close");
+  if (!trigger || !menu) return;
+  const setOpen = open => {
+    menu.hidden = !open;
+    trigger.setAttribute("aria-expanded", String(open));
+    if (open) closeButton?.focus();
+    else trigger.focus();
+  };
+  trigger.addEventListener("click", () => setOpen(menu.hidden));
+  closeButton?.addEventListener("click", () => setOpen(false));
+  menu.addEventListener("click", event => {
+    if (event.target.closest("a")) {
+      menu.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+    }
+  });
+  document.addEventListener("click", event => {
+    if (!menu.hidden && !menu.contains(event.target) && !trigger.contains(event.target)) {
+      menu.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+    }
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !menu.hidden) setOpen(false);
+  });
+})();
+</script>
+<aside id="vf-support-widget" class="vf-support-widget" aria-label="VerifyFlow customer support">
+<button class="vf-support-toggle" type="button" aria-expanded="false" aria-controls="vf-support-panel"><span aria-hidden="true">✦</span> Help & support</button>
+<section class="vf-support-panel" id="vf-support-panel" hidden>
+<header><div><b>VerifyFlow support</b><small>Instant help · Human support available</small></div><span class="vf-support-online">● Online</span></header>
+<div class="vf-support-messages" aria-live="polite"><div class="vf-support-message assistant">Hi! I'm VerifyFlow's help assistant. Tell me what you're having trouble with.</div></div>
+<div class="vf-support-status">Instant help is available without signing in. Sign in to request a human reply.</div>
+<button class="vf-support-human" type="button">Talk to customer support</button>
+<form><textarea rows="2" maxlength="4000" placeholder="Describe the issue you're facing…" aria-label="Your support message" required></textarea><button type="submit">Send</button></form>
+<p class="vf-support-privacy">Never send passwords, one-time codes or full card details.</p>
+</section></aside>
+<script src="/support-widget.js" defer></script>
 </body></html>

@@ -38,7 +38,7 @@ module.exports = async function handler(req, res) {
     if (!await requireAdmin(req, res)) return;
     if (req.method === "GET") {
       const result = await getPool().query(
-        "SELECT o.id AS order_id, o.order_number, o.product_name, o.product_type, o.status AS order_status, " +
+        "SELECT o.id AS order_id, o.order_number, o.product_name, o.product_type, o.provider AS supplier, o.status AS order_status, " +
         "j.status AS fulfilment_status, j.supplier_order_id, j.supplier_cost_minor, j.supplier_currency, " +
         "j.supplier_status, j.attempts, j.last_error_code, j.last_error_message, j.updated_at " +
         "FROM vf_fulfilment_jobs j JOIN vf_orders o ON o.id = j.order_id " +
@@ -60,8 +60,8 @@ module.exports = async function handler(req, res) {
     );
     if (!job.rowCount) return sendJson(res, 404, { ok: false, error: "No fulfilment job exists for this order." });
     const retryUnknown = job.rows[0].status === "unknown" && String(body.action || "") === "retry_unknown" && job.rows[0].provider === "voidmob";
-    if (job.rows[0].status === "unknown" && job.rows[0].provider === "herosms") {
-      return sendJson(res, 409, { ok: false, error: "HeroSMS purchase outcome must be reconciled with the supplier before any retry. Automatic retry is disabled to prevent duplicate charges." });
+    if (job.rows[0].status === "unknown" && ["herosms", "peakerr", "justanotherpanel"].includes(job.rows[0].provider)) {
+      return sendJson(res, 409, { ok: false, error: "This supplier has not confirmed the original request. Reconcile the order in the supplier dashboard before attempting any new purchase; automatic retry is disabled to prevent duplicate charges." });
     }
     if ((job.rows[0].status !== "pending" && !retryUnknown) || !["paid", "processing"].includes(job.rows[0].order_status)) {
       return sendJson(res, 409, { ok: false, error: "Only pending jobs or explicitly reconciled unknown jobs can be submitted." });

@@ -19,7 +19,9 @@
   const style = document.createElement("style");
   style.textContent = `
     .vf-buy-area{display:grid;gap:8px;margin-top:13px}
-    .vf-buy-area select{width:100%;border:1px solid #c8d0d2;border-radius:7px;padding:9px;background:#fff;color:#111;font:500 13px Inter,Arial}
+    .vf-buy-area select,.vf-buy-area input{width:100%;border:1px solid #c8d0d2;border-radius:7px;padding:9px;background:#fff;color:#111;font:500 13px Inter,Arial}
+    .vf-smm-buy-area label{display:grid;gap:5px;font:600 12px/1.4 Inter,Arial;color:#42515c}
+    .vf-smm-buy-area small{font:700 12px Inter,Arial;color:#08767c}
     .vf-buy-button{width:100%;border:1px solid #e2ba00;border-radius:22px;background:#ffd814;color:#111;padding:11px 13px;font:800 13px Inter,Arial;cursor:pointer}
     .vf-buy-button:disabled{opacity:.5;cursor:not-allowed}
     .vf-checkout-dialog{width:min(520px,calc(100% - 24px));border:1px solid #d5d9d9;border-radius:12px;padding:22px;color:#0f1111;box-shadow:0 18px 60px #0004}
@@ -59,34 +61,32 @@
     return "vf" + Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   }
 
-  function activeCategory() {
-    return document.querySelector("[data-catalog-tab].is-active")?.dataset.catalogTab || "sms";
-  }
-  function visibleRows() {
-    const section = catalogue?.sections?.[activeCategory()];
+  function visibleRows(category) {
+    const section = catalogue?.sections?.[category];
     const rows = Array.isArray(section?.items) ? section.items : [];
     const query = String(searchInput?.value || "").trim().toLowerCase();
-    return query ? rows.filter(item => JSON.stringify(item).toLowerCase().includes(query)) : rows;
+    const labels = { sms:"sms verification", rentals:"long-term numbers", esim:"esim data", proxies:"mobile proxies", dedicated:"dedicated numbers", marketing:"marketing services" };
+    return query ? rows.filter(item => JSON.stringify(item).toLowerCase().includes(query) || (labels[category]||"").includes(query)) : rows;
   }
 
   function productDetails(category, item) {
     if (category === "sms") return { type: "sms_otp", id: item.id, country: item.countryCode || catalogue?.country || "us", provider: item.provider || "voidmob", available: item.available === true, price: item.priceCents };
-    if (category === "rentals" && item.provider === "herosms") return null;
     if (category === "rentals") { const durations = (item.durations || []).filter(x => Number.isSafeInteger(Number(x.priceCents)) && Number(x.priceCents) > 0).map(x => ({ days: Number(x.days), price: Number(x.priceCents) })); return { type: "long_term_number", id: item.id, country: item.countryCode || catalogue?.country || "us", provider: item.provider || "voidmob", available: item.available === true, price: Math.min(...durations.map(x => x.price)), durations }; }
     if (category === "esim") return { type: "esim", id: item.id, available: true, price: item.priceCents };
     if (category === "proxies") return { type: "mobile_proxy", id: item.id, available: item.available !== false, price: item.priceCents };
     if (category === "dedicated") return { type: "dedicated_number", id: item.country, country: item.country, available: item.inStock === true, price: item.priceCents };
+    if (category === "marketing") return { type: "smm_service", id: item.id, provider: "", available: true, price: item.pricePer1000Minor, min: item.min, max: item.max };
     return null;
   }
 
   function renderButtons() {
     if (!catalogue) return;
-    const category = activeCategory();
-    const rows = visibleRows();
     const cards = [...grid.querySelectorAll(".catalog-item")];
-    cards.forEach((card, index) => {
+    cards.forEach(card => {
       if (card.querySelector(".vf-buy-area")) return;
-      const item = rows[index];
+      const category = card.dataset.productCategory || "sms";
+      const key = card.dataset.productKey || "";
+      const item = visibleRows(category).find(row => String(row.provider||row.providerLabel||"")+":"+String(row.id??row.productId??row.country??row.title??row.name??row.full_title??"") === key);
       if (!item) return;
       const product = productDetails(category, item);
       if (!product) {
@@ -94,6 +94,25 @@
       }
       if (!product.id || !Number.isSafeInteger(Number(product.price)) || Number(product.price) <= 0) return;
       const durations = product.durations || [];
+      if (category === "marketing") {
+        const min = Number(product.min), max = Number(product.max);
+        const area = document.createElement("div");
+        area.className = "vf-buy-area vf-smm-buy-area";
+        area.innerHTML = '<label>Target profile or post URL<input type="url" data-smm-link required placeholder="https://www.tiktok.com/@name/video/..."></label>' +
+          '<label>Quantity (min ' + esc(min) + ' · max ' + esc(max) + ')<input type="number" data-smm-quantity min="' + esc(min) + '" max="' + esc(max) + '" step="1" value="' + esc(min) + '" required></label>' +
+          '<small data-smm-total>Estimated price: ' + esc(money(Math.ceil(Number(product.price) * min / 1000))) + '</small>' +
+          '<button class="vf-buy-button" type="button" data-vf-buy="true" data-product-type="smm_service" data-product-id="' + esc(product.id) + '" data-product-name="' + esc(item.name || "Social media service") + '" data-product-price="' + esc(product.price) + '" data-min="' + esc(min) + '" data-max="' + esc(max) + '">Continue to checkout →</button>';
+        card.querySelector(".catalog-item-copy")?.appendChild(area);
+        const quantityInput = area.querySelector("[data-smm-quantity]");
+        quantityInput.addEventListener("input", () => {
+          const quantity = Number(quantityInput.value);
+          const valid = Number.isSafeInteger(quantity) && quantity >= min && quantity <= max;
+          area.querySelector("[data-smm-total]").textContent = valid
+            ? "Estimated price: " + money(Math.ceil(Number(product.price) * quantity / 1000))
+            : "Enter a quantity between " + min + " and " + max + ".";
+        });
+        return;
+      }
       const select = category === "rentals" && durations.length
         ? '<select aria-label="Choose rental period" data-rental-days>' + durations.map(option => '<option value="' + esc(option.days) + '">' + esc(option.days) + ' days</option>').join("") + '</select>'
         : "";
@@ -106,6 +125,20 @@
     });
   }
 
+  async function loadMarketingCatalogue() {
+    try {
+      const response = await fetch("/api/marketing-catalog", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } });
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.message || "Social media catalogue unavailable.");
+      catalogue.sections = catalogue.sections || {};
+      catalogue.sections.marketing = { ok: true, items: Array.isArray(data.items) ? data.items : [] };
+    } catch {
+      catalogue.sections = catalogue.sections || {};
+      catalogue.sections.marketing = { ok: false, items: [] };
+    }
+    renderButtons();
+  }
+
   async function loadCatalogue() {
     const country = String(countryInput?.value || "US").trim().toLowerCase();
     if (!/^[a-z]{2}$/.test(country)) return;
@@ -115,6 +148,7 @@
       const data = await response.json();
       if (!response.ok || !data.sections) throw new Error("Catalogue unavailable");
       catalogue = data;
+      await loadMarketingCatalogue();
       renderButtons();
     } catch {
       catalogue = null;
@@ -130,17 +164,46 @@
     await sessionReady;
     if (!signedIn) { window.location.href = "/account.html"; return; }
     const card = button.closest(".catalog-item");
+    const productType = button.dataset.productType;
+    let smmTargetUrl = "", smmQuantity = 0;
+    if (productType === "smm_service") {
+      const linkInput = card?.querySelector("[data-smm-link]");
+      const quantityInput = card?.querySelector("[data-smm-quantity]");
+      if (!linkInput?.reportValidity() || !quantityInput?.reportValidity()) return;
+      try {
+        const target = new URL(linkInput.value.trim());
+        if (!["https:", "http:"].includes(target.protocol)) throw new Error("invalid");
+        smmTargetUrl = target.toString();
+      } catch {
+        linkInput.setCustomValidity("Enter a valid public profile or content URL.");
+        linkInput.reportValidity();
+        linkInput.addEventListener("input", () => linkInput.setCustomValidity(""), { once: true });
+        return;
+      }
+      smmQuantity = Number(quantityInput.value);
+      if (!Number.isSafeInteger(smmQuantity) || smmQuantity < Number(button.dataset.min) || smmQuantity > Number(button.dataset.max)) {
+        quantityInput.setCustomValidity("Choose a quantity within the supplier limits.");
+        quantityInput.reportValidity();
+        quantityInput.addEventListener("input", () => quantityInput.setCustomValidity(""), { once: true });
+        return;
+      }
+    }
     selected = {
-      productType: button.dataset.productType,
+      productType,
       provider: button.dataset.provider || "voidmob",
       productId: button.dataset.productId,
       country: button.dataset.country || "us",
       productName: button.dataset.productName || "VerifyFlow service",
-      estimate: Number(button.dataset.productPrice),
+      estimate: productType === "smm_service"
+        ? Math.ceil(Number(button.dataset.productPrice) * smmQuantity / 1000)
+        : Number(button.dataset.productPrice),
+      targetUrl: smmTargetUrl,
+      quantity: smmQuantity,
       durationPrices: JSON.parse(button.dataset.durationPrices || "[]"),
       checkoutKey: key(),
       durationDays: Number(card?.querySelector("[data-rental-days]")?.value || 0)
     };
+    if (productType === "smm_service") selected.productName += " · " + smmQuantity.toLocaleString() + " units";
     if (selected.productType === "long_term_number") {
       const chosen = selected.durationPrices.find(item => item.days === selected.durationDays);
       if (chosen) selected.estimate = chosen.price;
@@ -186,6 +249,10 @@
       country: selected.country
     };
     if (selected.productType === "long_term_number") payload.durationDays = Number(document.getElementById("vf-duration-select").value);
+    if (selected.productType === "smm_service") {
+      payload.targetUrl = selected.targetUrl;
+      payload.quantity = selected.quantity;
+    }
     try {
       const response = await fetch("/api/orders/create", {
         method: "POST", credentials: "same-origin",
@@ -212,6 +279,7 @@
     window.setTimeout(renderButtons, 0);
   }));
   searchInput?.addEventListener("input", () => window.setTimeout(renderButtons, 0));
+  document.getElementById("vf-dash-search")?.addEventListener("input", () => window.setTimeout(renderButtons, 0));
   countryInput?.addEventListener("change", loadCatalogue);
   document.getElementById("catalog-refresh")?.addEventListener("click", () => window.setTimeout(loadCatalogue, 300));
   loadCatalogue();

@@ -240,7 +240,7 @@
     <div class="auth-field"><label for="register-name">Full name</label><input id="register-name" name="fullName" autocomplete="name" required minlength="2" maxlength="80" placeholder="Your full name"></div>
     <div class="auth-field"><label for="register-email">Email address</label><input id="register-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></div>
     <div class="auth-field"><label for="register-password">Create password</label><input id="register-password" name="password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required placeholder="At least 10 characters"></div>
-    <button class="auth-submit" type="submit">Create my account</button><p class="auth-message" id="register-message" role="status" aria-live="polite"></p>
+    <button class="auth-submit" type="submit">Create my account</button><p class="auth-message" id="register-message" role="status" aria-live="polite"></p><p class="auth-terms" id="register-email-help">After registering, check your inbox for the verification email. If it is not there, check your Spam or Junk folder. You can also request another link below.</p><button class="auth-submit" id="resend-verification-register" type="button">Resend verification email</button><p class="auth-message" id="resend-register-message" role="status" aria-live="polite"></p>
     <p class="auth-terms">By creating an account, you agree to our <a href="/terms.html">Terms</a> and <a href="/privacy.html">Privacy Policy</a>.</p>
    </form>
   </div>
@@ -303,7 +303,7 @@
   </section>
  </section>
 </div></main>
-<footer class="site-footer"><div class="footer-main"><a class="brand brand-footer" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><p>One flow. Every connection.</p><div class="footer-links"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/acceptable-use.html">Acceptable use</a></div></div><div class="footer-bottom"><span>© 2026 VerifyFlow. All rights reserved.</span><span>Designed for a world that never stands still.</span></div></footer>
+<footer class="site-footer"><div class="footer-main"><a class="brand brand-footer" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><p>One flow. Every connection.</p><div class="footer-links"><a href="/faq.html">FAQ</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/acceptable-use.html">Acceptable use</a></div></div><div class="footer-bottom"><span>© 2026 VerifyFlow. All rights reserved.</span><span>Designed for a world that never stands still.</span></div></footer>
 <script>
 (() => {
  const loading=document.getElementById("account-loading");
@@ -404,7 +404,8 @@
   return shown.map(item=>'<div class="activity-item"><strong>'+esc(item.title)+'</strong><p>'+esc(item.description)+'</p><time>'+esc(dateLabel(item.when))+'</time></div>').join("");
  }
  function serviceDetailsHtml(order){
-  const data=order.service_data&&typeof order.service_data==="object"?order.service_data:{};
+  const data=order.customer_service&&typeof order.customer_service==="object"?order.customer_service:{};
+   const delivery=order.customer_delivery&&typeof order.customer_delivery==="object"?order.customer_delivery:{};
   const rows=[];
   const add=(label,value)=>{if(value!==undefined&&value!==null&&String(value)!=="")rows.push('<div class="service-detail"><span>'+esc(label)+'</span><strong>'+esc(value)+'</strong></div>');};
   add("Service status",data.status||data.supplier_status);
@@ -418,6 +419,14 @@
    if(lpa&&!String(lpa).startsWith("LPA:")&&data.smdp_address)lpa="LPA:1$"+data.smdp_address+"$"+lpa;
    add("eSIM installation code",lpa);
    add("Expires",data.expires_at?dateLabel(data.expires_at):null);
+  }
+  if(order.product_type==="smm_service"){
+   const snapshot=order.product_snapshot&&typeof order.product_snapshot==="object"?order.product_snapshot:{};
+   add("Quantity",snapshot.quantity);
+   add("Supplier order",order.supplier_order_id);
+   add("Remaining",data.remains);
+   add("Start count",data.startCount);
+   add("Target URL",snapshot.targetUrl);
   }
   if(order.product_type==="mobile_proxy"&&data.gateway){
    const gateway=data.gateway;
@@ -441,7 +450,7 @@
   }else{
    list.innerHTML=currentOrders.map(order=>{
     const status=String(order.status||"pending").toLowerCase().replace(/[^a-z_]/g,"");
-    const refreshButton=order.supplier_order_id&&["processing","completed"].includes(status)?'<button class="account-text-link" type="button" data-order-refresh="'+esc(order.id)+'">Refresh service status ↻</button>':"";
+    const refreshButton=order.has_active_delivery&&["processing","completed"].includes(status)?'<button class="account-text-link" type="button" data-order-refresh="'+esc(order.id)+'">Refresh service status ↻</button>':"";
     return '<article class="order-card"><div class="order-card-head"><div><p class="order-name">'+esc(order.product_name||"VerifyFlow service")+'</p><div class="order-meta">Order '+esc(order.order_number||"—")+' · '+esc(dateLabel(order.created_at))+'</div></div><div class="order-price">'+esc(currencyLabel(order.total_minor,order.currency))+'</div></div><span class="order-status '+esc(status)+'">'+esc(nice(status))+'</span>'+serviceDetailsHtml(order)+refreshButton+'</article>';
    }).join("");
   }
@@ -475,6 +484,21 @@
   if(!response.ok||!data.ok)throw new Error(friendlyErrorMessage(data.error,"Your orders could not be loaded."));
   renderOrders(data.orders||[]);
  }
+ let accountOrderRefreshBusy=false;
+ async function autoRefreshActiveOrders(){
+  if(accountOrderRefreshBusy||document.visibilityState==="hidden")return;
+  const pending=currentOrders.filter(order=>order.has_active_delivery&&["sms_otp","smm_service"].includes(order.product_type)&&
+   (order.product_type==="sms_otp"?order.customer_delivery?.status==="waiting":!["completed","failed","unknown"].includes(String(order.fulfilment_status||"").toLowerCase())));
+  if(!pending.length)return;
+  accountOrderRefreshBusy=true;
+  try{
+   for(const order of pending.slice(0,5)){
+    await fetch("/api/orders/refresh",{method:"POST",credentials:"same-origin",cache:"no-store",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify({orderId:order.id})}).catch(()=>null);
+   }
+   await loadOrders();
+  }finally{accountOrderRefreshBusy=false;}
+ }
+ setInterval(autoRefreshActiveOrders,15000);
  async function openPortal(user){
   showPortal();
   selectPanel("overview");
@@ -521,8 +545,8 @@
    const response=await fetch(endpoint,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(payload)});
    const data=await response.json().catch(()=>({}));
    if(!response.ok||!data.ok)throw new Error(data.error||"We couldn't complete that request. Please try again.");
+   if(data.verificationRequired){const passwordField=form.querySelector('[name="password"]');if(passwordField)passwordField.value="";message.textContent=(data.message||"Your account has been created. Check your inbox for a verification link.")+" If you cannot find it, check your Spam or Junk folder. You can request another link below.";return;}
    form.reset();
-   if(data.verificationRequired){message.textContent=data.message||"Check your inbox for a verification link before signing in.";return;}
    await openPortal(data.user);
   }catch(error){message.textContent=error.message||"Something went wrong. Please try again."}
   finally{button.disabled=false;button.textContent=buttonLabel}
@@ -530,8 +554,8 @@
  loginForm.addEventListener("submit",event=>{event.preventDefault();submitAuth(loginForm,"/api/auth/login","login-message","Sign in to your account");});
  registerForm.addEventListener("submit",event=>{event.preventDefault();submitAuth(registerForm,"/api/auth/register","register-message","Create my account");});
 
- document.getElementById("resend-verification").addEventListener("click",async()=>{
-  const email=document.getElementById("login-email").value.trim(),message=document.getElementById("resend-message"),button=document.getElementById("resend-verification");
+ async function resendVerification(emailInputId,messageId,buttonId){
+  const email=document.getElementById(emailInputId).value.trim(),message=document.getElementById(messageId),button=document.getElementById(buttonId);
   message.textContent="";
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){message.textContent="Enter your email address above first.";return;}
   button.disabled=true;button.textContent="Sending…";
@@ -542,7 +566,9 @@
    message.textContent=data.message||"If your account needs verification, a new link will be sent.";
   }catch(error){message.textContent=error.message||"Please try again.";}
   finally{button.disabled=false;button.textContent="Resend verification email";}
- });
+ }
+ document.getElementById("resend-verification").addEventListener("click",()=>resendVerification("login-email","resend-message","resend-verification"));
+ document.getElementById("resend-verification-register").addEventListener("click",()=>resendVerification("register-email","resend-register-message","resend-verification-register"));
 
  document.getElementById("profile-form").addEventListener("submit",async event=>{
   event.preventDefault();
@@ -593,4 +619,15 @@
  boot();
 })();
 </script>
+<aside id="vf-support-widget" class="vf-support-widget" aria-label="VerifyFlow customer support">
+<button class="vf-support-toggle" type="button" aria-expanded="false" aria-controls="vf-support-panel"><span aria-hidden="true">✦</span> Help & support</button>
+<section class="vf-support-panel" id="vf-support-panel" hidden>
+<header><div><b>VerifyFlow support</b><small>Instant help · Human support available</small></div><span class="vf-support-online">● Online</span></header>
+<div class="vf-support-messages" aria-live="polite"><div class="vf-support-message assistant">Hi! I'm VerifyFlow's help assistant. Tell me what you're having trouble with.</div></div>
+<div class="vf-support-status">Instant help is available without signing in. Sign in to request a human reply.</div>
+<button class="vf-support-human" type="button">Talk to customer support</button>
+<form><textarea rows="2" maxlength="4000" placeholder="Describe the issue you're facing…" aria-label="Your support message" required></textarea><button type="submit">Send</button></form>
+<p class="vf-support-privacy">Never send passwords, one-time codes or full card details.</p>
+</section></aside>
+<script src="/support-widget.js" defer></script>
 </body></html>
