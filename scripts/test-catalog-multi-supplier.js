@@ -38,7 +38,7 @@ async function main() {
     assert.equal(res.statusCode, 200);
     assert.equal(body.ok, true);
     assert.equal(body.sections.sms.items.length, 2);
-    assert.equal(body.sections.sms.items.every(item => /^vf1\\./.test(item.id)), true);
+    assert.equal(body.sections.sms.items.every(item => /^vf1\./.test(item.id)), true);
     const { openCatalogProductToken } = require("../lib/catalog-token");
     const decodedSms = body.sections.sms.items.map(item => openCatalogProductToken(item.id));
     assert.deepEqual(decodedSms.map(item => item.provider).sort(), ["herosms", "voidmob"]);
