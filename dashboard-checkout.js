@@ -16,34 +16,7 @@
     catch { return "USD " + (Number(cents) / 100).toFixed(2); }
   };
 
-  const style = document.createElement("style");
-  style.textContent = `
-    .vf-buy-area{display:grid;gap:8px;margin-top:13px}
-    .vf-buy-area select,.vf-buy-area input{width:100%;border:1px solid #c8d0d2;border-radius:7px;padding:9px;background:#fff;color:#111;font:500 13px Inter,Arial}
-    .vf-smm-buy-area label{display:grid;gap:5px;font:600 12px/1.4 Inter,Arial;color:#42515c}
-    .vf-smm-buy-area small{font:700 12px Inter,Arial;color:#08767c}
-    .vf-buy-button{width:100%;border:1px solid #e2ba00;border-radius:22px;background:#ffd814;color:#111;padding:11px 13px;font:800 13px Inter,Arial;cursor:pointer}
-    .vf-buy-button:disabled{opacity:.5;cursor:not-allowed}
-    .vf-checkout-dialog{width:min(520px,calc(100% - 24px));border:1px solid #d5d9d9;border-radius:12px;padding:22px;color:#0f1111;box-shadow:0 18px 60px #0004}
-    .vf-checkout-dialog::backdrop{background:#13192199}
-    .vf-checkout-dialog form{display:grid;gap:14px}
-    .vf-checkout-head{display:flex;justify-content:space-between;align-items:center}
-    .vf-checkout-head h2{font:800 23px Inter,Arial;margin:5px 0}
-    .vf-checkout-head button{border:0;background:#f2f4f4;border-radius:50%;width:34px;height:34px;font-size:22px;cursor:pointer}
-    .vf-checkout-price{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-top:1px solid #e8ebed;border-bottom:1px solid #e8ebed}
-    .vf-checkout-price strong{font-size:22px}
-    .vf-checkout-note{font:400 12px/1.6 Inter,Arial;color:#66727b;margin:0}
-    .vf-payment-choice{border:1px solid #e1e7e8;border-radius:9px;padding:12px;display:grid;gap:9px}
-    .vf-payment-choice legend{font:800 13px Inter,Arial;padding:0 5px}
-    .vf-payment-choice label{display:flex;gap:9px;align-items:flex-start;font:600 13px/1.45 Inter,Arial;color:#26343d}
-    .vf-payment-choice input{margin:2px 0 0;accent-color:#08767c}
-    .vf-wallet-balance{font:700 12px Inter,Arial;color:#08767c}
-    .vf-rental-price{font:700 12px/1.45 Inter,Arial;color:#08767c}
-    .vf-checkout-message{font:600 13px/1.5 Inter,Arial;color:#a33b2b;margin:0}
-    @media(max-width:600px){.vf-checkout-dialog{padding:17px}.vf-checkout-head h2{font-size:20px}.vf-buy-button{font-size:12px}}
-  `;
-  document.head.appendChild(style);
-  document.body.insertAdjacentHTML("beforeend", `
+document.body.insertAdjacentHTML("beforeend", `
     <dialog id="vf-checkout-dialog" class="vf-checkout-dialog" aria-labelledby="vf-checkout-title">
       <form id="vf-checkout-form">
         <div class="vf-checkout-head"><div><span class="catalog-eyebrow">SECURE CHECKOUT</span><h2 id="vf-checkout-title">Review your order</h2></div><button type="button" id="vf-checkout-close" aria-label="Close checkout">×</button></div>
@@ -101,11 +74,11 @@
   }
 
   function productDetails(category, item) {
-    if (category === "sms") return { type: "sms_otp", id: item.id, country: item.countryCode || catalogue?.country || "us", provider: item.provider || "voidmob", available: item.available === true, price: item.priceCents };
-    if (category === "rentals") { const durations = (item.durations || []).filter(x => Number.isSafeInteger(Number(x.priceCents)) && Number(x.priceCents) > 0).map(x => ({ days: Number(x.days), price: Number(x.priceCents) })); return { type: "long_term_number", id: item.id, country: item.countryCode || catalogue?.country || "us", provider: item.provider || "voidmob", available: item.available === true, price: Math.min(...durations.map(x => x.price)), durations }; }
+    if (category === "sms") return { type: "sms_otp", id: item.id, available: item.available === true, price: item.priceCents };
+    if (category === "rentals") { const durations = (item.durations || []).filter(x => Number.isSafeInteger(Number(x.priceCents)) && Number(x.priceCents) > 0).map(x => ({ days: Number(x.days), price: Number(x.priceCents) })); return { type: "long_term_number", id: item.id, available: item.available === true, price: Math.min(...durations.map(x => x.price)), durations }; }
     if (category === "esim") return { type: "esim", id: item.id, available: true, price: item.priceCents };
     if (category === "proxies") return { type: "mobile_proxy", id: item.id, available: item.available !== false, price: item.priceCents };
-    if (category === "dedicated") return { type: "dedicated_number", id: item.country, country: item.country, available: item.inStock === true, price: item.priceCents };
+    if (category === "dedicated") return { type: "dedicated_number", id: item.country, available: item.inStock === true, price: item.priceCents };
     if (category === "marketing") return { type: "smm_service", id: item.id, provider: "", available: true, price: item.pricePer1000Minor, min: item.min, max: item.max };
     return null;
   }
