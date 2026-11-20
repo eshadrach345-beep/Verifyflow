@@ -255,7 +255,7 @@ module.exports = async function handler(req, res) {
   const dedicatedItems = dedicated.items.map(item => ({
     id: sealCatalogProductToken({
       provider: "voidmob", productType: "dedicated_number",
-      productId: String(item.country).toLowerCase(), country: requestedCountry
+      productId: String(item.country).toLowerCase(), country: String(item.country).toLowerCase()
     }),
     country: item.country,
     name: item.name,
