@@ -17,7 +17,7 @@ module.exports = async function handler(req, res) {
                 'status', o.metadata->'fulfilment'->>'status',
                 'phone_number', COALESCE(o.metadata#>>'{fulfilment,serviceData,phoneNumber}', o.metadata#>>'{fulfilment,serviceData,phone}', o.metadata#>>'{fulfilment,serviceData,number}'),
                 'code', o.metadata#>>'{fulfilment,customerDelivery,code}',
-                'expires_at', COALESCE(o.metadata#>>'{fulfilment,serviceData,expires_at}', o.metadata#>>'{fulfilment,serviceData,activationEndTime}'),
+                'expires_at', COALESCE(o.metadata#>>'{fulfilment,serviceData,expires_at}', o.metadata#>>'{fulfilment,serviceData,activationEndTime}', o.metadata#>>'{fulfilment,serviceData,endDate}'),
                 'activation_code', COALESCE(o.metadata#>>'{fulfilment,serviceData,activation_code}', o.metadata#>>'{fulfilment,serviceData,activationCode}', o.metadata#>>'{fulfilment,serviceData,qr_code}'),
                 'smdp_address', COALESCE(o.metadata#>>'{fulfilment,serviceData,smdp_address}', o.metadata#>>'{fulfilment,serviceData,smdpAddress}'),
                 'gateway', o.metadata#>'{fulfilment,serviceData,gateway}',
