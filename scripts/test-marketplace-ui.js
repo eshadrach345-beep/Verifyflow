@@ -128,6 +128,12 @@ assert.ok(dashboard.includes('"per GB · "') && dashboard.includes('data-proxy-m
 assert.ok(dashboard.includes('replace(/\\b\\d+(?:\\.\\d+)?\\s*(?:gb|gigabytes?)\\b/g," ")') &&
   dashboard.includes("pricePerDayCents") && dashboard.includes('discountUnit=shared?"per GB":"per day"'),
   "Shared volume tiers and dedicated daily/weekly/monthly plans must group separately with accurate discount units");
+assert.ok(dashboard.includes('if(new Set(values).size!==values.length)') && !dashboard.includes('if(variants.length<2||new Set(values).size!==values.length)'), "Single-plan proxy groups must still expose their GB/validity selector");
+assert.ok(checkout.includes("proxyOptions.length > 0"), "Proxy package and validity selector must remain visible even when only one supplier plan exists");
+assert.ok(dashboard.includes(".catalog-compact.catalog-proxies .catalog-art-icon") && dashboard.includes(".catalog-compact.catalog-proxies .catalog-brand-logo"), "Mobile proxy logo must stay compact in the icon-first storefront");
+assert.ok(fs.readFileSync("api-handlers/herosms/offers.js", "utf8").includes("Text + Voice (All-in-One)") &&
+  fs.readFileSync("api-handlers/herosms/offers.js", "utf8").includes('"Voice call"') &&
+  checkout.includes('vf-herosms-method-wrap'), "HeroSMS checkout must clearly label Text, Voice call and Text + Voice choices");
 assert.ok(checkout.includes("data-proxy-duration") && checkout.includes("Choose rental period") &&
   checkout.includes("Save " + "' + esc(option.discountPercent) + (shared ? '% per GB' : '% per day')") &&
   checkout.includes("pricePerDayCents"),
