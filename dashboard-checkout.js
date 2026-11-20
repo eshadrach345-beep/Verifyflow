@@ -130,9 +130,9 @@ document.body.insertAdjacentHTML("beforeend", `
             buy.dataset.productPrice = String(total);
             buy.dataset.productName = (item.name || "Shared mobile proxy") + " · " + durationLabel;
             if (rateLabel && rate > 0) rateLabel.textContent = money(rate);
-            if (priceNote) priceNote.textContent = (rate > 0 ? "per GB · " : "") +
+            if (priceNote) priceNote.textContent = (rate > 0 ? "PRICE PER GB · " : "") +
               "Package total " + money(total) + " · " + durationLabel +
-              (discount > 0 ? " · " + discount + "% lower per GB" : "") + " · before VAT/tax";
+              (discount > 0 ? " · " + discount + "% lower per GB than the shortest term" : "") + " · before VAT/tax";
             const summary = area.querySelector("[data-proxy-price-summary]");
             if (summary) summary.textContent = "Package total: " + money(total) +
               (rate > 0 ? " · " + money(rate) + " per GB" : "") +
