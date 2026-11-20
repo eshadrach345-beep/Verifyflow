@@ -259,4 +259,11 @@ assert.ok(robots.includes("Sitemap: https://verifyflow.us.ci/sitemap.xml"));
 assert.ok(sitemap.includes("<loc>https://verifyflow.us.ci/</loc>"));
 assert.ok(sitemap.includes("<loc>https://verifyflow.us.ci/dashboard.html</loc>"));
 
+assert.ok(dashboard.includes("function compactProductCard(category,item)"), "Customer catalogue must render compact icon-led product rows");
+assert.ok(dashboard.includes("function renderMarketingHierarchy(rows)"), "SMM catalogue must group services by platform and subcategory");
+assert.ok(dashboard.includes('class="catalog-platform-group"') && dashboard.includes('class="catalog-service-group"'), "SMM platform and service groups must be expandable dropdowns");
+assert.ok(dashboard.includes('x.description||""'), "SMM services must display their actual supplier description when available");
+assert.ok(dashboard.includes('["airalo","airalo.com"]') && dashboard.includes('["holafly","holafly.com"]'), "eSIM provider logos must be mapped to provider brands");
+assert.ok(dashboard.includes(".catalog-item.catalog-compact") && dashboard.includes(".catalog-platform-group>summary"), "Storefront must use compact icon-first styling and clear platform dropdown rows");
+
 console.log("VerifyFlow marketplace, SMM product manager, supplier order wiring and SEO checks passed.");
