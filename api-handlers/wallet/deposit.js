@@ -35,7 +35,7 @@ module.exports = async function handler(req,res) {
       return sendJson(res,200,{ok:true,checkoutUrl:initialized.checkoutUrl,paymentReference,walletAmountMinor,paymentAmountMinor:checkout.amountMinor,currency:checkout.currency,usdNgnRate:checkout.usdNgnRate,provider:"squad",note:"Wallet funds are credited only after server-side Squad verification."});
     }catch(error){
       await pool.query("UPDATE vf_wallet_topups SET status='failed',provider_status='INITIALIZATION_FAILED',updated_at=NOW() WHERE payment_reference=$1",[paymentReference]).catch(()=>{});
-      console.error("[wallet/deposit/squad]",error.code||error.message);
+      console.error("[wallet/deposit/squad]", { code:error.code||"SQUAD_INITIATION_FAILED", status:error.status||null, providerCode:error.providerCode||null, providerMessage:error.providerMessage||"No provider response details" });
       return sendJson(res,502,{ok:false,error:"Squad could not start wallet funding. No wallet balance has been added."});
     }
   }catch(error){
