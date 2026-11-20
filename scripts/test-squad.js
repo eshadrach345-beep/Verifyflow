@@ -1,0 +1,15 @@
+"use strict";
+const assert=require("node:assert/strict");
+const { createHmac }=require("node:crypto");
+const { verifySquadWebhook,getSquadConfig }=require("../lib/squad");
+process.env.SQUAD_SECRET_KEY="test_squad_secret";
+process.env.SQUAD_API_BASE_URL="https://sandbox-api-d.squadco.com";
+process.env.SQUAD_ENVIRONMENT="sandbox";
+assert.equal(getSquadConfig().environment,"sandbox");
+const raw=Buffer.from(JSON.stringify({Event:"charge_successful",TransactionRef:"VFTEST"}));
+const signature=createHmac("sha512",process.env.SQUAD_SECRET_KEY).update(raw).digest("hex");
+assert.equal(verifySquadWebhook(raw,signature),true);
+assert.equal(verifySquadWebhook(raw,"0".repeat(128)),false);
+assert.equal(verifySquadWebhook(Buffer.from(raw.toString()+" "),signature),false);
+assert.equal(verifySquadWebhook(raw,""),false);
+console.log("Squad helper tests passed (sandbox config and webhook HMAC validation).");
