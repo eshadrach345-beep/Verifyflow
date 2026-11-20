@@ -7,6 +7,7 @@ const { quoteProduct } = require("../../lib/voidmob");
 const { getCheckoutAmount } = require("../../lib/checkout-currency");
 const { ensureWalletAccount, postWalletTransaction } = require("../../lib/wallet");
 const { enqueuePaidOrder, processFulfilmentForOrder } = require("../../lib/fulfilment");
+const { openCatalogProductToken } = require("../../lib/catalog-token");
 
 function validCheckoutKey(value) {
   return typeof value === "string" && /^[A-Za-z0-9_-]{20,80}$/.test(value);
@@ -204,11 +205,18 @@ module.exports = async function handler(req, res) {
         }
       };
     } else {
+      // The customer only submits an encrypted catalogue selection. Supplier
+      // identity, raw inventory IDs and country routing are resolved server-side.
+      const selection = openCatalogProductToken(String(body.productId || ""));
+      if (selection.productType !== productType) {
+        return sendJson(res, 400, { ok: false, error: "That product selection does not match the selected service. Refresh the catalogue." });
+      }
+      selectedProvider = selection.provider;
       const input = {
-        productId: String(body.productId || ""),
-        country: String(body.country || "us").toLowerCase(),
+        productId: selection.productId,
+        country: selection.country,
         durationDays: Number(body.durationDays),
-        provider: selectedProvider
+        provider: selection.provider
       };
       quote = await quoteProduct(productType, input);
     }
