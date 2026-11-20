@@ -169,7 +169,9 @@ module.exports = async function handler(req, res) {
       const retailRateMinor = toRetailMinor(service);
       if (!retailRateMinor) return null;
       return {
-        serviceId: cleanSupplierText(service.id, 160).trim(), platform: cleanSupplierText(classifySmmService(service).platform, 60),\n        subcategory: cleanSupplierText(classifySmmService(service).subcategory, 60),\n        classificationStatus: classifySmmService(service).classificationStatus,
+        serviceId: cleanSupplierText(service.id, 160).trim(), platform: cleanSupplierText(classifySmmService(service).platform, 60),
+        subcategory: cleanSupplierText(classifySmmService(service).subcategory, 60),
+        classificationStatus: classifySmmService(service).classificationStatus,
         productName: cleanSupplierText(service.name || "Supplier service", 140),
         description: cleanSupplierText(service.description || "", 500),
         supplierRate: Number.isFinite(supplierRate) && supplierRate >= 0 ? supplierRate : null,
@@ -202,6 +204,8 @@ module.exports = async function handler(req, res) {
         [JSON.stringify(rows.map(row => ({
           service_id: row.serviceId,
           platform: row.platform,
+          subcategory: row.subcategory,
+          classification_status: row.classificationStatus,
           product_name: row.productName,
           description: row.description,
           supplier_rate: row.supplierRate,
