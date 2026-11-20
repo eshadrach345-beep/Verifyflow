@@ -4,6 +4,7 @@ const { randomBytes, randomUUID } = require("node:crypto");
 const { getPool, getSessionUser, sendJson, readJson, sameOrigin } = require("../../lib/auth");
 const { getMonnifyConfig, initializeTransaction } = require("../../lib/monnify");
 const { quoteProduct } = require("../../lib/voidmob");
+const { getCheckoutAmount } = require("../../lib/checkout-currency");
 
 function validCheckoutKey(value) {
   return typeof value === "string" && /^[A-Za-z0-9_-]{20,80}$/.test(value);
@@ -38,13 +39,8 @@ module.exports = async function handler(req, res) {
     const user = await getSessionUser(req);
     if (!user) return sendJson(res, 401, { ok: false, error: "Please sign in before placing an order." });
 
-    // VerifyFlow uses USD product prices and Monnify's USD card checkout for global customers.
-    if (process.env.MONNIFY_INTERNATIONAL_ENABLED !== "true") {
-      return sendJson(res, 503, {
-        ok: false,
-        error: "USD international card checkout is not enabled on this Monnify account yet."
-      });
-    }
+    // Use USD only after international collection is activated on the Monnify contract.
+    // Otherwise collect locally in NGN at the merchant-configured USD/NGN checkout rate.
     const config = getMonnifyConfig();
     const productType = String(body.productType || "");
     let selectedProvider = String(body.provider || "voidmob").toLowerCase();
@@ -129,9 +125,13 @@ module.exports = async function handler(req, res) {
       return sendJson(res, 503, { ok: false, error: "A current price could not be confirmed for this product." });
     }
 
+    const checkoutAmount = getCheckoutAmount(quote.salePriceCents);
+    const paymentCurrency = checkoutAmount.currency;
+    const paymentAmountMinor = checkoutAmount.amountMinor;
+
     const pool = getPool();
     const existing = await pool.query(
-      "SELECT o.id, o.order_number, o.status, p.payment_reference, p.checkout_url, p.status AS payment_status " +
+      "SELECT o.id, o.order_number, o.status, p.payment_reference, p.checkout_url, p.status AS payment_status, p.amount_minor, p.currency " +
       "FROM vf_orders o LEFT JOIN LATERAL (SELECT payment_reference, checkout_url, status FROM vf_payments WHERE order_id = o.id ORDER BY created_at DESC LIMIT 1) p ON TRUE " +
       "WHERE o.user_id = $1 AND o.checkout_key = $2 LIMIT 1",
       [user.id, checkoutKey]
@@ -141,7 +141,7 @@ module.exports = async function handler(req, res) {
       if (row.checkout_url && row.payment_status !== "paid") {
         return sendJson(res, 200, {
           ok: true, checkoutUrl: row.checkout_url, paymentReference: row.payment_reference,
-          orderNumber: row.order_number, amountMinor: quote.salePriceCents, currency: "USD", reused: true
+          orderNumber: row.order_number, amountMinor: Number(row.amount_minor), currency: String(row.currency || paymentCurrency), reused: true
         });
       }
       return sendJson(res, 409, {
@@ -170,7 +170,10 @@ module.exports = async function handler(req, res) {
         supplierInput: quote.supplierInput,
         supplierPriceCents: quote.supplierPriceCents,
         retailPriceCents: quote.salePriceCents,
-        currency: "USD",
+        retailCurrency: "USD",
+        paymentAmountMinor,
+        currency: paymentCurrency,
+        usdNgnRate: checkoutAmount.usdNgnRate,
         checkoutCreatedAt: new Date().toISOString()
       }
     };
@@ -180,14 +183,14 @@ module.exports = async function handler(req, res) {
       await client.query("BEGIN");
       await client.query(
         "INSERT INTO vf_orders (id, user_id, order_number, provider, product_type, product_name, status, currency, subtotal_minor, total_minor, idempotency_key, checkout_key, metadata) " +
-        "VALUES ($1, $2, $3, $4, $5, $6, 'awaiting_payment', 'USD', $7, $7, $8, $9, $10::jsonb)",
-        [orderId, user.id, orderNumber, quote.provider || selectedProvider, productType, quote.productName, quote.salePriceCents,
+        "VALUES ($1, $2, $3, $4, $5, $6, 'awaiting_payment', $7, $8, $8, $9, $10, $11::jsonb)",
+        [orderId, user.id, orderNumber, quote.provider || selectedProvider, productType, quote.productName, paymentCurrency, paymentAmountMinor,
           orderIdempotencyKey, checkoutKey, JSON.stringify(metadata)]
       );
       await client.query(
         "INSERT INTO vf_payments (order_id, payment_reference, currency, amount_minor, status) " +
-        "VALUES ($1, $2, 'USD', $3, 'initiated')",
-        [orderId, paymentReference, quote.salePriceCents]
+        "VALUES ($1, $2, $3, $4, 'initiated')",
+        [orderId, paymentReference, paymentCurrency, paymentAmountMinor]
       );
       await client.query("COMMIT");
     } catch (error) {
@@ -202,15 +205,15 @@ module.exports = async function handler(req, res) {
 
     try {
       const initialized = await initializeTransaction({
-        amount: quote.salePriceCents / 100,
+        amount: paymentAmountMinor / 100,
         customerName: user.full_name,
         customerEmail: user.email,
         paymentReference,
         paymentDescription: ("VerifyFlow " + quote.productName).slice(0, 120),
-        currencyCode: "USD",
+        currencyCode: paymentCurrency,
         contractCode: config.contractCode,
         redirectUrl,
-        paymentMethods: ["CARD"]
+        // Let Monnify display the payment methods enabled on this merchant contract.
       });
       const provider = initialized.responseBody || {};
       if (!checkoutUrlIsSafe(provider.checkoutUrl)) {
@@ -224,13 +227,14 @@ module.exports = async function handler(req, res) {
           JSON.stringify({ transactionReference: provider.transactionReference || null, enabledPaymentMethod: provider.enabledPaymentMethod || ["CARD"] })]
       );
       await pool.query(
-        "INSERT INTO vf_order_events (order_id, event_type, message, details) VALUES ($1, 'checkout_created', 'Secure USD card checkout was created.', $2::jsonb)",
-        [orderId, JSON.stringify({ paymentReference, amountMinor: quote.salePriceCents, currency: "USD" })]
+        "INSERT INTO vf_order_events (order_id, event_type, message, details) VALUES ($1, 'checkout_created', $2, $3::jsonb)",
+        [orderId, "Secure " + paymentCurrency + " Monnify checkout was created.", JSON.stringify({ paymentReference, amountMinor: paymentAmountMinor, currency: paymentCurrency, retailUsdMinor: quote.salePriceCents, usdNgnRate: checkoutAmount.usdNgnRate })]
       );
       return sendJson(res, 200, {
         ok: true, checkoutUrl: provider.checkoutUrl, paymentReference,
-        orderNumber, productName: quote.productName, amountMinor: quote.salePriceCents, currency: "USD",
-        note: "Payment is verified by Monnify before supplier fulfilment begins."
+        orderNumber, productName: quote.productName, amountMinor: paymentAmountMinor, currency: paymentCurrency,
+        usdAmountMinor: quote.salePriceCents, usdNgnRate: checkoutAmount.usdNgnRate,
+        note: "Payment is verified against the amount and currency received from Monnify before supplier fulfilment begins."
       });
     } catch (error) {
       await pool.query(
@@ -260,6 +264,8 @@ module.exports = async function handler(req, res) {
       INVALID_DURATION: "Choose one of the available rental periods.",
       MONNIFY_LIVE_LOCKED: "Live payments are not enabled for this VerifyFlow account.",
       MONNIFY_CONFIG_MISSING: "Secure checkout is not fully configured yet.",
+      CHECKOUT_EXCHANGE_RATE_MISSING: "Local NGN checkout is not configured yet. Please contact support.",
+      CHECKOUT_EXCHANGE_RATE_INVALID: "The local checkout exchange rate is invalid. Please contact support.",
       SUPPLIER_NOT_CONFIGURED: "The supplier catalogue is temporarily unavailable.",
       SUPPLIER_PRICE_INVALID: "A current product price could not be confirmed.",
       INVALID_PRODUCT: "Please select a valid product from the catalogue."
