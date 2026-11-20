@@ -1,6 +1,6 @@
 const assert = require("node:assert/strict");
 const {
-  hashPassword, verifyPassword, readCookie, hashToken, sameOrigin
+  hashPassword, verifyPassword, readCookie, hashToken, sameOrigin, secureDatabaseConnectionString
 } = require("../lib/auth");
 
 async function main() {
@@ -16,6 +16,12 @@ async function main() {
   assert.equal(readCookie({ headers: { cookie: "vf_session=not-a-token" } }, "vf_session"), null);
   assert.equal(hashToken(token).length, 64);
   assert.equal(hashToken(token), hashToken(token));
+
+  const neonUrl = secureDatabaseConnectionString("postgresql://user:pass@ep-example.us-east-2.aws.neon.tech/app?sslmode=require&channel_binding=require");
+  assert.match(neonUrl, /sslmode=verify-full/);
+  assert.match(neonUrl, /channel_binding=require/);
+  assert.equal(secureDatabaseConnectionString("postgres://user:pass@localhost:5432/app?sslmode=disable"), "postgres://user:pass@localhost:5432/app?sslmode=disable");
+  assert.equal(secureDatabaseConnectionString("postgres://user:pass@127.0.0.1/app"), "postgres://user:pass@127.0.0.1/app");
 
   assert.equal(sameOrigin({
     headers: { origin: "https://verifyflow.us.ci", host: "verifyflow.us.ci" }
