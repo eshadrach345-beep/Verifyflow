@@ -215,12 +215,12 @@ module.exports = async function handler(req, res) {
       constraint: error.constraint || null,
       where: error.where ? String(error.where).slice(0, 240) : null
     }));
-    const missingMigration = error.code === "42P01";
+    const schemaMismatch = ["42P01", "42P10", "22P02"].includes(error.code);
     return sendJson(res, 503, {
       ok: false,
-      error: missingMigration
-        ? "The SMM product database migration has not been applied yet."
-        : "The SMM product manager is temporarily unavailable."
+      error: schemaMismatch
+        ? "The product database schema needs the latest VerifyFlow repair migration. Apply 009_wallet_smm_schema_repair.sql, then refresh this page."
+        : "The Social Media Boosters product manager is temporarily unavailable."
     });
   }
 };
