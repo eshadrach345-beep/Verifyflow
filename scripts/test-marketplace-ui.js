@@ -158,6 +158,8 @@ assert.ok(admin.includes("smm-select-all") && admin.includes("smm-service-list")
 assert.ok(admin.includes("smm-markup-percent"), "Admin must accept a percentage markup instead of a fixed retail price");
 assert.ok(adminSmm.includes("action: \"bulk\"") && adminSmm.includes("selectedServices"), "Admin must bulk publish the selected supplier services");
 assert.ok(smmAdminApi.includes("jsonb_to_recordset") && smmAdminApi.includes("markupPercent"), "Admin API must calculate and save bulk retail prices from percentage markup");
+assert.ok(smmAdminApi.includes('body.action === "deduplicate"') && smmAdminApi.includes("ORDER BY retail_rate_minor_per_1000 DESC") && smmAdminApi.includes("r.duplicate_rank > 1"), "Duplicate cleanup must soft-hide lower-priced matching listings and keep the highest-priced version");
+assert.ok(adminSmm.includes('JSON.stringify({ action: "deduplicate" })') && adminSmm.includes("highest-priced version"), "Admin product manager must run and report duplicate product cleanup");
 assert.ok(smmAdminApi.includes("readProvider(provider)"), "Admin must validate chosen supplier service IDs");
 assert.ok(smmAdminApi.includes("retail_rate_minor_per_1000"), "Admin must persist a retail rate per 1,000");
 assert.ok(smmAdminApi.includes("productsTableReady"), "Admin must report whether the SMM product table is installed");
