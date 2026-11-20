@@ -8,6 +8,7 @@
   const saveButton = $("smm-save"), bulkButton = $("smm-bulk-publish");
   const serviceList = $("smm-service-list"), searchInput = $("smm-service-search");
   const selectVisible = $("smm-select-visible"), selectAllButton = $("smm-select-all");
+  const selectAllTop = $("smm-select-all-top");
   let providers = [], products = [], productsTableReady = true;
   const selectedServices = new Set();
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
