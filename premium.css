@@ -393,3 +393,8 @@ body.vf-category-open{overflow:hidden!important}
  .catalog-price-row small{font-size:11px!important}
  .vf-card-open{min-height:43px!important;font-size:12px!important}
 }
+
+
+.catalog-item[data-proxy-metered="true"] .catalog-price-row strong::after{content:" / GB";font-size:.58em;font-weight:800;letter-spacing:0;color:#a7ddcf!important;margin-left:3px}
+.catalog-item[data-proxy-metered="true"] .catalog-price-row small{color:#b9cccf!important}
+.vf-proxy-buy-area [data-proxy-price-summary]{display:block!important;padding:9px 11px!important;border:1px solid rgba(141,224,204,.2)!important;border-radius:9px!important;background:rgba(141,224,204,.06)!important;color:#c8e6df!important;font-size:12px!important;line-height:1.55!important}
