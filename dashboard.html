@@ -1014,22 +1014,53 @@
    ? results.length+" matching product"+(results.length===1?"":"s")+" · showing "+visible.length
    : results.length+" product"+(results.length===1?"":"s")+" · showing "+visible.length+" in "+(active==="all"?"all available categories":categoryLabels[active]);
  }
+ const CATALOG_CACHE_PREFIX="verifyflow.catalog.v1:";
+ const CATALOG_CACHE_TTL=30*60*1000;
+ function readCatalogueCache(country){
+  try{
+   const raw=localStorage.getItem(CATALOG_CACHE_PREFIX+country);
+   if(!raw)return null;
+   const cached=JSON.parse(raw);
+   if(!cached||!cached.data||!cached.savedAt||Date.now()-cached.savedAt>CATALOG_CACHE_TTL)return null;
+   if(cached.data.country!==country||!cached.data.sections)return null;
+   return cached.data;
+  }catch{return null;}
+ }
+ function writeCatalogueCache(country,data){
+  try{localStorage.setItem(CATALOG_CACHE_PREFIX+country,JSON.stringify({savedAt:Date.now(),data}));}catch{}
+ }
  async function load(){
   if(loading){reloadRequested=true;return;}
   const country=String(countryInput?.value||"US").trim().toLowerCase();
   if(!/^[a-z]{2}$/.test(country)){
    catalogue=null;empty("Enter a valid two-letter country code, such as US or GB.");status.textContent="Country code required";return;
   }
-  loading=true;refresh.disabled=true;refresh.textContent="↻ Refreshing…";status.textContent="Updating live prices and availability…";
+  const cached=readCatalogueCache(country);
+  if(!catalogue&&cached){
+   catalogue=cached;
+   populateCountryOptions(cached.countries);
+   render();
+   status.textContent="Showing saved prices while we refresh live availability…";
+  }else if(catalogue?.country!==country){
+   catalogue=null;
+   empty("Loading the latest catalogue…");
+  }
+  loading=true;refresh.disabled=true;refresh.textContent="↻ Refreshing…";
+  if(!cached)status.textContent="Updating live prices and availability…";
   try{
-   const response=await fetch("/api/catalog?country="+encodeURIComponent(country),{headers:{Accept:"application/json"},cache:"no-store"});
+   const response=await fetch("/api/catalog?country="+encodeURIComponent(country),{headers:{Accept:"application/json"},cache:"default"});
    const data=await response.json();
    if(!response.ok||!data.sections)throw new Error("Please refresh again shortly.");
    catalogue=data;
+   writeCatalogueCache(country,data);
    populateCountryOptions(data.countries);
    render();if(active==="marketing"||active==="all")loadMarketingCatalogue();
   }catch(error){
-   catalogue=null;empty("We couldn't load the catalogue just now.");status.textContent="Please refresh to try again.";
+   if(catalogue?.country===country){
+    status.textContent="Showing saved catalogue. Live prices and availability could not be refreshed.";
+   }else{
+    catalogue=null;empty("We couldn't load the catalogue just now.");status.textContent="Please refresh to try again.";
+   }
   }finally{
    loading=false;refresh.disabled=false;refresh.textContent="↻ Refresh catalogue";
    if(reloadRequested){reloadRequested=false;load();}
