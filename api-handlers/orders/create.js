@@ -3,6 +3,7 @@
 const { randomBytes, randomUUID } = require("node:crypto");
 const { getPool, getSessionUser, sendJson, readJson, sameOrigin } = require("../../lib/auth");
 const { getMonnifyConfig, initializeTransaction } = require("../../lib/monnify");
+const { getSquadConfig, initiateSquadPayment } = require("../../lib/squad");
 const { quoteProduct: quoteVoidmobProduct } = require("../../lib/voidmob");
 const { quoteProduct: quoteHeroSmsProduct } = require("../../lib/herosms");
 const { getCheckoutAmount } = require("../../lib/checkout-currency");
@@ -147,12 +148,12 @@ module.exports = async function handler(req, res) {
 
     // Use USD only after international collection is activated on the Monnify contract.
     // Otherwise collect locally in NGN at the merchant-configured USD/NGN checkout rate.
-    const paymentMethod = String(body.paymentMethod || "monnify").toLowerCase();
-    if (!["wallet", "monnify"].includes(paymentMethod)) {
-      return sendJson(res, 400, { ok: false, error: "Choose Wallet or Monnify as your payment method." });
+    const paymentMethod = String(body.paymentMethod || "squad").toLowerCase();
+    if (!["wallet", "monnify", "squad"].includes(paymentMethod)) {
+      return sendJson(res, 400, { ok: false, error: "Choose Wallet, Squad or Monnify as your payment method." });
     }
-    const config = paymentMethod === "monnify"
-      ? getMonnifyConfig()
+    const config = paymentMethod === "monnify" ? getMonnifyConfig()
+      : paymentMethod === "squad" ? (() => { const c = getSquadConfig(); return { environment: c.environment.toUpperCase() }; })()
       : { environment: String(process.env.MONNIFY_ENVIRONMENT || "SANDBOX").toUpperCase() };
     const productType = String(body.productType || "");
     let selectedProvider = String(body.provider || "voidmob").toLowerCase();
@@ -326,9 +327,9 @@ module.exports = async function handler(req, res) {
           orderIdempotencyKey, checkoutKey, JSON.stringify(metadata)]
       );
       await client.query(
-        "INSERT INTO vf_payments (order_id, payment_reference, currency, amount_minor, status) " +
-        "VALUES ($1, $2, $3, $4, 'initiated')",
-        [orderId, paymentReference, paymentCurrency, paymentAmountMinor]
+        "INSERT INTO vf_payments (order_id, payment_reference, currency, amount_minor, status, provider) " +
+        "VALUES ($1, $2, $3, $4, 'initiated', $5)",
+        [orderId, paymentReference, paymentCurrency, paymentAmountMinor, paymentMethod]
       );
       await client.query("COMMIT");
     } catch (error) {
@@ -342,37 +343,55 @@ module.exports = async function handler(req, res) {
     }
 
     try {
-      const initialized = await initializeTransaction({
-        amount: paymentAmountMinor / 100,
-        customerName: user.full_name,
-        customerEmail: user.email,
-        paymentReference,
-        paymentDescription: ("VerifyFlow " + quote.productName).slice(0, 120),
-        currencyCode: paymentCurrency,
-        contractCode: config.contractCode,
-        redirectUrl,
-        // Let Monnify display the payment methods enabled on this merchant contract.
-      });
-      const provider = initialized.responseBody || {};
-      if (!checkoutUrlIsSafe(provider.checkoutUrl)) {
-        const error = new Error("Monnify did not return a valid checkout URL.");
-        error.code = "MONNIFY_CHECKOUT_URL_INVALID";
-        throw error;
+      let checkoutUrl = "";
+      let providerResponse = {};
+      let transactionReference = null;
+      if (paymentMethod === "squad") {
+        const initialized = await initiateSquadPayment({
+          email: user.email, customerName: user.full_name,
+          amountMinor: paymentAmountMinor, currency: paymentCurrency,
+          reference: paymentReference,
+          callbackUrl: (process.env.PUBLIC_APP_URL || "https://verifyflow.us.ci").replace(/\\/+$/, "") +
+            "/payment-return.html?paymentReference=" + encodeURIComponent(paymentReference),
+          metadata: { type: "product_order", orderId, orderNumber, userId: user.id }
+        });
+        checkoutUrl = initialized.checkoutUrl;
+        providerResponse = initialized.raw;
+      } else {
+        const initialized = await initializeTransaction({
+          amount: paymentAmountMinor / 100,
+          customerName: user.full_name,
+          customerEmail: user.email,
+          paymentReference,
+          paymentDescription: ("VerifyFlow " + quote.productName).slice(0, 120),
+          currencyCode: paymentCurrency,
+          contractCode: config.contractCode,
+          redirectUrl
+        });
+        const provider = initialized.responseBody || {};
+        if (!checkoutUrlIsSafe(provider.checkoutUrl)) {
+          const error = new Error("Monnify did not return a valid checkout URL.");
+          error.code = "MONNIFY_CHECKOUT_URL_INVALID";
+          throw error;
+        }
+        checkoutUrl = provider.checkoutUrl;
+        transactionReference = provider.transactionReference || null;
+        providerResponse = { transactionReference, enabledPaymentMethod: provider.enabledPaymentMethod || [] };
       }
       await pool.query(
         "UPDATE vf_payments SET checkout_url = $2, transaction_reference = $3, status = 'pending', provider_response = $4::jsonb, updated_at = NOW() WHERE payment_reference = $1",
-        [paymentReference, provider.checkoutUrl, provider.transactionReference || null,
-          JSON.stringify({ transactionReference: provider.transactionReference || null, enabledPaymentMethod: provider.enabledPaymentMethod || [] })]
+        [paymentReference, checkoutUrl, transactionReference, JSON.stringify(providerResponse)]
       );
       await pool.query(
         "INSERT INTO vf_order_events (order_id, event_type, message, details) VALUES ($1, 'checkout_created', $2, $3::jsonb)",
-        [orderId, "Secure " + paymentCurrency + " Monnify checkout was created.", JSON.stringify({ paymentReference, amountMinor: paymentAmountMinor, currency: paymentCurrency, retailUsdMinor: quote.salePriceCents, usdNgnRate: checkoutAmount.usdNgnRate })]
+        [orderId, "Secure " + paymentCurrency + " " + (paymentMethod === "squad" ? "Squad" : "Monnify") + " checkout was created.", JSON.stringify({ paymentReference, amountMinor: paymentAmountMinor, currency: paymentCurrency, retailUsdMinor: quote.salePriceCents, usdNgnRate: checkoutAmount.usdNgnRate })]
       );
       return sendJson(res, 200, {
         ok: true, checkoutUrl: provider.checkoutUrl, paymentReference,
         orderNumber, productName: quote.productName, amountMinor: paymentAmountMinor, currency: paymentCurrency,
         usdAmountMinor: quote.salePriceCents, usdNgnRate: checkoutAmount.usdNgnRate,
-        note: "Payment is verified against the amount and currency received from Monnify before supplier fulfilment begins."
+        provider: paymentMethod,
+        note: "Payment is verified against the amount and currency received from the selected gateway before supplier fulfilment begins."
       });
     } catch (error) {
       await pool.query(
@@ -387,7 +406,7 @@ module.exports = async function handler(req, res) {
         "INSERT INTO vf_order_events (order_id, event_type, message, details) VALUES ($1, 'checkout_failed', 'Monnify could not initialize the checkout session.', $2::jsonb)",
         [orderId, JSON.stringify({ code: error.code || "MONNIFY_INITIALIZATION_FAILED" })]
       ).catch(() => {});
-      console.error("[orders/create/monnify]", error.code || error.message);
+      console.error("[orders/create/" + paymentMethod + "]", error.code || error.message);
       return sendJson(res, 502, { ok: false, error: "Secure checkout could not be started. No supplier order was placed." });
     }
   } catch (error) {
@@ -401,7 +420,8 @@ module.exports = async function handler(req, res) {
       PRODUCT_NOT_FOUND: "That product could not be found. Please refresh the catalogue.",
       INVALID_DURATION: "Choose one of the available rental periods.",
       MONNIFY_LIVE_LOCKED: "Live payments are not enabled for this VerifyFlow account.",
-      MONNIFY_CONFIG_MISSING: "Secure checkout is not fully configured yet.",
+      MONNIFY_CONFIG_MISSING: "Monnify checkout is not fully configured yet.",
+      SQUAD_CONFIG_MISSING: "Squad checkout is not fully configured yet.",
       CHECKOUT_EXCHANGE_RATE_MISSING: "Local NGN checkout is not configured yet. Please contact support.",
       CHECKOUT_EXCHANGE_RATE_INVALID: "The local checkout exchange rate is invalid. Please contact support.",
       SUPPLIER_NOT_CONFIGURED: "The supplier catalogue is temporarily unavailable.",
