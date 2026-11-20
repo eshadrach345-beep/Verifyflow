@@ -78,8 +78,8 @@ document.body.insertAdjacentHTML("beforeend", `
     if (category === "rentals") { const durations = (item.durations || []).filter(x => Number.isSafeInteger(Number(x.priceCents)) && Number(x.priceCents) > 0).map(x => ({ days: Number(x.days), price: Number(x.priceCents) })); return { type: "long_term_number", id: item.id, available: item.available === true, price: Math.min(...durations.map(x => x.price)), durations }; }
     if (category === "esim") return { type: "esim", id: item.id, available: true, price: item.priceCents };
     if (category === "proxies") return { type: "mobile_proxy", id: item.id, available: item.available !== false, price: item.priceCents };
-    if (category === "dedicated") return { type: "dedicated_number", id: item.country, available: item.inStock === true, price: item.priceCents };
-    if (category === "marketing") return { type: "smm_service", id: item.id, provider: "", available: true, price: item.pricePer1000Minor, min: item.min, max: item.max };
+    if (category === "dedicated") return { type: "dedicated_number", id: item.id, available: item.inStock === true, price: item.priceCents };
+    if (category === "marketing") return { type: "smm_service", id: item.id, available: true, price: item.pricePer1000Minor, min: item.min, max: item.max };
     return null;
   }
 
