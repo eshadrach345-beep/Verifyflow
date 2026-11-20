@@ -21,9 +21,22 @@ async function requireAdmin(req, res) {
   return true;
 }
 function cleanSupplierText(value, maxLength) {
-  // Supplier catalogues occasionally contain lone UTF-16 surrogates. PostgreSQL
-  // rejects those when they are embedded in JSONB; replace them before encoding.
-  return String(value ?? "").replace(/[\\uD800-\\uDBFF](?![\\uDC00-\\uDFFF])|(?<![\\uD800-\\uDBFF])[\\uDC00-\\uDFFF]/g, "�").slice(0, maxLength);
+  // PostgreSQL JSONB rejects lone UTF-16 surrogates. Supplier names/descriptions
+  // can contain broken emoji or decorative Unicode, so repair them before JSON encoding.
+  const input = String(value ?? "");
+  let safe = "";
+  for (let index = 0; index < input.length; index += 1) {
+    const code = input.charCodeAt(index);
+    if (code >= 0xD800 && code <= 0xDBFF) {
+      const next = input.charCodeAt(index + 1);
+      if (next >= 0xDC00 && next <= 0xDFFF) {
+        safe += input[index] + input[index + 1];
+        index += 1;
+      } else safe += "�";
+    } else if (code >= 0xDC00 && code <= 0xDFFF) safe += "�";
+    else safe += input[index];
+  }
+  return Array.from(safe).slice(0, maxLength).join("");
 }
 function moneyToMinor(value) {
   const match = String(value ?? "").trim().match(/^(\d{1,9})(?:\.(\d{1,2}))?$/);
@@ -263,3 +276,5 @@ module.exports = async function handler(req, res) {
     });
   }
 };
+
+module.exports.cleanSupplierText = cleanSupplierText;

@@ -435,22 +435,35 @@ document.body.insertAdjacentHTML("beforeend", `
     methodWrap.hidden = !selected.supportsVerificationMethods;
     methodSelect.innerHTML = '<option value="sms">SMS · checking options…</option>';
     selected.heroSmsMethods = [];
+    selected.heroSmsOffersReady = !selected.supportsVerificationMethods;
+    methodSelect.disabled = false;
     if (selected.supportsVerificationMethods) {
+      methodWrap.hidden = false;
+      methodSelect.innerHTML = '<option value="">Loading available methods…</option>';
+      const activeSelection = selected;
       fetch("/api/herosms/offers?productId=" + encodeURIComponent(selected.productId), { credentials: "same-origin", cache: "no-store" })
-        .then(response => response.json())
-        .then(data => {
-          if (!data.ok || !Array.isArray(data.methods) || !data.methods.length) throw new Error("No verification methods available");
+        .then(async response => {
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.ok || !Array.isArray(data.methods) || !data.methods.length) {
+            throw new Error(data.error || "No verification methods are currently available.");
+          }
+          if (selected !== activeSelection) return;
           selected.heroSmsMethods = data.methods;
+          selected.heroSmsOffersReady = true;
           methodSelect.innerHTML = data.methods.map(method =>
             '<option value="' + esc(method.type) + '">' + esc(method.label) + ' · ' + esc(money(method.priceCents)) + '</option>'
           ).join("");
           selected.verificationType = methodSelect.value;
           selected.estimate = Number(data.methods[0].priceCents);
           document.getElementById("vf-checkout-price").textContent = money(selected.estimate);
+          message.textContent = "";
         })
-        .catch(() => {
-          methodWrap.hidden = true;
-          selected.verificationType = "sms";
+        .catch(error => {
+          if (selected !== activeSelection) return;
+          selected.heroSmsOffersReady = false;
+          methodSelect.disabled = true;
+          methodSelect.innerHTML = '<option value="">Verification options unavailable</option>';
+          message.textContent = (error.message || "Could not load HeroSMS verification options.") + " Please close checkout and refresh the catalogue before paying.";
         });
     }
     dialog.showModal();
@@ -486,6 +499,10 @@ document.body.insertAdjacentHTML("beforeend", `
   form.addEventListener("submit", async event => {
     event.preventDefault();
     if (!selected) return;
+    if (selected.supportsVerificationMethods && !selected.heroSmsOffersReady) {
+      message.textContent = "HeroSMS verification options have not loaded. Please refresh the catalogue and try again; no payment has been started.";
+      return;
+    }
     submit.disabled = true;
     submit.textContent = "Preparing secure checkout…";
     message.textContent = "";

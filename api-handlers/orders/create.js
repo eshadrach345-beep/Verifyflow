@@ -216,6 +216,8 @@ module.exports = async function handler(req, res) {
       const input = {
         productId: selection.productId,
         country: selection.country,
+        countryId: selection.countryId,
+        productName: selection.productName,
         durationDays: Number(body.durationDays),
         provider: selection.provider,
         verificationType: String(body.verificationType || "sms").toLowerCase()
