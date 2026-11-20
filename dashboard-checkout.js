@@ -36,7 +36,7 @@ document.body.insertAdjacentHTML("beforeend", `
         <p class="vf-checkout-note">The final price is confirmed using a fresh supplier quote before payment.</p>
         <label id="vf-duration-wrap" class="catalog-duration" hidden>Rental period<select id="vf-duration-select"></select></label>
         <label id="vf-herosms-method-wrap" class="catalog-duration" hidden>Verification method<select id="vf-herosms-method-select"><option value="sms">SMS</option></select></label>
-        <p class="vf-checkout-note">Catalogue prices are shown in USD. Monnify collects USD only when international collection is enabled on the account; otherwise checkout is converted to NGN using VerifyFlow’s configured rate and the payment methods enabled on the account. Taxes are not included.</p>
+        <p class="vf-checkout-note">Catalogue prices are shown in USD. Squad checkout supports card, bank, USSD and transfer. VerifyFlow converts USD prices to NGN using its configured rate for local payments. Taxes are not included.</p>
         <p id="vf-checkout-message" class="vf-checkout-message" role="status" aria-live="polite"></p>
         <button id="vf-checkout-submit" class="vf-buy-button" type="submit">Continue to secure payment ↗</button>
       </form>
