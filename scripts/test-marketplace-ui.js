@@ -47,7 +47,9 @@ assert.ok(dashboard.includes('params.get("search")'), "Dashboard must hydrate se
 // The homepage All services control must open a real category menu rather than act as an anchor.
 assert.match(home, /<button[^>]*id="vf-services-trigger"[^>]*aria-controls="vf-services-menu"/);
 assert.ok(home.includes('id="vf-services-menu"'), "Homepage must contain the All services menu panel");
-assert.ok(home.includes("Accessible All services disclosure"), "Homepage must wire menu open/close behavior");
+assert.ok(home.includes("off-canvas drawer"), "Homepage must wire the All services side drawer");
+assert.ok(home.includes('id="vf-services-backdrop"') && home.includes('role="dialog"'), "All services drawer must include its modal panel and backdrop");
+assert.ok(home.includes('event.key === "Escape"') && home.includes('event.key === "Tab"'), "All services drawer must support Escape and keyboard focus handling");
 for (const category of categories) {
   assert.ok(home.includes('/dashboard.html?category=' + category + '#catalogue'),
     "All services menu must link to the " + category + " catalogue");
@@ -103,6 +105,8 @@ assert.ok(proxyCatalog.includes("pricePerGbCents") && proxyCatalog.includes("Num
   "Shared mobile proxy catalogue must expose a derived per-GB price");
 assert.ok(dashboard.includes("Unlimited traffic") && dashboard.includes("unmetered · per "),
   "Dedicated proxy terms must not be presented as shared data packages");
+assert.ok(dashboard.includes("groupProxyPlanRows") && dashboard.includes("pricePerGbCents") && dashboard.includes("durationOptions"), "Shared mobile proxy cards must show per-GB pricing and actual supplier duration tiers");
+assert.ok(checkout.includes("data-proxy-duration") && checkout.includes("activateServiceCard"), "Proxy duration selection and full service-card clicks must be interactive");
 assert.ok(proxyCatalog.includes("Math.min(configuredPercent, 18)") &&
   proxySupplier.includes("Math.min(requestedPercent, 18)"),
   "Proxy quote and catalogue retail margins must both be capped at a competitive 18 percent");
@@ -121,6 +125,7 @@ assert.ok(walletAccount.includes("/api/wallet/deposit") && walletAccount.include
   "Account wallet panel must fund the wallet through the protected deposit API");
 assert.ok(accountPage.includes('id="panel-wallet"') && accountPage.includes('data-panel="wallet"'),
   "Customer account must expose a wallet panel");
+assert.ok(accountPage.includes('id="account-welcome-toast"') && accountPage.includes('showWelcomeToast(user)') && accountPage.includes('},5000);'), "Account welcome message must appear as a five-second popup");
 assert.ok(paymentService.includes("verifyAndApplyWalletDeposit") &&
   paymentService.includes("postWalletTransaction") &&
   paymentWebhook.includes("verifyAndApplyWalletDeposit"),
@@ -150,11 +155,13 @@ assert.ok(admin.includes('id="smm-product-form"'), "Admin must contain the produ
 assert.ok(admin.includes('class="admin-workspace-nav"') && admin.includes('href="#smm-products-manager"'), "Admin must provide direct navigation to product management");
 assert.ok(admin.includes("＋ Add or edit products"), "Admin must surface a prominent add/edit products action");
 assert.ok(admin.indexOf('id="smm-products-manager"') < admin.indexOf('id="launch-readiness"'), "Product manager must appear before the long launch-readiness report");
-assert.ok(admin.includes('id="orders-panel"') && admin.includes('id="supplier-connections"') && admin.includes('id="customer-support-inbox"'), "Admin workspace navigation targets must exist");
+assert.ok(admin.includes('id="orders-panel"') && admin.includes('id="supplier-connections-panel"') && admin.includes('id="supplier-connections-content"') && admin.includes('id="customer-support-inbox"'), "Admin workspace navigation targets must exist");
+assert.ok(admin.includes('id="fulfilment-queue-panel"') && admin.includes('id="fulfilment-queue-body"'), "Admin fulfilment section and table body IDs must be distinct");
+assert.ok(admin.includes('/admin.css') && admin.includes('admin-stat-orders'), "Admin must load its own readable stylesheet and order overview");
 assert.ok(adminSmm.includes('fetch("/api/admin/smm-products"'), "Admin must save products through the protected API");
 assert.ok(adminSmm.includes("Save and publish product"), "Admin must provide an explicit publish action");
 assert.ok(adminSmm.includes("Database setup required"), "Admin must disable publishing until the SMM product table exists");
-assert.ok(admin.includes("smm-select-all") && admin.includes("smm-service-list"), "Admin must support selecting all supplier services for bulk publishing");
+assert.ok(admin.includes("smm-select-all") && admin.includes("smm-select-visible") && admin.includes("smm-service-list"), "Admin must support selecting the full or filtered supplier catalogue");
 assert.ok(admin.includes("smm-markup-percent"), "Admin must accept a percentage markup instead of a fixed retail price");
 assert.ok(adminSmm.includes("action: \"bulk\"") && adminSmm.includes("selectedServices"), "Admin must bulk publish the selected supplier services");
 assert.ok(smmAdminApi.includes("jsonb_to_recordset") && smmAdminApi.includes("markupPercent"), "Admin API must calculate and save bulk retail prices from percentage markup");
