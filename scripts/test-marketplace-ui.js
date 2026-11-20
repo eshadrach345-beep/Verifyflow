@@ -115,6 +115,12 @@ assert.ok(proxyCatalog.includes("pricePerGbCents") && proxyCatalog.includes("Num
 assert.ok(dashboard.includes("Unlimited traffic") && dashboard.includes("unmetered · per "),
   "Dedicated proxy terms must not be presented as shared data packages");
 assert.ok(dashboard.includes("groupProxyPlanRows") && dashboard.includes("pricePerGbCents") && dashboard.includes("durationOptions"), "Shared mobile proxy cards must show per-GB pricing and actual supplier duration tiers");
+assert.ok(dashboard.includes('"PRICE PER GB · "') && dashboard.includes('data-proxy-metered="true"') &&
+  checkout.includes('"PRICE PER GB · "') && css.includes('data-proxy-metered="true"] .catalog-price-row strong::after'),
+  "Shared mobile proxies must label the displayed retail price per GB and refresh it when a supplier term is chosen");
+assert.ok(dashboard.includes("option.discountPercent=baseRate>0&&rate>0&&rate<baseRate") &&
+  checkout.includes("lower per GB than the shortest term"),
+  "Proxy duration prices must show a real per-GB discount against the shortest available supplier term");
 assert.ok(checkout.includes("data-proxy-duration") && checkout.includes("activateServiceCard"), "Proxy duration selection and full service-card clicks must be interactive");
 assert.ok(proxyCatalog.includes("Math.min(configuredPercent, 18)") &&
   proxySupplier.includes("Math.min(requestedPercent, 18)"),
