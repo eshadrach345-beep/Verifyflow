@@ -55,7 +55,7 @@
     serviceList.innerHTML = visible.length ? visible.map(item =>
       '<label class="smm-service-option"><input type="checkbox" data-smm-service-check="' + esc(item.id) + '"' +
       (selectedServices.has(item.id) ? " checked" : "") + '><span><b>' + esc(item.name) + '</b><small>' +
-      esc(item.category) + ' · ID ' + esc(item.id) + ' · ' + esc(item.min) + '–' + esc(item.max) +
+      esc(item.platform || item.category || "Other") + ' → ' + esc(item.subcategory || "Other") + (item.confidence ? ' · ' + esc(item.confidence) : '') + ' · ID ' + esc(item.id) + ' · ' + esc(item.min) + '–' + esc(item.max) +
       ' · Supplier rate: ' + esc(item.supplierRateReported ?? "not provided") + ' ' + esc(item.supplierCurrency || "") + '/1K</small></span></label>'
     ).join("") : '<div class="empty">No matching services in this supplier catalogue.</div>';
     updateSelectionSummary();
