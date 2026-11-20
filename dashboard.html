@@ -738,7 +738,7 @@
   }
   if(category==="rentals"){
    const durations=Array.isArray(x.durations)?x.durations:[];
-   const detail=(x.availableCount!=null?x.availableCount+" numbers · ":"")+(durations.length?durations.map(option=>option.days+" days: "+money(option.priceCents,option.currency)).join(" · "):"No rental durations currently listed");
+   const detail=x.availableCount!=null?x.availableCount+" numbers available":"Choose your rental period at checkout";
    const prices=durations.map(option=>Number(option.priceCents)).filter(value=>Number.isSafeInteger(value)&&value>0);
    const from=prices.length?Math.min(...prices):null;
    const description="Keep the same number for a selected period and receive follow-up SMS on supported services.";
