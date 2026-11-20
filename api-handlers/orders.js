@@ -11,7 +11,7 @@ module.exports = async function handler(req, res) {
     const result = await getPool().query(
       `SELECT o.id, o.order_number, o.product_type, o.product_name, o.status, o.currency,
               o.total_minor, o.created_at, o.updated_at,
-              (o.supplier_order_id IS NOT NULL) AS has_supplier_order,
+              EXISTS (SELECT 1 FROM vf_fulfilment_jobs delivery_job WHERE delivery_job.order_id = o.id AND delivery_job.status IN ('submitted','completed')) AS has_active_delivery,
               o.metadata->'fulfilment'->'customerDelivery' AS customer_delivery,
               jsonb_strip_nulls(jsonb_build_object(
                 'status', o.metadata->'fulfilment'->>'status',
