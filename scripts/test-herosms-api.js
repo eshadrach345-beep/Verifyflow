@@ -7,8 +7,25 @@ async function main() {
   const oldKey = process.env.HEROSMS_RETAIL_API_KEY;
   const calls = [];
   process.env.HEROSMS_RETAIL_API_KEY = "retail-test-key";
-  global.fetch = async input => {
+  global.fetch = async (input, init = {}) => {
     const url = new URL(String(input));
+    calls.push({ url, init });
+    if (url.pathname === "/api/v1/activations") {
+      assert.equal(init.headers.Authorization, "ApiKey retail-test-key");
+      const body = JSON.parse(init.body);
+      assert.equal(body.verificationType, "sms");
+      return new Response(JSON.stringify({ data: [{
+        id: 42, status: 4, phone: "+12025550123", price: 0.25,
+        verificationType: "sms", expiredAt: "2026-11-20T12:20:00Z"
+      }] }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+    if (url.pathname === "/api/v1/activations/42/otp/last") {
+      return new Response(JSON.stringify({ data: { smsCode: "012345", smsText: "Login code: 012345" } }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+    if (url.pathname === "/api/v1/activations/offers/sms") {
+      return new Response(JSON.stringify({ data: { tg: { "1": { counts: { total: 18 }, prices: { default: 0.25 } } } } }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+    if (url.pathname === "/api/v1/activations/42/finish") return new Response(null, { status: 204 });
     assert.equal(url.hostname, "hero-sms.com");
     assert.equal(url.pathname, "/stubs/handler_api.php");
     assert.equal(url.searchParams.get("api_key"), "retail-test-key");
@@ -23,16 +40,10 @@ async function main() {
       payload = { "1": { tg: { cost: 0.25, count: 18, physicalCount: 12 }, wa: { cost: 0.4, count: 0, physicalCount: 0 } } };
     } else if (action === "getRentServicesAndCountries") {
       payload = { status: "success", services: { tg: { price: 1.5, quantity: 4 } } };
-    } else if (action === "getNumberV2") {
-      payload = { activationId: 42, phoneNumber: "+12025550123", activationCost: 0.25, countryCode: "US", canGetAnotherSms: true };
     } else if (action === "getRentNumber") {
       payload = { status: "success", phone: { id: 99, number: "+12025550124", cost: "1.50", endDate: "2026-12-01T12:00:00Z" } };
     } else if (action === "getRentStatus") {
       payload = { status: "success", values: { "0": { phoneFrom: "Verify", text: "Login code: 123456", date: "2026-11-20T12:00:00Z" } } };
-    } else if (action === "getStatusV2") {
-      payload = { status: "STATUS_OK", sms: { code: "012345" } };
-    } else if (action === "setStatus") {
-      return new Response("ACCESS_ACTIVATION", { status: 200 });
     } else {
       return new Response("BAD_ACTION", { status: 200 });
     }
@@ -65,12 +76,13 @@ async function main() {
     assert.equal(rentalStatus.status, "active");
     assert.equal(rentalStatus.code, "123456");
     const completed = await setActivationStatus("42", 6);
-    assert.equal(completed.result, "ACCESS_ACTIVATION");
-    assert(calls.some(call => call.action === "getNumberV2" && call.service === "tg"));
-    assert(calls.some(call => call.action === "getStatusV2"));
+    assert.equal(completed.result, "OK");
+    assert(calls.some(call => call.url?.pathname === "/api/v1/activations"));
+    assert(calls.some(call => call.url?.pathname === "/api/v1/activations/42/otp/last"));
+    assert(calls.some(call => call.url?.pathname === "/api/v1/activations/offers/sms"));
     assert(calls.some(call => call.action === "getRentNumber" && call.service === "tg"));
     assert(calls.some(call => call.action === "getRentStatus"));
-    assert(calls.some(call => call.action === "setStatus"));
+    assert(calls.some(call => call.url?.pathname === "/api/v1/activations/42/finish"));
   } finally {
     global.fetch = oldFetch;
     if (oldKey === undefined) delete process.env.HEROSMS_RETAIL_API_KEY;
