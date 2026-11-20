@@ -94,6 +94,8 @@ assert.ok(dashboard.includes("private phone number reserved for your use") &&
   "All catalogue product families must have practical customer-facing descriptions");
 assert.ok(proxyCatalog.includes("pricePerGbCents") && proxyCatalog.includes("Number(plan.data_gb)"),
   "Shared mobile proxy catalogue must expose a derived per-GB price");
+assert.ok(dashboard.includes("Unlimited traffic") && dashboard.includes("unmetered · per "),
+  "Dedicated proxy terms must not be presented as shared data packages");
 assert.ok(proxyCatalog.includes("Math.min(configuredPercent, 18)") &&
   proxySupplier.includes("Math.min(requestedPercent, 18)"),
   "Proxy quote and catalogue retail margins must both be capped at a competitive 18 percent");
@@ -122,8 +124,9 @@ assert.ok(orderCreate.includes('paymentMethod === "wallet"') &&
   checkout.includes('value="monnify"'),
   "Checkout must support either wallet balance or Monnify");
 assert.ok(fulfilment.includes("refundFailedOrder") &&
-  fulfilment.includes("wallet_refund_credited"),
-  "Confirmed failed service orders must be returned to the wallet");
+  fulfilment.includes("wallet_refund_credited") &&
+  fulfilment.includes('failedStatuses.includes(status)'),
+  "Confirmed failed or refunded supplier orders across service types must be returned to the wallet");
 
 
 assert.ok(!dashboard.includes('String(x.provider||"Supplier").toUpperCase()'), "Customer dashboard must not display supplier names");
