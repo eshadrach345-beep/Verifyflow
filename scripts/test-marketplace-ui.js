@@ -76,6 +76,10 @@ assert.ok(admin.includes("/api/admin/access"), "Admin page must check authorizat
 
 assert.ok(admin.includes("Social Media Boosters — Product Manager"), "Admin must expose SMM product management");
 assert.ok(admin.includes('id="smm-product-form"'), "Admin must contain the product publishing form");
+assert.ok(admin.includes('class="admin-workspace-nav"') && admin.includes('href="#smm-products-manager"'), "Admin must provide direct navigation to product management");
+assert.ok(admin.includes("＋ Add or edit products"), "Admin must surface a prominent add/edit products action");
+assert.ok(admin.indexOf('id="smm-products-manager"') < admin.indexOf('id="launch-readiness"'), "Product manager must appear before the long launch-readiness report");
+assert.ok(admin.includes('id="orders-panel"') && admin.includes('id="supplier-connections"') && admin.includes('id="customer-support-inbox"'), "Admin workspace navigation targets must exist");
 assert.ok(adminSmm.includes('fetch("/api/admin/smm-products"'), "Admin must save products through the protected API");
 assert.ok(adminSmm.includes("Save and publish product"), "Admin must provide an explicit publish action");
 assert.ok(adminSmm.includes("Database setup required"), "Admin must disable publishing until the SMM product table exists");
