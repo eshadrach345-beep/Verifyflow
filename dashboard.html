@@ -682,14 +682,15 @@
   if(category==="proxies"){
    const type=String(x.type||"shared").toLowerCase();
    const shared=type==="shared";
-   const volume=x.dataGb!=null?x.dataGb+" GB":"Data package";
-   const duration=x.durationDays?x.durationDays+" days":(x.period|| (shared?"30 days":"Flexible term"));
+   const volume=shared?(x.dataGb!=null?x.dataGb+" GB":"Data package"):"Unlimited traffic";
+   const duration=x.durationDays?x.durationDays+" days":(x.period|| (shared?"30 days":"Monthly term"));
    const location=[x.country,x.carrier,x.region].filter(Boolean).join(" · ");
    const detail=String(x.description|| (shared
-    ? "Pay for the data volume you select. Traffic is routed through a shared pool of real 4G/5G mobile carrier IPs, with HTTP(S) or SOCKS5 and rotating or sticky sessions where supported."
-    : "A dedicated mobile proxy routes your traffic through a real 4G/5G carrier device. Dedicated plans are billed by the selected term and may include unmetered traffic."));
+    ? "Pay for a set amount of data on a shared pool of real 4G/5G mobile carrier IPs. Plans are valid for 30 days and support HTTP(S) or SOCKS5, with rotating or sticky sessions where supported."
+    : "A dedicated mobile proxy routes traffic through your own real 4G/5G carrier device. It is billed by day, week or month and includes unmetered traffic for the selected term."));
    const rate=shared&&Number(x.pricePerGbCents)>0?" · "+money(x.pricePerGbCents,"USD")+"/GB":"";
-   return card("proxies",x.name||"Mobile proxy", (shared?"Shared mobile proxy · ":"Dedicated mobile proxy · ")+volume+" · "+duration,detail+(location?" Location: "+location:""),x.priceCents,shared?volume+" total"+rate+" · before VAT/tax":"per "+(x.period||"term")+" · before VAT/tax",x.available?"AVAILABLE":"CHECK AVAILABILITY",x.currency,x.country||"",key);
+   const priceNote=shared?volume+" total"+rate+" · 30 days · before VAT/tax":"unmetered · per "+duration+" · before VAT/tax";
+   return card("proxies",x.name||"Mobile proxy", (shared?"Shared mobile proxy · ":"Dedicated mobile proxy · ")+volume+" · "+duration,detail+(location?" Location: "+location:""),x.priceCents,priceNote,x.available?"AVAILABLE":"CHECK AVAILABILITY",x.currency,x.country||"",key);
   }
   if(category==="dedicated"){
    const detail="A private phone number reserved for your use on a monthly plan. Use it to receive ongoing SMS messages and verification codes on services that accept dedicated or rented numbers. Platform rules differ, so check that your intended service accepts this number type before buying.";
