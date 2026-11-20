@@ -722,7 +722,7 @@
    const discountNote=discount>0?" · "+discount+"% lower per GB vs "+(options[0].durationDays||"shortest")+"-day term":"";
    const priceNote=shared&&rate>0
     ? "PRICE PER GB · "+volume+" package · "+duration+" · package total "+money(selected.priceCents,"USD")+discountNote+" · before VAT/tax"
-    : shared?volume+" package · "+duration+" · before VAT/tax":"UNMETERED TRAFFIC · per "+duration+" · before VAT/tax";
+    : shared?volume+" package · "+duration+" · before VAT/tax":"unmetered · per "+duration+" · before VAT/tax";
    const proxyOptionsAttribute=' data-proxy-options="'+esc(JSON.stringify(options))+'"'+(shared?' data-proxy-metered="true"':"");
    return card("proxies",x.name||"Mobile proxy",(shared?"Shared mobile proxy · ":"Dedicated mobile proxy · ")+volume+" · "+duration,
     detail+(location?" Location: "+location:""),shared&&rate>0?rate:selected.priceCents,priceNote,
