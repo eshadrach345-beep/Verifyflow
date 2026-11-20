@@ -575,6 +575,8 @@
  const params=new URLSearchParams(window.location.search);
  const requestedCategory=params.get("category");
  const requestedSearch=params.get("search")||params.get("q")||"";
+ const requestedCountry=params.get("country")||"";
+ if(countryInput&&/^[a-z]{2}$/i.test(requestedCountry))countryInput.value=requestedCountry.toLowerCase();
  let active=categoryKeys.includes(requestedCategory)?requestedCategory:"all", catalogue=null, loading=false, reloadRequested=false, renderedCount=24;
  const PAGE_SIZE=24;
  const topSearch=document.getElementById("vf-dash-search");
