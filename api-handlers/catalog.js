@@ -1,4 +1,5 @@
 const { getCatalog: getHeroSmsCatalog } = require("../lib/herosms");
+const { sealCatalogProductToken } = require("../lib/catalog-token");
 const VOIDMOB_BASE = "https://dashboard.voidmob.com/api/v1";
 
 const PRICE_RULES = {
@@ -153,7 +154,7 @@ module.exports = async function handler(req, res) {
       : Promise.resolve({
           ok: true,
           items: [],
-          message: "VoidMob SMS verification and long-term rentals currently support US numbers only."
+          message: "SMS verification and long-term number rentals are currently available for US numbers only."
         }),
     safeRead(
       () => supplierList("/esim_products", "products", headers, 100),
@@ -173,14 +174,14 @@ module.exports = async function handler(req, res) {
   ]);
 
   const smsItems = services.items.map(service => ({
-    id: service.id,
+    id: sealCatalogProductToken({
+      provider: "voidmob", productType: "sms_otp",
+      productId: String(service.id), country: requestedCountry
+    }),
     name: service.name,
     available: Boolean(service.available),
     priceCents: retailPriceCents(service.quoted_price_cents, "sms"),
-    currency: "USD",
-    iconUrl: typeof service.icon_url === "string" && service.icon_url.startsWith("/")
-      ? VOIDMOB_BASE + service.icon_url
-      : null
+    currency: "USD"
   }));
 
   const voidMobRentalItems = services.items.map(service => {
@@ -199,7 +200,10 @@ module.exports = async function handler(req, res) {
       }));
 
     return {
-      id: service.id,
+      id: sealCatalogProductToken({
+        provider: "voidmob", productType: "long_term_number",
+        productId: String(service.id), country: requestedCountry
+      }),
       name: service.name,
       countryCode: requestedCountry.toUpperCase(),
       available: Boolean(service.available),
@@ -208,7 +212,10 @@ module.exports = async function handler(req, res) {
   }).filter(item => item.durations.length > 0);
 
   const esimItems = esim.items.map(product => ({
-    id: product.id,
+    id: sealCatalogProductToken({
+      provider: "voidmob", productType: "esim",
+      productId: String(product.id), country: requestedCountry
+    }),
     title: product.full_title || product.title,
     countries: Array.isArray(product.countries) ? product.countries : [],
     dataGb: product.data_limit_gb,
@@ -222,7 +229,10 @@ module.exports = async function handler(req, res) {
   }));
 
   const proxyItems = proxies.items.map(plan => ({
-    id: plan.id,
+    id: sealCatalogProductToken({
+      provider: "voidmob", productType: "mobile_proxy",
+      productId: String(plan.id), country: requestedCountry
+    }),
     name: plan.name,
     type: plan.type,
     country: plan.country_name || plan.country || "Global",
@@ -243,6 +253,10 @@ module.exports = async function handler(req, res) {
   }));
 
   const dedicatedItems = dedicated.items.map(item => ({
+    id: sealCatalogProductToken({
+      provider: "voidmob", productType: "dedicated_number",
+      productId: String(item.country).toLowerCase(), country: requestedCountry
+    }),
     country: item.country,
     name: item.name,
     inStock: Boolean(item.in_stock),
@@ -251,14 +265,35 @@ module.exports = async function handler(req, res) {
     billingPeriod: "monthly"
   }));
 
-  const mergedSmsItems = [
-    ...smsItems.map(item => ({ ...item, provider: "voidmob" })),
-    ...(heroSms.ok ? (heroSms.items?.smsItems || []) : [])
-  ];
-  const mergedRentalItems = [
-    ...voidMobRentalItems.map(item => ({ ...item, provider: "voidmob" })),
-    ...(heroSms.ok ? (heroSms.items?.rentalItems || []) : [])
-  ];
+  // HeroSMS is mapped into the same public shape, but supplier IDs, provider
+  // names, country IDs, stock counters and supplier cost fields stay server-side.
+  const heroSmsItems = heroSms.ok ? (heroSms.items?.smsItems || []).map(item => ({
+    id: sealCatalogProductToken({
+      provider: "herosms", productType: "sms_otp",
+      productId: String(item.id), country: String(item.countryCode || requestedCountry).toLowerCase()
+    }),
+    name: item.name,
+    available: Boolean(item.available),
+    priceCents: Number(item.priceCents),
+    currency: "USD"
+  })) : [];
+  const heroSmsRentalItems = heroSms.ok ? (heroSms.items?.rentalItems || []).map(item => ({
+    id: sealCatalogProductToken({
+      provider: "herosms", productType: "long_term_number",
+      productId: String(item.id), country: String(item.countryCode || requestedCountry).toLowerCase()
+    }),
+    name: item.name,
+    countryCode: String(item.countryCode || requestedCountry).toUpperCase(),
+    available: Boolean(item.available),
+    durations: (Array.isArray(item.durations) ? item.durations : []).map(duration => ({
+      days: Number(duration.days),
+      hours: Number(duration.hours),
+      priceCents: Number(duration.priceCents),
+      currency: "USD"
+    }))
+  })).filter(item => item.durations.length) : [];
+  const mergedSmsItems = [...smsItems, ...heroSmsItems];
+  const mergedRentalItems = [...voidMobRentalItems, ...heroSmsRentalItems];
   const smsOk = services.ok || heroSms.ok;
   const rentalOk = services.ok || heroSms.ok;
   const smsMessage = mergedSmsItems.length ? null : (!heroSms.ok && requestedCountry !== "us" ? services.message : null);
