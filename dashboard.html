@@ -714,8 +714,8 @@
      if(delivery?.status==="expired")details.push('<p class="order-waiting">This activation or rental has expired or was cancelled. Contact support if you need an order review.</p>');
     }
     const state=String(order.fulfilment_status||order.status||"pending").replaceAll("_"," ");
-    const pollable=order.has_supplier_order===true&&["sms_otp","smm_service"].includes(order.product_type)&&!["completed","failed","unknown"].includes(String(order.fulfilment_status||"").toLowerCase());
-    const showRefresh=pollable||(isRental&&order.has_supplier_order===true);
+    const pollable=order.has_active_delivery===true&&["sms_otp","smm_service"].includes(order.product_type)&&!["completed","failed","unknown"].includes(String(order.fulfilment_status||"").toLowerCase());
+    const showRefresh=pollable||(isRental&&order.has_active_delivery===true);
     const refreshButton=showRefresh?'<button type="button" class="order-refresh-button" data-refresh-order="'+esc(order.id)+'">'+(isOtp?"Check for SMS":isRental?"Refresh rental messages":"Refresh progress")+'</button>':"";
     const sub=order.order_number+" · "+new Date(order.created_at).toLocaleDateString();
     return '<article class="order-row"><div class="order-main"><div><strong>'+esc(order.product_name)+'</strong><small>'+esc(sub)+'</small></div><span class="order-status order-'+esc(order.status)+'">'+esc(state)+'</span></div>'+
@@ -740,7 +740,7 @@
  });
  async function refreshPendingCustomerOrders(){
   if(orderRefreshInFlight||document.visibilityState==="hidden")return;
-  const pending=orderCache.filter(order=>order.has_supplier_order===true&&
+  const pending=orderCache.filter(order=>order.has_active_delivery===true&&
    ["sms_otp","smm_service"].includes(order.product_type)&&
    !["completed","failed","unknown"].includes(String(order.fulfilment_status||"").toLowerCase()));
   if(!pending.length)return;
