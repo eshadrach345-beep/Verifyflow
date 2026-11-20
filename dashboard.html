@@ -752,7 +752,7 @@
   }
   if(category==="marketing"){
    const serviceName=(x.platform||"Social media")+" "+(x.name||"service");
-   const detail="Order this service for a public profile or post. Quantity limits apply.";
+   const detail=[x.platform || x.category || "Social Media", x.subcategory || "Other"].join(" · ") + ". Order this service for a public profile or post. Quantity limits apply.";
    return card("marketing",serviceName,"Quantity "+Number(x.min||0).toLocaleString()+"–"+Number(x.max||0).toLocaleString()+" · per 1,000",detail,x.pricePer1000Minor,"per 1,000 · USD · before applicable tax","AVAILABLE","USD","",key,productDataAttribute);
   }
   return "";
