@@ -13,6 +13,11 @@ module.exports=async function handler(req,res){
    "SELECT p.payment_reference,p.provider,p.currency,p.amount_minor,NULL AS wallet_amount_minor,p.status,p.provider_status,p.created_at,u.email AS customer_email,'product_order' AS payment_type FROM vf_payments p JOIN vf_orders o ON o.id=p.order_id JOIN vf_users u ON u.id=o.user_id "+
    "ORDER BY created_at DESC LIMIT 300"
   );
-  return sendJson(res,200,{ok:true,payments:rows.rows.map(r=>({...r,amountMinor:Number(r.amount_minor),walletAmountMinor:r.wallet_amount_minor==null?null:Number(r.wallet_amount_minor)}))});
+  const events=await getPool().query("SELECT provider,event_type,payment_reference,created_at FROM vf_payment_webhook_events ORDER BY created_at DESC LIMIT 100");
+  return sendJson(res,200,{
+   ok:true,
+   payments:rows.rows.map(r=>({...r,amountMinor:Number(r.amount_minor),walletAmountMinor:r.wallet_amount_minor==null?null:Number(r.wallet_amount_minor)})),
+   webhookEvents:events.rows
+  });
  }catch(error){console.error("[admin/payments]",error.code||error.message);return sendJson(res,503,{ok:false,error:"Payment records are temporarily unavailable."});}
 };
