@@ -1,0 +1,18 @@
+"use strict";
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const loginPage = fs.readFileSync("admin-login.html", "utf8");
+const loginClient = fs.readFileSync("admin-login.js", "utf8");
+const adminPage = fs.readFileSync("admin.html", "utf8");
+const access = fs.readFileSync("api-handlers/admin/access.js", "utf8");
+assert.ok(loginPage.includes('id="admin-email"'));
+assert.ok(loginPage.includes('id="admin-password"'));
+assert.ok(loginPage.includes("/admin-login.js"));
+assert.ok(loginClient.includes("/api/auth/login"));
+assert.ok(loginClient.includes("/api/admin/access"));
+assert.ok(loginClient.includes("/api/auth/logout"));
+assert.ok(loginClient.includes('window.location.replace(destination)'));
+assert.ok(adminPage.includes("/admin-login.html?next=%2Fadmin.html"));
+assert.ok(access.includes("VERIFYFLOW_ADMIN_EMAILS"));
+assert.ok(access.includes("getSessionUser"));
+console.log("Admin login and access-gate tests passed.");
