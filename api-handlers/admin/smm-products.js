@@ -234,7 +234,9 @@ module.exports = async function handler(req, res) {
     if (!row) return sendJson(res, 400, { ok: false, error: "This service has no usable supplier rate in USD or NGN. A percentage price cannot be calculated." });
     row.platform = cleanSupplierText(body.platform || autoClassification.platform, 60);
     row.subcategory = cleanSupplierText(body.subcategory || autoClassification.subcategory, 60);
-    row.classificationStatus = body.platform || body.subcategory ? "medium" : autoClassification.classificationStatus;
+    const manualCategoryOverride = (body.platform && body.platform !== autoClassification.platform) ||
+      (body.subcategory && body.subcategory !== autoClassification.subcategory);
+    row.classificationStatus = manualCategoryOverride ? "medium" : autoClassification.classificationStatus;
     row.productName = cleanSupplierText(body.productName || service.name, 140);
     row.description = cleanSupplierText(body.description || service.description || "", 500);
     const productValues = [provider, row.serviceId, row.platform, row.subcategory, row.classificationStatus, row.productName, row.description,
