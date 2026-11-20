@@ -351,7 +351,7 @@ module.exports = async function handler(req, res) {
           email: user.email, customerName: user.full_name,
           amountMinor: paymentAmountMinor, currency: paymentCurrency,
           reference: paymentReference,
-          callbackUrl: (process.env.PUBLIC_APP_URL || "https://verifyflow.us.ci").replace(/\\/+$/, "") +
+          callbackUrl: (process.env.PUBLIC_APP_URL || "https://verifyflow.us.ci").replace(/\/+$/, "") +
             "/payment-return.html?paymentReference=" + encodeURIComponent(paymentReference),
           metadata: { type: "product_order", orderId, orderNumber, userId: user.id }
         });
