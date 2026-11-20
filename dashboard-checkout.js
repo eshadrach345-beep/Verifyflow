@@ -29,7 +29,8 @@ document.body.insertAdjacentHTML("beforeend", `
         <fieldset class="vf-payment-choice">
           <legend>How would you like to pay?</legend>
           <label><input type="radio" name="vf-payment-method" value="wallet"> <span>Pay from my VerifyFlow wallet <small id="vf-wallet-balance" class="vf-wallet-balance">Checking wallet balance…</small></span></label>
-          <label><input type="radio" name="vf-payment-method" value="monnify" checked> <span>Pay with Monnify <small>Secure payment using the methods enabled on your Monnify account</small></span></label>
+          <label><input type="radio" name="vf-payment-method" value="squad" checked> <span>Pay with Squad <small>Card, bank, USSD or bank transfer</small></span></label>
+          <label><input type="radio" name="vf-payment-method" value="monnify"> <span>Pay with Monnify <small>Existing payment option</small></span></label>
           <a href="/account.html?panel=wallet" class="account-text-link">Fund your wallet ↗</a>
         </fieldset>
         <p class="vf-checkout-note">The final price is confirmed using a fresh supplier quote before payment.</p>
@@ -61,7 +62,7 @@ document.body.insertAdjacentHTML("beforeend", `
       walletBalanceLabel.textContent = "Available: " + money(walletBalanceMinor);
     } catch {
       walletBalanceMinor = null;
-      walletBalanceLabel.textContent = "Wallet balance could not be loaded. Monnify is still available.";
+      walletBalanceLabel.textContent = "Wallet balance could not be loaded. Squad checkout is available.";
     }
   }
 
@@ -506,9 +507,9 @@ document.body.insertAdjacentHTML("beforeend", `
     submit.disabled = true;
     submit.textContent = "Preparing secure checkout…";
     message.textContent = "";
-    const paymentMethod = form.querySelector('input[name="vf-payment-method"]:checked')?.value || "monnify";
+    const paymentMethod = form.querySelector('input[name="vf-payment-method"]:checked')?.value || "squad";
     if (paymentMethod === "wallet" && walletBalanceMinor != null && walletBalanceMinor < selected.estimate) {
-      message.textContent = "Your wallet balance is too low. Fund your wallet or choose Monnify.";
+      message.textContent = "Your wallet balance is too low. Fund your wallet or choose Squad.";
       submit.disabled = false;
       submit.textContent = "Continue to payment ↗";
       return;
