@@ -117,7 +117,7 @@
       if (card.querySelector(".vf-buy-area")) return;
       const category = card.dataset.productCategory || "sms";
       const key = card.dataset.productKey || "";
-      const item = visibleRows(category).find(row => String(row.provider||row.providerLabel||"")+":"+String(row.id??row.productId??row.country??row.title??row.name??row.full_title??"") === key);
+      const item = visibleRows(category).find(row => String(row.id??row.productId??row.country??row.title??row.name??row.full_title??"") === key);
       if (!item) return;
       const product = productDetails(category, item);
       if (!product) {
@@ -150,7 +150,7 @@
         : "";
       const button = '<button class="vf-buy-button" type="button" data-vf-buy="true" ' +
         'data-product-type="' + esc(product.type) + '" data-product-id="' + esc(product.id) + '" ' +
-        'data-country="' + esc(product.country || "") + '" data-provider="' + esc(product.provider || "voidmob") + '" data-product-name="' + esc(item.title || item.name || item.full_title || item.country || "VerifyFlow service") + '" ' +
+        'data-product-name="' + esc(item.title || item.name || item.full_title || item.country || "VerifyFlow service") + '" ' +
         'data-product-price="' + esc(product.price) + '" data-duration-prices="' + esc(JSON.stringify(durations)) + '"' + (product.available && durations.length !== 0 || product.available && category !== "rentals" ? "" : " disabled") +
         '>Continue to checkout →</button>';
       card.querySelector(".catalog-item-copy")?.insertAdjacentHTML("beforeend", '<div class="vf-buy-area">' + select + button + '</div>');
@@ -238,9 +238,7 @@
     }
     selected = {
       productType,
-      provider: button.dataset.provider || "voidmob",
       productId: button.dataset.productId,
-      country: button.dataset.country || "us",
       productName: button.dataset.productName || "VerifyFlow service",
       estimate: productType === "smm_service"
         ? Math.ceil(Number(button.dataset.productPrice) * smmQuantity / 1000)
@@ -299,9 +297,7 @@
     const payload = {
       checkoutKey: selected.checkoutKey,
       productType: selected.productType,
-      provider: selected.provider || "voidmob",
       productId: selected.productId,
-      country: selected.country,
       paymentMethod
     };
     if (selected.productType === "long_term_number") payload.durationDays = Number(document.getElementById("vf-duration-select").value);
