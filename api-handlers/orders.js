@@ -13,6 +13,7 @@ module.exports = async function handler(req, res) {
               o.total_minor, o.created_at, o.updated_at,
               EXISTS (SELECT 1 FROM vf_fulfilment_jobs delivery_job WHERE delivery_job.order_id = o.id AND delivery_job.status IN ('submitted','completed')) AS has_active_delivery,
               o.metadata->'fulfilment'->'customerDelivery' AS customer_delivery,
+              o.metadata->'walletRefund' AS wallet_refund,
               jsonb_strip_nulls(jsonb_build_object(
                 'status', o.metadata->'fulfilment'->>'status',
                 'phone_number', COALESCE(o.metadata#>>'{fulfilment,customerDelivery,phoneNumber}', o.metadata#>>'{fulfilment,serviceData,phoneNumber}', o.metadata#>>'{fulfilment,serviceData,phone_number}', o.metadata#>>'{fulfilment,serviceData,phone}', o.metadata#>>'{fulfilment,serviceData,number}'),
