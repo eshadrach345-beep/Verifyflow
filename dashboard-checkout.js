@@ -224,17 +224,54 @@ document.body.insertAdjacentHTML("beforeend", `
     .then(response => response.json()).then(data => { signedIn = Boolean(data.ok && data.user); }).catch(() => { signedIn = false; });
 
   function activateServiceCard(card) {
+    if (!card) return;
     const targetInput = card.querySelector("[data-smm-link]");
     if (targetInput) {
       targetInput.focus();
       targetInput.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    const buyButton = card.querySelector("[data-vf-buy]");
-    if (buyButton && !buyButton.disabled) buyButton.click();
+    const openBuyDialog = () => {
+      const buyButton = card.querySelector("[data-vf-buy]");
+      if (!buyButton) return false;
+      if (buyButton.disabled) {
+        const status = document.getElementById("catalog-status");
+        if (status) status.textContent = "This option is currently unavailable. Please choose another available listing.";
+        return true;
+      }
+      buyButton.click();
+      return true;
+    };
+    if (openBuyDialog()) return;
+    if (card.dataset.vfActivationPending === "true") return;
+    card.dataset.vfActivationPending = "true";
+    const status = document.getElementById("catalog-status");
+    if (status) status.textContent = "Preparing secure options for this service…";
+    let attempts = 0;
+    const retry = () => {
+      if (!card.isConnected) return;
+      if (openBuyDialog()) {
+        delete card.dataset.vfActivationPending;
+        return;
+      }
+      attempts += 1;
+      if (attempts >= 12) {
+        delete card.dataset.vfActivationPending;
+        if (status) status.textContent = "This listing is still loading. Refresh the catalogue and try again.";
+        return;
+      }
+      window.setTimeout(retry, 125);
+    };
+    window.setTimeout(retry, 125);
   }
 
   grid.addEventListener("click", async event => {
+    const cardAction = event.target.closest("[data-vf-card-open]");
+    if (cardAction) {
+      event.preventDefault();
+      activateServiceCard(cardAction.closest(".catalog-item"));
+      return;
+    }
     let button = event.target.closest("[data-vf-buy]");
     if (!button) {
       const cardTile = event.target.closest(".catalog-item");
