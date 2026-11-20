@@ -71,7 +71,6 @@
 
   function productDetails(category, item) {
     if (category === "sms") return { type: "sms_otp", id: item.id, country: item.countryCode || catalogue?.country || "us", provider: item.provider || "voidmob", available: item.available === true, price: item.priceCents };
-    if (category === "rentals" && item.provider === "herosms") return null;
     if (category === "rentals") { const durations = (item.durations || []).filter(x => Number.isSafeInteger(Number(x.priceCents)) && Number(x.priceCents) > 0).map(x => ({ days: Number(x.days), price: Number(x.priceCents) })); return { type: "long_term_number", id: item.id, country: item.countryCode || catalogue?.country || "us", provider: item.provider || "voidmob", available: item.available === true, price: Math.min(...durations.map(x => x.price)), durations }; }
     if (category === "esim") return { type: "esim", id: item.id, available: true, price: item.priceCents };
     if (category === "proxies") return { type: "mobile_proxy", id: item.id, available: item.available !== false, price: item.priceCents };
