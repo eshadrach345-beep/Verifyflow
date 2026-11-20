@@ -484,6 +484,21 @@
   if(!response.ok||!data.ok)throw new Error(friendlyErrorMessage(data.error,"Your orders could not be loaded."));
   renderOrders(data.orders||[]);
  }
+ let accountOrderRefreshBusy=false;
+ async function autoRefreshActiveOrders(){
+  if(accountOrderRefreshBusy||document.visibilityState==="hidden")return;
+  const pending=currentOrders.filter(order=>order.has_supplier_order&&["sms_otp","smm_service"].includes(order.product_type)&&
+   (order.product_type==="sms_otp"?order.customer_delivery?.status==="waiting":!["completed","failed","unknown"].includes(String(order.fulfilment_status||"").toLowerCase())));
+  if(!pending.length)return;
+  accountOrderRefreshBusy=true;
+  try{
+   for(const order of pending.slice(0,5)){
+    await fetch("/api/orders/refresh",{method:"POST",credentials:"same-origin",cache:"no-store",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify({orderId:order.id})}).catch(()=>null);
+   }
+   await loadOrders();
+  }finally{accountOrderRefreshBusy=false;}
+ }
+ setInterval(autoRefreshActiveOrders,15000);
  async function openPortal(user){
   showPortal();
   selectPanel("overview");
