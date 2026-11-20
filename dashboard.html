@@ -773,9 +773,9 @@
     separate.push(plan);continue;
    }
    const name=String(plan.name||"mobile proxy").toLowerCase()
-    .replace(/\\b\\d+(?:\\.\\d+)?\\s*(?:gb|gigabytes?)\\b/g," ")
-    .replace(/\\b\\d+(?:\\.\\d+)?\\s*(?:days?|d|weeks?|w|months?|mo)\\b/g," ")
-    .replace(/\\b(?:daily|weekly|monthly)\\b/g," ").replace(/[()]/g," ").replace(/\\s+/g," ").trim();
+    .replace(/\b\d+(?:\.\d+)?\s*(?:gb|gigabytes?)\b/g," ")
+    .replace(/\b\d+(?:\.\d+)?\s*(?:days?|d|weeks?|w|months?|mo)\b/g," ")
+    .replace(/\b(?:daily|weekly|monthly)\b/g," ").replace(/[()]/g," ").replace(/\s+/g," ").trim();
    const family=[name,type==="shared"?"shared":"dedicated",String(plan.country||""),String(plan.carrier||""),String(plan.region||"")].join("|");
    if(!groups.has(family))groups.set(family,[]);
    groups.get(family).push(plan);
