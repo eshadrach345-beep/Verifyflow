@@ -17,7 +17,7 @@ module.exports = async function handler(req, res) {
   }
   try {
     const result = await getPool().query(
-      "SELECT id, platform, product_name, description, min_quantity, max_quantity, retail_rate_minor_per_1000 " +
+      "SELECT id, platform, subcategory, classification_status, product_name, description, min_quantity, max_quantity, retail_rate_minor_per_1000 " +
       "FROM vf_smm_products WHERE is_active = TRUE ORDER BY platform, product_name"
     );
     const items = result.rows.map(row => ({
