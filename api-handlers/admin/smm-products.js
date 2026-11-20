@@ -80,14 +80,18 @@ module.exports = async function handler(req, res) {
       // service lists so the admin can inspect them and report the setup issue.
       const providers = await Promise.all(PROVIDERS.map(readProvider));
       let products = [], productsTableReady = true;
+      let productsMessage = null;
       try {
         const result = await getPool().query(
-          "SELECT * FROM vf_smm_products ORDER BY updated_at DESC LIMIT 500"
+          "SELECT id, provider, supplier_service_id, platform, subcategory, classification_status, product_name, description, supplier_rate, supplier_currency, min_quantity, max_quantity, retail_rate_minor_per_1000, is_active, created_at, updated_at FROM vf_smm_products ORDER BY updated_at DESC LIMIT 500"
         );
         products = result.rows.map(productRow);
       } catch (error) {
-        if (error.code !== "42P01") throw error;
+        if (!["42P01", "42703"].includes(error.code)) throw error;
         productsTableReady = false;
+        productsMessage = error.code === "42P01"
+          ? "The SMM product table is not installed yet. Apply database migration 006_smm_product_manager.sql."
+          : "The SMM category fields are not installed yet. Apply database migration 010_smm_categories.sql.";
       }
       return sendJson(res, 200, {
         ok: true,
@@ -98,8 +102,7 @@ module.exports = async function handler(req, res) {
         })),
         products,
         productsTableReady,
-        productsMessage: productsTableReady ? null :
-          "The SMM product table is not installed yet. Apply database migration 006_smm_product_manager.sql to enable saving and publishing products.",
+        productsMessage: productsTableReady ? null : productsMessage,
         updatedAt: new Date().toISOString()
       });
     }
