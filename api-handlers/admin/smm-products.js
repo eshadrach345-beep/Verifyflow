@@ -20,6 +20,11 @@ async function requireAdmin(req, res) {
   }
   return true;
 }
+function cleanSupplierText(value, maxLength) {
+  // Supplier catalogues occasionally contain lone UTF-16 surrogates. PostgreSQL
+  // rejects those when they are embedded in JSONB; replace them before encoding.
+  return String(value ?? "").replace(/[\\uD800-\\uDBFF](?![\\uDC00-\\uDFFF])|(?<![\\uD800-\\uDBFF])[\\uDC00-\\uDFFF]/g, "�").slice(0, maxLength);
+}
 function moneyToMinor(value) {
   const match = String(value ?? "").trim().match(/^(\d{1,9})(?:\.(\d{1,2}))?$/);
   if (!match) return null;
@@ -149,9 +154,9 @@ module.exports = async function handler(req, res) {
       const retailRateMinor = toRetailMinor(service);
       if (!retailRateMinor) return null;
       return {
-        serviceId: String(service.id), platform: String(service.category || "Other").slice(0, 60),
-        productName: String(service.name || "Supplier service").slice(0, 140),
-        description: String(service.description || "").slice(0, 500),
+        serviceId: cleanSupplierText(service.id, 160).trim(), platform: cleanSupplierText(service.category || "Other", 60),
+        productName: cleanSupplierText(service.name || "Supplier service", 140),
+        description: cleanSupplierText(service.description || "", 500),
         supplierRate: Number.isFinite(supplierRate) && supplierRate >= 0 ? supplierRate : null,
         supplierCurrency, min, max, retailRateMinor
       };
@@ -243,11 +248,17 @@ module.exports = async function handler(req, res) {
         error: "This supplier service is already published. Edit its existing listing instead of creating a duplicate."
       });
     }
-    const schemaMismatch = ["42P01", "42P10", "22P02"].includes(error.code);
+    const schemaMismatch = ["42P01", "42P10"].includes(error.code);
+    if (error.code === "22P02") {
+      return sendJson(res, 422, {
+        ok: false,
+        error: "A supplier catalogue entry contains data the product manager cannot save. Refresh the supplier catalogue and try again. The database migration is not the cause of this error."
+      });
+    }
     return sendJson(res, 503, {
       ok: false,
       error: schemaMismatch
-        ? "The product database schema needs the latest VerifyFlow repair migration. Apply 009_wallet_smm_schema_repair.sql, then refresh this page."
+        ? "A required product table or database index is missing. Verify the production database schema before publishing."
         : "The Social Media Boosters product manager is temporarily unavailable."
     });
   }
