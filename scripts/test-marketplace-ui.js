@@ -51,6 +51,10 @@ assert.ok(dashboard.includes("No Social Media Boosters are published yet."),
   "Dashboard must explain an empty SMM catalogue");
 assert.ok(dashboard.includes("SMM product database migration may need to be applied"),
   "Dashboard must surface a clear SMM catalogue setup hint");
+assert.ok(dashboard.includes('category==="marketing"') && dashboard.includes('pricePer1000Minor') && dashboard.includes('priceA-priceB'),
+  "Social Media Boosters must sort by ascending customer retail price after every catalogue load");
+assert.ok(adminSmm.includes("orderedProducts") && adminSmm.includes("retailRateMinorPer1000"),
+  "Admin SMM product list must automatically sort imported products from cheapest to most expensive");
 
 assert.ok(dashboard.includes('active==="all"?categoryKeys:[active]'),
   "Global search must query all catalogue categories");

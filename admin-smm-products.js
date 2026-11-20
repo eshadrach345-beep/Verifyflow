@@ -65,7 +65,12 @@
       productsBody.innerHTML = '<tr><td colspan="6" class="empty">No social media products have been added yet.</td></tr>';
       return;
     }
-    productsBody.innerHTML = products.map(item =>
+    const orderedProducts = [...products].sort((a, b) =>
+      Number(a.retailRateMinorPer1000 || Number.MAX_SAFE_INTEGER) -
+      Number(b.retailRateMinorPer1000 || Number.MAX_SAFE_INTEGER) ||
+      String(a.productName || "").localeCompare(String(b.productName || ""))
+    );
+    productsBody.innerHTML = orderedProducts.map(item =>
       '<tr><td><b>' + esc(item.productName) + '</b><br><span class="muted">' + esc(item.platform) + '</span>' +
       (item.description ? '<br><span class="muted">' + esc(item.description) + '</span>' : '') + '</td>' +
       '<td>' + esc(item.provider === "peakerr" ? "Peakerr" : "JustAnotherPanel") + '<br><span class="muted">Service ID ' + esc(item.serviceId) + '</span></td>' +
