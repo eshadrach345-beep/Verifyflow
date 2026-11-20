@@ -89,7 +89,8 @@ document.body.insertAdjacentHTML("beforeend", `
   }
 
   function renderButtons() {
-    if (!catalogue) return;
+    // Cards carry the exact catalogue row used to render them; checkout must
+    // not depend on a second catalogue request completing successfully.
     const cards = [...grid.querySelectorAll(".catalog-item")];
     cards.forEach(card => {
       if (card.querySelector(".vf-buy-area")) return;
