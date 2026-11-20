@@ -393,7 +393,8 @@ document.body.insertAdjacentHTML("beforeend", `
       quantity: smmQuantity,
       durationPrices: JSON.parse(button.dataset.durationPrices || "[]"),
       checkoutKey: key(),
-      durationDays: Number(card?.querySelector("[data-rental-days]")?.value || 0),\n      supportsVerificationMethods: button.dataset.herosmsMethods === "true",\n      verificationType: "sms"
+      durationDays: Number(card?.querySelector("[data-rental-days]")?.value || 0),
+      supportsVerificationMethods: button.dataset.herosmsMethods === "true",\n      verificationType: "sms"
     };
     if (productType === "smm_service") selected.productName += " · " + smmQuantity.toLocaleString() + " units";
     if (selected.productType === "long_term_number") {
