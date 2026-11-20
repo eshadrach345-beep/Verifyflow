@@ -17,6 +17,17 @@ const smmAdminApi = fs.readFileSync("api-handlers/admin/smm-products.js", "utf8"
 const smmSupplier = fs.readFileSync("lib/smm-service.js", "utf8");
 const orderCreate = fs.readFileSync("api-handlers/orders/create.js", "utf8");
 const migration = fs.readFileSync("db/migrations/006_smm_product_manager.sql", "utf8");
+const walletMigration = fs.readFileSync("db/migrations/008_wallet_ledger.sql", "utf8");
+const walletLibrary = fs.readFileSync("lib/wallet.js", "utf8");
+const walletApi = fs.readFileSync("api-handlers/wallet/index.js", "utf8");
+const walletDepositApi = fs.readFileSync("api-handlers/wallet/deposit.js", "utf8");
+const walletAccount = fs.readFileSync("wallet-account.js", "utf8");
+const paymentService = fs.readFileSync("lib/payment-service.js", "utf8");
+const paymentWebhook = fs.readFileSync("api-handlers/payments/webhook.js", "utf8");
+const fulfilment = fs.readFileSync("lib/fulfilment.js", "utf8");
+const proxyCatalog = fs.readFileSync("api-handlers/catalog.js", "utf8");
+const proxySupplier = fs.readFileSync("lib/voidmob.js", "utf8");
+const accountPage = fs.readFileSync("account.html", "utf8");
 
 const categories = ["sms", "rentals", "dedicated", "esim", "proxies", "marketing"];
 
@@ -68,6 +79,55 @@ assert.ok(checkout.includes('card.dataset.productKey'), "Checkout must resolve t
 assert.ok(checkout.includes('row.provider||row.providerLabel||""'),
   "Checkout matching must distinguish supplier rows sharing a product identifier");
 assert.ok(checkout.includes('visibleRows(category)'), "Checkout must search within the card's original category");
+
+assert.ok(dashboard.includes('id="catalog-country"') && dashboard.includes("populateCountryOptions(data.countries)"),
+  "Country selector must be populated from the supported country catalogue");
+assert.ok(dashboard.includes('"whatsapp","telegram","gmail"') && dashboard.includes('["sms","rentals"].includes(category)'),
+  "Long-term rentals and SMS products must sort with popular services first");
+assert.ok(checkout.includes("data-rental-selected-price") && dashboard.includes("Choose your rental period"), "Rental product cards must explain period selection");
+assert.ok(checkout.includes("data-rental-selected-price") && checkout.includes("updateRentalPrice"),
+  "Rental card price must update immediately when its period is changed");
+assert.ok(dashboard.includes("private phone number reserved for your use") &&
+  dashboard.includes("Receive a one-time SMS code") &&
+  dashboard.includes("unlocked, eSIM-compatible") &&
+  dashboard.includes("Shared mobile proxy") ,
+  "All catalogue product families must have practical customer-facing descriptions");
+assert.ok(proxyCatalog.includes("pricePerGbCents") && proxyCatalog.includes("Number(plan.data_gb)"),
+  "Shared mobile proxy catalogue must expose a derived per-GB price");
+assert.ok(dashboard.includes("Unlimited traffic") && dashboard.includes("unmetered · per "),
+  "Dedicated proxy terms must not be presented as shared data packages");
+assert.ok(proxyCatalog.includes("Math.min(configuredPercent, 18)") &&
+  proxySupplier.includes("Math.min(requestedPercent, 18)"),
+  "Proxy quote and catalogue retail margins must both be capped at a competitive 18 percent");
+assert.ok(walletMigration.includes("CREATE TABLE IF NOT EXISTS vf_wallet_accounts") &&
+  walletMigration.includes("CREATE TABLE IF NOT EXISTS vf_wallet_transactions") &&
+  walletMigration.includes("CREATE TABLE IF NOT EXISTS vf_wallet_topups"),
+  "Wallet migration must create balance, immutable ledger and Monnify deposit records");
+assert.ok(walletLibrary.includes("ON CONFLICT (user_id, reference_type, reference_id) DO NOTHING") &&
+  walletLibrary.includes("refundFailedOrder"),
+  "Wallet ledger must be idempotent and expose failed-order refunds");
+assert.ok(walletApi.includes("getSessionUser") && walletApi.includes("vf_wallet_transactions"),
+  "Wallet balance and history must be restricted to the signed-in customer");
+assert.ok(walletDepositApi.includes("getCheckoutAmount") && walletDepositApi.includes("initializeTransaction"),
+  "Wallet deposits must use configured currency conversion and Monnify hosted checkout");
+assert.ok(walletAccount.includes("/api/wallet/deposit") && walletAccount.includes("amountUsdCents"),
+  "Account wallet panel must fund the wallet through the protected deposit API");
+assert.ok(accountPage.includes('id="panel-wallet"') && accountPage.includes('data-panel="wallet"'),
+  "Customer account must expose a wallet panel");
+assert.ok(paymentService.includes("verifyAndApplyWalletDeposit") &&
+  paymentService.includes("postWalletTransaction") &&
+  paymentWebhook.includes("verifyAndApplyWalletDeposit"),
+  "Wallet top-ups must be credited only after server-side Monnify verification");
+assert.ok(orderCreate.includes('paymentMethod === "wallet"') &&
+  orderCreate.includes("createWalletOrder") &&
+  checkout.includes('value="wallet"') &&
+  checkout.includes('value="monnify"'),
+  "Checkout must support either wallet balance or Monnify");
+assert.ok(fulfilment.includes("refundFailedOrder") &&
+  fulfilment.includes("wallet_refund_credited") &&
+  fulfilment.includes('failedStatuses.includes(status)'),
+  "Confirmed failed or refunded supplier orders across service types must be returned to the wallet");
+
 
 assert.ok(!dashboard.includes('String(x.provider||"Supplier").toUpperCase()'), "Customer dashboard must not display supplier names");
 assert.ok(!dashboard.includes('String(x.provider||"supplier").toUpperCase()'), "Customer dashboard price labels must not display supplier names");

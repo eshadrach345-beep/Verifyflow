@@ -27,6 +27,8 @@ const routes = {
   "orders/create": require("../api-handlers/orders/create"),
   "orders/refresh": require("../api-handlers/orders/refresh"),
   "support/chat": require("../api-handlers/support-chat"),
+  "wallet": require("../api-handlers/wallet/index"),
+  "wallet/deposit": require("../api-handlers/wallet/deposit"),
   "payments/create-test": require("../api-handlers/payments/create-test"),
   "payments/verify": require("../api-handlers/payments/verify"),
   "payments/webhook": require("../api-handlers/payments/webhook")

@@ -1,7 +1,7 @@
 const { createHash } = require("node:crypto");
 const { getPool, sendJson } = require("../../lib/auth");
 const { getMonnifyConfig, verifyWebhookSignature } = require("../../lib/monnify");
-const { verifyAndApplyPayment } = require("../../lib/payment-service");
+const { verifyAndApplyPayment, verifyAndApplyWalletDeposit } = require("../../lib/payment-service");
 
 async function readRawBody(req) {
   const chunks = [];
@@ -49,6 +49,15 @@ module.exports = async function handler(req, res) {
     const paymentReference = String(data.paymentReference || "").trim();
     if (eventType !== "SUCCESSFUL_TRANSACTION" || !paymentReference) {
       return sendJson(res, 200, { ok: true, ignored: true });
+    }
+
+    const walletTopup = await getPool().query(
+      "SELECT payment_reference FROM vf_wallet_topups WHERE payment_reference = $1 LIMIT 1",
+      [paymentReference]
+    );
+    if (walletTopup.rowCount) {
+      await verifyAndApplyWalletDeposit(paymentReference);
+      return sendJson(res, 200, { ok: true, walletDeposit: true });
     }
 
     const payment = await getPool().query(

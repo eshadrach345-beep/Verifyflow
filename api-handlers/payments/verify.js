@@ -1,5 +1,5 @@
 const { getPool, getSessionUser, sendJson, readJson, sameOrigin } = require("../../lib/auth");
-const { verifyAndApplyPayment } = require("../../lib/payment-service");
+const { verifyAndApplyPayment, verifyAndApplyWalletDeposit } = require("../../lib/payment-service");
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -15,13 +15,24 @@ module.exports = async function handler(req, res) {
   catch { return sendJson(res, 400, { ok: false, error: "Please submit a valid request." }); }
 
   const paymentReference = String(body.paymentReference || "").trim();
-  if (!/^(?:VFTEST_[A-F0-9]{20}|VF_[A-F0-9]{24})$/.test(paymentReference)) {
+  if (!/^(?:VFTEST_[A-F0-9]{20}|VF_[A-F0-9]{24}|VFWALLET_[A-F0-9]{24})$/.test(paymentReference)) {
     return sendJson(res, 400, { ok: false, error: "The payment reference is invalid." });
   }
 
   try {
     const user = await getSessionUser(req);
     if (!user) return sendJson(res, 401, { ok: false, error: "Please sign in to verify this payment." });
+    if (paymentReference.startsWith("VFWALLET_")) {
+      const ownedTopup = await getPool().query(
+        "SELECT payment_reference FROM vf_wallet_topups WHERE payment_reference = $1 AND user_id = $2 LIMIT 1",
+        [paymentReference, user.id]
+      );
+      if (!ownedTopup.rowCount) {
+        return sendJson(res, 404, { ok: false, error: "This wallet deposit could not be found in your account." });
+      }
+      const payment = await verifyAndApplyWalletDeposit(paymentReference);
+      return sendJson(res, 200, { ok: true, payment, wallet: { balanceMinor: payment.walletBalanceMinor, currency: "USD" } });
+    }
     const owned = await getPool().query(
       "SELECT p.payment_reference FROM vf_payments p " +
       "JOIN vf_orders o ON o.id = p.order_id " +

@@ -33,6 +33,12 @@
     .vf-checkout-price{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-top:1px solid #e8ebed;border-bottom:1px solid #e8ebed}
     .vf-checkout-price strong{font-size:22px}
     .vf-checkout-note{font:400 12px/1.6 Inter,Arial;color:#66727b;margin:0}
+    .vf-payment-choice{border:1px solid #e1e7e8;border-radius:9px;padding:12px;display:grid;gap:9px}
+    .vf-payment-choice legend{font:800 13px Inter,Arial;padding:0 5px}
+    .vf-payment-choice label{display:flex;gap:9px;align-items:flex-start;font:600 13px/1.45 Inter,Arial;color:#26343d}
+    .vf-payment-choice input{margin:2px 0 0;accent-color:#08767c}
+    .vf-wallet-balance{font:700 12px Inter,Arial;color:#08767c}
+    .vf-rental-price{font:700 12px/1.45 Inter,Arial;color:#08767c}
     .vf-checkout-message{font:600 13px/1.5 Inter,Arial;color:#a33b2b;margin:0}
     @media(max-width:600px){.vf-checkout-dialog{padding:17px}.vf-checkout-head h2{font-size:20px}.vf-buy-button{font-size:12px}}
   `;
@@ -43,6 +49,12 @@
         <div class="vf-checkout-head"><div><span class="catalog-eyebrow">SECURE CHECKOUT</span><h2 id="vf-checkout-title">Review your order</h2></div><button type="button" id="vf-checkout-close" aria-label="Close checkout">×</button></div>
         <p id="vf-checkout-product" class="vf-checkout-product"></p>
         <div class="vf-checkout-price"><span>Estimated total</span><strong id="vf-checkout-price">—</strong></div>
+        <fieldset class="vf-payment-choice">
+          <legend>How would you like to pay?</legend>
+          <label><input type="radio" name="vf-payment-method" value="wallet"> <span>Pay from my VerifyFlow wallet <small id="vf-wallet-balance" class="vf-wallet-balance">Checking wallet balance…</small></span></label>
+          <label><input type="radio" name="vf-payment-method" value="monnify" checked> <span>Pay with Monnify <small>Secure payment using the methods enabled on your Monnify account</small></span></label>
+          <a href="/account.html?panel=wallet" class="account-text-link">Fund your wallet ↗</a>
+        </fieldset>
         <p class="vf-checkout-note">The final price is confirmed using a fresh supplier quote before payment.</p>
         <label id="vf-duration-wrap" class="catalog-duration" hidden>Rental period<select id="vf-duration-select"></select></label>
         <p class="vf-checkout-note">Catalogue prices are shown in USD. Monnify collects USD only when international collection is enabled on the account; otherwise checkout is converted to NGN using VerifyFlow’s configured rate and the payment methods enabled on the account. Taxes are not included.</p>
@@ -55,6 +67,25 @@
   const form = document.getElementById("vf-checkout-form");
   const message = document.getElementById("vf-checkout-message");
   const submit = document.getElementById("vf-checkout-submit");
+  const walletBalanceLabel = document.getElementById("vf-wallet-balance");
+  let walletBalanceMinor = null;
+  async function refreshWalletBalance() {
+    if (!signedIn) {
+      walletBalanceLabel.textContent = "Sign in to use wallet funds.";
+      walletBalanceMinor = null;
+      return;
+    }
+    try {
+      const response = await fetch("/api/wallet", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) throw new Error(data.error || "Wallet unavailable.");
+      walletBalanceMinor = Number(data.wallet?.balanceMinor || 0);
+      walletBalanceLabel.textContent = "Available: " + money(walletBalanceMinor);
+    } catch {
+      walletBalanceMinor = null;
+      walletBalanceLabel.textContent = "Wallet balance could not be loaded. Monnify is still available.";
+    }
+  }
 
   function key() {
     if (window.crypto && typeof window.crypto.randomUUID === "function") return window.crypto.randomUUID().replaceAll("-", "");
@@ -113,8 +144,9 @@
         });
         return;
       }
+      const cheapestDuration = durations.length ? durations.reduce((best, option) => option.price < best.price ? option : best, durations[0]) : null;
       const select = category === "rentals" && durations.length
-        ? '<select aria-label="Choose rental period" data-rental-days>' + durations.map(option => '<option value="' + esc(option.days) + '">' + esc(option.days) + ' days</option>').join("") + '</select>'
+        ? '<label class="vf-rental-price">Rental period<select aria-label="Choose rental period" data-rental-days>' + durations.map(option => '<option value="' + esc(option.days) + '"' + (option.days === cheapestDuration.days ? " selected" : "") + '>' + esc(option.days) + ' days</option>').join("") + '</select><small data-rental-selected-price>Selected period: ' + esc(money(cheapestDuration.price)) + ' for ' + esc(cheapestDuration.days) + ' days</small></label>'
         : "";
       const button = '<button class="vf-buy-button" type="button" data-vf-buy="true" ' +
         'data-product-type="' + esc(product.type) + '" data-product-id="' + esc(product.id) + '" ' +
@@ -122,6 +154,21 @@
         'data-product-price="' + esc(product.price) + '" data-duration-prices="' + esc(JSON.stringify(durations)) + '"' + (product.available && durations.length !== 0 || product.available && category !== "rentals" ? "" : " disabled") +
         '>Continue to checkout →</button>';
       card.querySelector(".catalog-item-copy")?.insertAdjacentHTML("beforeend", '<div class="vf-buy-area">' + select + button + '</div>');
+      if (category === "rentals" && cheapestDuration) {
+        const durationSelect = card.querySelector("[data-rental-days]");
+        const updateRentalPrice = () => {
+          const chosen = durations.find(option => option.days === Number(durationSelect.value));
+          if (!chosen) return;
+          const price = card.querySelector(".catalog-price-row strong");
+          const note = card.querySelector(".catalog-price-row small");
+          const selectedLabel = card.querySelector("[data-rental-selected-price]");
+          if (price) price.textContent = money(chosen.price);
+          if (note) note.textContent = "for " + chosen.days + " days · before VAT/tax";
+          if (selectedLabel) selectedLabel.textContent = "Selected period: " + money(chosen.price) + " for " + chosen.days + " days";
+        };
+        durationSelect.addEventListener("change", updateRentalPrice);
+        updateRentalPrice();
+      }
     });
   }
 
@@ -163,6 +210,7 @@
     if (!button || button.disabled) return;
     await sessionReady;
     if (!signedIn) { window.location.href = "/account.html"; return; }
+    await refreshWalletBalance();
     const card = button.closest(".catalog-item");
     const productType = button.dataset.productType;
     let smmTargetUrl = "", smmQuantity = 0;
@@ -241,12 +289,20 @@
     submit.disabled = true;
     submit.textContent = "Preparing secure checkout…";
     message.textContent = "";
+    const paymentMethod = form.querySelector('input[name="vf-payment-method"]:checked')?.value || "monnify";
+    if (paymentMethod === "wallet" && walletBalanceMinor != null && walletBalanceMinor < selected.estimate) {
+      message.textContent = "Your wallet balance is too low. Fund your wallet or choose Monnify.";
+      submit.disabled = false;
+      submit.textContent = "Continue to payment ↗";
+      return;
+    }
     const payload = {
       checkoutKey: selected.checkoutKey,
       productType: selected.productType,
       provider: selected.provider || "voidmob",
       productId: selected.productId,
-      country: selected.country
+      country: selected.country,
+      paymentMethod
     };
     if (selected.productType === "long_term_number") payload.durationDays = Number(document.getElementById("vf-duration-select").value);
     if (selected.productType === "smm_service") {
@@ -265,11 +321,19 @@
         if (response.status === 502) selected.checkoutKey = key();
         throw new Error(data.error || "Secure checkout could not be prepared.");
       }
+      if (data.walletPaid) {
+        message.textContent = "Paid from your wallet. Your order " + (data.orderNumber || "") + " has been created.";
+        submit.textContent = "Paid from wallet ✓";
+        submit.disabled = true;
+        await refreshWalletBalance();
+        window.setTimeout(() => window.location.assign("/account.html?panel=orders"), 900);
+        return;
+      }
       window.location.assign(data.checkoutUrl);
     } catch (error) {
       message.textContent = error.message || "Please try again.";
       submit.disabled = false;
-      submit.textContent = "Try secure checkout again ↗";
+      submit.textContent = "Try payment again ↗";
     }
   });
 
