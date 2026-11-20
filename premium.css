@@ -314,7 +314,7 @@ main a{color:var(--vf-accent)!important}
 .vf-support-message.assistant{background:#172a3a!important;color:#dbe8e8!important;border:1px solid var(--vf-border)!important}
 .vf-support-panel textarea{background:#071321!important;border:1px solid var(--vf-border-strong)!important;color:#edf5f5!important}
 .vf-support-panel button:not(.vf-support-toggle){background:#173d3b!important;color:#b8f1df!important;border:1px solid rgba(141,224,204,.24)!important;border-radius:9px!important}
-.vf-support-human{background:#14273a!important!important}
+.vf-support-human{background:#14273a!important}
 @media(max-width:700px){
   .site-header{position:sticky!important;top:0!important;padding-left:18px!important;padding-right:18px!important}
   .hero{background:radial-gradient(ellipse at 50% 20%,rgba(24,104,103,.2),transparent 52%),linear-gradient(135deg,#081321,#0b1c2b)!important}
