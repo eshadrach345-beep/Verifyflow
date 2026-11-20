@@ -80,6 +80,7 @@ module.exports = async function handler(req, res) {
         note: "Wallet funds are credited only after VerifyFlow verifies the completed Monnify transaction server-to-server."
       });
     } catch (error) {
+      if (["42P01", "42P10"].includes(error.code)) throw error;
       await pool.query(
         "UPDATE vf_wallet_topups SET status = 'failed', provider_status = 'INITIALIZATION_FAILED', updated_at = NOW() WHERE payment_reference = $1",
         [paymentReference]
@@ -90,6 +91,8 @@ module.exports = async function handler(req, res) {
   } catch (error) {
     console.error("[wallet/deposit]", error.code || error.message);
     const messages = {
+      "42P01": "Wallet database tables are missing. Apply the latest VerifyFlow database migrations before funding your wallet.",
+      "42P10": "Wallet database indexes are incomplete. Apply the latest VerifyFlow database migrations before funding your wallet.",
       CHECKOUT_EXCHANGE_RATE_MISSING: "Local NGN wallet funding is not configured yet. Please contact support.",
       CHECKOUT_EXCHANGE_RATE_INVALID: "The local checkout exchange rate is invalid. Please contact support.",
       MONNIFY_CONFIG_MISSING: "Secure payments are not fully configured yet."
