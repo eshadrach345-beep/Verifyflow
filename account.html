@@ -545,8 +545,8 @@
    const response=await fetch(endpoint,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(payload)});
    const data=await response.json().catch(()=>({}));
    if(!response.ok||!data.ok)throw new Error(data.error||"We couldn't complete that request. Please try again.");
+   if(data.verificationRequired){const passwordField=form.querySelector('[name="password"]');if(passwordField)passwordField.value="";message.textContent=(data.message||"Your account has been created. Check your inbox for a verification link.")+" If you cannot find it, check your Spam or Junk folder. You can request another link below.";return;}
    form.reset();
-   if(data.verificationRequired){message.textContent=(data.message||"Your account has been created. Check your inbox for a verification link.")+" If you cannot find it, check your Spam or Junk folder. You can request another link below.";return;}
    await openPortal(data.user);
   }catch(error){message.textContent=error.message||"Something went wrong. Please try again."}
   finally{button.disabled=false;button.textContent=buttonLabel}
