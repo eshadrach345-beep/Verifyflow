@@ -87,7 +87,7 @@
   }
   function renderProducts() {
     if (!products.length) {
-      productsBody.innerHTML = '<tr><td colspan="6" class="empty">No social media products have been added yet.</td></tr>';
+      productsBody.innerHTML = '<tr><td colspan="7" class="empty">No social media products have been added yet.</td></tr>';
       return;
     }
     const orderedProducts = [...products].sort((a, b) =>
@@ -100,7 +100,8 @@
       (item.description ? '<br><span class="muted">' + esc(item.description) + '</span>' : '') + '</td>' +
       '<td>' + esc(item.provider === "peakerr" ? "Peakerr" : "JustAnotherPanel") + '<br><span class="muted">Service ID ' + esc(item.serviceId) + '</span></td>' +
       '<td>' + esc(item.min) + '–' + esc(item.max) + '</td>' +
-      '<td><b>' + dollars(item.retailRateMinorPer1000) + '</b><br><span class="muted">' + esc(item.markupPercent ?? "—") + '% markup</span></td>' +
+      '<td><b>' + dollars(item.retailRateMinorPer1000) + '</b></td>' +
+      '<td><b class="smm-markup-value">' + (Number.isFinite(Number(item.markupPercent)) ? esc(item.markupPercent) + '%' : '—') + '</b></td>' +
       '<td><span class="status ' + (item.active ? "completed" : "failed") + '">' + (item.active ? "Published" : "Hidden") + '</span></td>' +
       '<td><div class="smm-product-actions"><button class="admin-btn" type="button" data-edit-smm="' + esc(item.id) + '">Edit</button>' +
       (item.active ? '<button class="admin-btn" type="button" data-hide-smm="' + esc(item.id) + '">Hide</button>' : '') +
@@ -143,7 +144,7 @@
       message.textContent += duplicateNote;
     } catch (error) {
       message.textContent = error.message || "Unable to load SMM products.";
-      productsBody.innerHTML = '<tr><td colspan="6" class="empty">' + esc(message.textContent) + '</td></tr>';
+      productsBody.innerHTML = '<tr><td colspan="7" class="empty">' + esc(message.textContent) + '</td></tr>';
     }
   }
   function clearForm() {
