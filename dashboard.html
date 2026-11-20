@@ -716,7 +716,7 @@
    const duration=selected.durationDays?selected.durationDays+" days":(selected.period||x.period||"Monthly term");
    const location=[x.country,x.carrier,x.region].filter(Boolean).join(" · ");
    const detail=String(x.description||(shared
-    ? "Shared mobile proxies are charged by the gigabyte. Choose a data allowance below; larger packages reduce the effective price per GB. Each shared data package has a fixed validity period shown at checkout."
+    ? "A Shared mobile proxy is charged by the gigabyte. Choose a data allowance below; larger packages reduce the effective price per GB. Each shared data package has a fixed validity period shown at checkout."
     : "A dedicated mobile proxy routes traffic through a real 4G/5G carrier device. It includes unmetered traffic, with daily, weekly or monthly rental periods where available."));
    const rate=shared?Number(selected.pricePerGbCents||0):Number(selected.pricePerDayCents||0);
    const discount=Number(selected.discountPercent||0);
