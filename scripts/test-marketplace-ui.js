@@ -83,6 +83,10 @@ assert.ok(admin.includes('id="orders-panel"') && admin.includes('id="supplier-co
 assert.ok(adminSmm.includes('fetch("/api/admin/smm-products"'), "Admin must save products through the protected API");
 assert.ok(adminSmm.includes("Save and publish product"), "Admin must provide an explicit publish action");
 assert.ok(adminSmm.includes("Database setup required"), "Admin must disable publishing until the SMM product table exists");
+assert.ok(admin.includes("smm-select-all") && admin.includes("smm-service-list"), "Admin must support selecting all supplier services for bulk publishing");
+assert.ok(admin.includes("smm-markup-percent"), "Admin must accept a percentage markup instead of a fixed retail price");
+assert.ok(adminSmm.includes("action: \"bulk\"") && adminSmm.includes("selectedServices"), "Admin must bulk publish the selected supplier services");
+assert.ok(smmAdminApi.includes("jsonb_to_recordset") && smmAdminApi.includes("markupPercent"), "Admin API must calculate and save bulk retail prices from percentage markup");
 assert.ok(smmAdminApi.includes("readProvider(provider)"), "Admin must validate chosen supplier service IDs");
 assert.ok(smmAdminApi.includes("retail_rate_minor_per_1000"), "Admin must persist a retail rate per 1,000");
 assert.ok(smmAdminApi.includes("productsTableReady"), "Admin must report whether the SMM product table is installed");
