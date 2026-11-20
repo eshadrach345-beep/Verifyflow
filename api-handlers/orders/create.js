@@ -132,7 +132,7 @@ module.exports = async function handler(req, res) {
     const pool = getPool();
     const existing = await pool.query(
       "SELECT o.id, o.order_number, o.status, p.payment_reference, p.checkout_url, p.status AS payment_status, p.amount_minor, p.currency " +
-      "FROM vf_orders o LEFT JOIN LATERAL (SELECT payment_reference, checkout_url, status FROM vf_payments WHERE order_id = o.id ORDER BY created_at DESC LIMIT 1) p ON TRUE " +
+      "FROM vf_orders o LEFT JOIN LATERAL (SELECT payment_reference, checkout_url, status, amount_minor, currency FROM vf_payments WHERE order_id = o.id ORDER BY created_at DESC LIMIT 1) p ON TRUE " +
       "WHERE o.user_id = $1 AND o.checkout_key = $2 LIMIT 1",
       [user.id, checkoutKey]
     );
@@ -224,7 +224,7 @@ module.exports = async function handler(req, res) {
       await pool.query(
         "UPDATE vf_payments SET checkout_url = $2, transaction_reference = $3, status = 'pending', provider_response = $4::jsonb, updated_at = NOW() WHERE payment_reference = $1",
         [paymentReference, provider.checkoutUrl, provider.transactionReference || null,
-          JSON.stringify({ transactionReference: provider.transactionReference || null, enabledPaymentMethod: provider.enabledPaymentMethod || ["CARD"] })]
+          JSON.stringify({ transactionReference: provider.transactionReference || null, enabledPaymentMethod: provider.enabledPaymentMethod || [] })]
       );
       await pool.query(
         "INSERT INTO vf_order_events (order_id, event_type, message, details) VALUES ($1, 'checkout_created', $2, $3::jsonb)",
