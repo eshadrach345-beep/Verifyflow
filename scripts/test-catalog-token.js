@@ -23,8 +23,11 @@ assert.deepEqual(openCatalogProductToken(other), {
 });
 assert.notEqual(token, sealCatalogProductToken(source), "Tokens should use fresh IVs");
 
+const tamperedParts = token.split(".");
+tamperedParts[3] = (tamperedParts[3][0] === "A" ? "B" : "A") + tamperedParts[3].slice(1);
+const tamperedToken = tamperedParts.join(".");
 for (const invalid of [
-  token.slice(0, -1) + (token.endsWith("A") ? "B" : "A"),
+  tamperedToken,
   "plan_supplier_internal_987",
   "vf2.bad.bad.bad",
   "vf1.bad.bad.bad"

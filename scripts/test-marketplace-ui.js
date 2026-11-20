@@ -106,18 +106,20 @@ assert.ok(dashboard.includes('"whatsapp","telegram","gmail"') && dashboard.inclu
 assert.ok(checkout.includes("data-rental-selected-price") && dashboard.includes("Choose your rental period"), "Rental product cards must explain period selection");
 assert.ok(checkout.includes("data-rental-selected-price") && checkout.includes("updateRentalPrice"),
   "Rental card price must update immediately when its period is changed");
-assert.ok(dashboard.includes("private phone number reserved for your use") &&
-  dashboard.includes("Receive a one-time SMS code") &&
-  dashboard.includes("unlocked, eSIM-compatible") &&
-  dashboard.includes("Shared mobile proxy") ,
-  "All catalogue product families must have practical customer-facing descriptions");
+assert.ok(dashboard.includes("Receive an SMS code on a temporary number") &&
+  dashboard.includes("Digital mobile data for an unlocked, eSIM-compatible device") &&
+  dashboard.includes("Pay per GB. Choose your data allowance and validity") &&
+  dashboard.includes("Private number for ongoing SMS and verification") &&
+  dashboard.includes("Keep the same number for a selected period") &&
+  dashboard.includes("Order this service for a public profile or post"),
+  "All catalogue product families must have concise, useful customer-facing descriptions");
 assert.ok(proxyCatalog.includes("pricePerGbCents") && proxyCatalog.includes("Number(plan.data_gb)"),
   "Shared mobile proxy catalogue must expose a derived per-GB price");
-assert.ok(dashboard.includes("Unlimited traffic") && dashboard.includes('"UNLIMITED TRAFFIC · "') &&
+assert.ok(dashboard.includes("Unlimited traffic") && dashboard.includes('"Unlimited traffic · "') &&
   dashboard.includes("pricePerDayCents"),
   "Dedicated proxy terms must show unlimited traffic, the selected term and an effective daily rate");
 assert.ok(dashboard.includes("groupProxyPlanRows") && dashboard.includes("pricePerGbCents") && dashboard.includes("durationOptions"), "Shared mobile proxy cards must show per-GB pricing and actual supplier duration tiers");
-assert.ok(dashboard.includes('"PRICE PER GB · "') && dashboard.includes('data-proxy-metered="true"') &&
+assert.ok(dashboard.includes('"per GB · "') && dashboard.includes('data-proxy-metered="true"') &&
   checkout.includes('"PER GB · "') && checkout.includes('Choose data package') &&
   premium.includes('data-proxy-metered="true"] .catalog-price-row strong::after'),
   "Shared mobile proxies must present per-GB prices, volume choices and live package totals");
@@ -138,6 +140,26 @@ assert.ok(accountPage.includes('welcomeToastTimer=window.setTimeout') &&
 assert.ok(admin.includes('id="smm-select-all-top"') && adminSmm.includes('selectAllTop?.addEventListener("click", selectAllServices)'),
   "Admin top-level Select All must select all services from the currently active supplier");
 assert.ok(checkout.includes("activateServiceCard"), "Full service-card clicks must open the configured product options");
+assert.ok(checkout.includes("selectProduct") && checkout.includes("returnUrl.searchParams.set(\"selectProduct\""), "Signed-out product selection must be preserved through login");
+assert.ok(checkout.includes("tryOpenRequestedProduct") && accountPage.includes("accountReturnTo") && accountPage.includes("window.location.replace(accountReturnTo)"), "Successful sign-in must return to the selected product and reopen checkout");
+assert.ok(dashboard.includes("Pay per GB. Choose your data allowance") && dashboard.includes("Keep the same number for a selected period") && dashboard.includes("Order this service for a public profile or post"), "Storefront product descriptions must be concise");
+assert.ok(checkout.includes("window.location.assign(data.checkoutUrl)"), "Successful Monnify checkout preparation must redirect to the hosted payment page");
+
+assert.ok(checkout.includes("selectProduct") && checkout.includes("returnUrl.searchParams.set(\"selectProduct\""),
+  "A signed-out customer must return to the exact product they selected after sign-in");
+assert.ok(dashboard.includes("const requestedCountry=params.get(\"country\")") &&
+  dashboard.includes("countryInput.value=requestedCountry.toLowerCase()"),
+  "The selected product country must also be restored after sign-in");
+assert.ok(checkout.includes("tryOpenRequestedProduct") && accountPage.includes("accountReturnTo") &&
+  accountPage.includes("window.location.replace(accountReturnTo)"),
+  "After sign-in the selected product must reopen its checkout options");
+assert.ok(dashboard.includes("Pay per GB. Choose your data allowance") &&
+  dashboard.includes("Keep the same number for a selected period") &&
+  dashboard.includes("Order this service for a public profile or post"),
+  "Catalogue descriptions must be short and useful instead of tall repeated paragraphs");
+assert.ok(walletDepositApi.includes("009_wallet_smm_schema_repair.sql") &&
+  walletApi.includes("42P10") && fs.readFileSync("lib/launch-readiness.js", "utf8").includes("vf_wallet_topups"),
+  "Wallet funding failures must point to the wallet schema repair migration");
 assert.ok(proxyCatalog.includes("Math.min(configuredPercent, 18)") &&
   proxySupplier.includes("Math.min(requestedPercent, 18)"),
   "Proxy quote and catalogue retail margins must both be capped at a competitive 18 percent");

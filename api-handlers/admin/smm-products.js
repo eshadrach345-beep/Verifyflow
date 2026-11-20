@@ -170,11 +170,26 @@ module.exports = async function handler(req, res) {
       }
       if (!rows.length) return sendJson(res, 409, { ok: false, error: "None of the selected services has a supported USD or NGN supplier rate. Check the supplier catalogue rates." });
       const saved = await getPool().query(
-        "WITH incoming AS (SELECT * FROM jsonb_to_recordset($1::jsonb) AS x(service_id TEXT, platform TEXT, product_name TEXT, description TEXT, supplier_rate NUMERIC, supplier_currency CHAR(3), min_quantity INTEGER, max_quantity INTEGER, retail_rate_minor_per_1000 BIGINT)), " +
-        "updated AS (UPDATE vf_smm_products p SET platform=i.platform, product_name=i.product_name, description=i.description, supplier_rate=i.supplier_rate, supplier_currency=i.supplier_currency, min_quantity=i.min_quantity, max_quantity=i.max_quantity, retail_rate_minor_per_1000=i.retail_rate_minor_per_1000, is_active=TRUE, updated_at=NOW() FROM incoming i WHERE p.provider=$2 AND p.supplier_service_id=i.service_id RETURNING p.*), " +
-        "inserted AS (INSERT INTO vf_smm_products (provider,supplier_service_id,platform,product_name,description,supplier_rate,supplier_currency,min_quantity,max_quantity,retail_rate_minor_per_1000,is_active,updated_at) SELECT $2,i.service_id,i.platform,i.product_name,i.description,i.supplier_rate,i.supplier_currency,i.min_quantity,i.max_quantity,i.retail_rate_minor_per_1000,TRUE,NOW() FROM incoming i WHERE NOT EXISTS (SELECT 1 FROM vf_smm_products p WHERE p.provider=$2 AND p.supplier_service_id=i.service_id) RETURNING *) " +
-        "SELECT * FROM updated UNION ALL SELECT * FROM inserted",
-        [JSON.stringify(rows), provider]
+        "WITH incoming AS (SELECT * FROM jsonb_to_recordset($1::jsonb) AS x(service_id TEXT, platform TEXT, product_name TEXT, description TEXT, supplier_rate NUMERIC, supplier_currency CHAR(3), min_quantity INTEGER, max_quantity INTEGER, retail_rate_minor_per_1000 BIGINT)) " +
+        "INSERT INTO vf_smm_products (provider,supplier_service_id,platform,product_name,description,supplier_rate,supplier_currency,min_quantity,max_quantity,retail_rate_minor_per_1000,is_active,updated_at) " +
+        "SELECT $2,i.service_id,i.platform,i.product_name,i.description,i.supplier_rate,i.supplier_currency,i.min_quantity,i.max_quantity,i.retail_rate_minor_per_1000,TRUE,NOW() FROM incoming i " +
+        "ON CONFLICT (provider, supplier_service_id) WHERE is_active = TRUE DO UPDATE SET " +
+        "platform=EXCLUDED.platform, product_name=EXCLUDED.product_name, description=EXCLUDED.description, " +
+        "supplier_rate=EXCLUDED.supplier_rate, supplier_currency=EXCLUDED.supplier_currency, " +
+        "min_quantity=EXCLUDED.min_quantity, max_quantity=EXCLUDED.max_quantity, " +
+        "retail_rate_minor_per_1000=EXCLUDED.retail_rate_minor_per_1000, is_active=TRUE, updated_at=NOW() " +
+        "RETURNING *",
+        [JSON.stringify(rows.map(row => ({
+          service_id: row.serviceId,
+          platform: row.platform,
+          product_name: row.productName,
+          description: row.description,
+          supplier_rate: row.supplierRate,
+          supplier_currency: row.supplierCurrency,
+          min_quantity: row.min,
+          max_quantity: row.max,
+          retail_rate_minor_per_1000: row.retailRateMinor
+        }))), provider]
       );
       return sendJson(res, 200, {
         ok: true, savedCount: saved.rowCount, skippedCount: invalid.length,
@@ -189,21 +204,51 @@ module.exports = async function handler(req, res) {
     if (!service) return sendJson(res, 409, { ok: false, error: "That supplier service is no longer available. Refresh the service list and choose again." });
     const row = serviceMeta({ ...service, category: String(body.platform || service.category || "Other"), name: String(body.productName || service.name), description: String(body.description || service.description || "") });
     if (!row) return sendJson(res, 400, { ok: false, error: "This service has no usable supplier rate in USD or NGN. A percentage price cannot be calculated." });
-    const saved = await getPool().query(
-      "INSERT INTO vf_smm_products (id, provider, supplier_service_id, platform, product_name, description, supplier_rate, supplier_currency, min_quantity, max_quantity, retail_rate_minor_per_1000, is_active, updated_at) " +
-      "VALUES (COALESCE($1::uuid, gen_random_uuid()), $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, TRUE, NOW()) " +
-      "ON CONFLICT (id) DO UPDATE SET provider = EXCLUDED.provider, supplier_service_id = EXCLUDED.supplier_service_id, platform = EXCLUDED.platform, product_name = EXCLUDED.product_name, description = EXCLUDED.description, supplier_rate = EXCLUDED.supplier_rate, supplier_currency = EXCLUDED.supplier_currency, min_quantity = EXCLUDED.min_quantity, max_quantity = EXCLUDED.max_quantity, retail_rate_minor_per_1000 = EXCLUDED.retail_rate_minor_per_1000, is_active = TRUE, updated_at = NOW() RETURNING *",
-      [id || null, provider, row.serviceId, row.platform, row.productName, row.description, row.supplierRate, row.supplierCurrency, row.min, row.max, row.retailRateMinor]
-    );
+    const productValues = [provider, row.serviceId, row.platform, row.productName, row.description,
+      row.supplierRate, row.supplierCurrency, row.min, row.max, row.retailRateMinor];
+    let saved;
+    if (id) {
+      saved = await getPool().query(
+        "UPDATE vf_smm_products SET provider=$2, supplier_service_id=$3, platform=$4, product_name=$5, description=$6, " +
+        "supplier_rate=$7, supplier_currency=$8, min_quantity=$9, max_quantity=$10, retail_rate_minor_per_1000=$11, " +
+        "is_active=TRUE, updated_at=NOW() WHERE id=$1 RETURNING *",
+        [id, ...productValues]
+      );
+      if (!saved.rowCount) return sendJson(res, 404, { ok: false, error: "The product you are editing no longer exists. Refresh the list and try again." });
+    } else {
+      saved = await getPool().query(
+        "INSERT INTO vf_smm_products (provider,supplier_service_id,platform,product_name,description,supplier_rate,supplier_currency,min_quantity,max_quantity,retail_rate_minor_per_1000,is_active,updated_at) " +
+        "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,TRUE,NOW()) " +
+        "ON CONFLICT (provider, supplier_service_id) WHERE is_active = TRUE DO UPDATE SET " +
+        "platform=EXCLUDED.platform, product_name=EXCLUDED.product_name, description=EXCLUDED.description, " +
+        "supplier_rate=EXCLUDED.supplier_rate, supplier_currency=EXCLUDED.supplier_currency, " +
+        "min_quantity=EXCLUDED.min_quantity, max_quantity=EXCLUDED.max_quantity, " +
+        "retail_rate_minor_per_1000=EXCLUDED.retail_rate_minor_per_1000, updated_at=NOW() RETURNING *",
+        productValues
+      );
+    }
     return sendJson(res, 200, { ok: true, product: productRow(saved.rows[0]) });
   } catch (error) {
-    console.error("[admin/smm-products]", error.code || error.message);
-    const missingMigration = error.code === "42P01";
+    console.error("[admin/smm-products]", JSON.stringify({
+      code: error.code || "ADMIN_SMM_ERROR",
+      message: String(error.message || "Database operation failed").slice(0, 240),
+      column: error.column || null,
+      dataType: error.dataType || null,
+      constraint: error.constraint || null,
+      where: error.where ? String(error.where).slice(0, 240) : null
+    }));
+    if (error.code === "23505") {
+      return sendJson(res, 409, {
+        ok: false,
+        error: "This supplier service is already published. Edit its existing listing instead of creating a duplicate."
+      });
+    }
+    const schemaMismatch = ["42P01", "42P10", "22P02"].includes(error.code);
     return sendJson(res, 503, {
       ok: false,
-      error: missingMigration
-        ? "The SMM product database migration has not been applied yet."
-        : "The SMM product manager is temporarily unavailable."
+      error: schemaMismatch
+        ? "The product database schema needs the latest VerifyFlow repair migration. Apply 009_wallet_smm_schema_repair.sql, then refresh this page."
+        : "The Social Media Boosters product manager is temporarily unavailable."
     });
   }
 };
