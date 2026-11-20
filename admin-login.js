@@ -18,8 +18,8 @@
    const {response,data}=await request("/api/admin/access");
    if(response.ok&&data.ok){window.location.replace(destination);return;}
    if(response.status===403){
-    form.hidden=true;existing.hidden=false;
-    existingMessage.textContent="This signed-in account does not have admin permission. Sign out here, then sign in using the email address assigned admin access.";
+    form.hidden=false;existing.hidden=false;
+    existingMessage.textContent="This signed-in account does not have admin permission. Enter the email and password for the account assigned VerifyFlow admin access, or sign out first.";
    }else if(response.status===503){
     message.textContent=data.error||"Admin access is not configured. Ask the site owner to check the server admin access setting.";
    }
