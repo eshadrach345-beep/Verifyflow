@@ -13,6 +13,20 @@ module.exports = async function handler(req, res) {
               o.total_minor, o.created_at, o.updated_at,
               (o.supplier_order_id IS NOT NULL) AS has_supplier_order,
               o.metadata->'fulfilment'->'customerDelivery' AS customer_delivery,
+              jsonb_strip_nulls(jsonb_build_object(
+                'status', o.metadata->'fulfilment'->>'status',
+                'phone_number', COALESCE(o.metadata#>>'{fulfilment,serviceData,phoneNumber}', o.metadata#>>'{fulfilment,serviceData,phone}', o.metadata#>>'{fulfilment,serviceData,number}'),
+                'code', o.metadata#>>'{fulfilment,customerDelivery,code}',
+                'expires_at', COALESCE(o.metadata#>>'{fulfilment,serviceData,expires_at}', o.metadata#>>'{fulfilment,serviceData,activationEndTime}'),
+                'activation_code', COALESCE(o.metadata#>>'{fulfilment,serviceData,activation_code}', o.metadata#>>'{fulfilment,serviceData,activationCode}', o.metadata#>>'{fulfilment,serviceData,qr_code}'),
+                'smdp_address', COALESCE(o.metadata#>>'{fulfilment,serviceData,smdp_address}', o.metadata#>>'{fulfilment,serviceData,smdpAddress}'),
+                'gateway', o.metadata#>'{fulfilment,serviceData,gateway}',
+                'remains', o.metadata#>>'{fulfilment,serviceData,remains}',
+                'startCount', COALESCE(o.metadata#>>'{fulfilment,serviceData,start_count}', o.metadata#>>'{fulfilment,serviceData,startCount}'),
+                'quantity', o.metadata#>>'{checkout,productSnapshot,quantity}',
+                'targetUrl', o.metadata#>>'{checkout,productSnapshot,targetUrl}',
+                'message', o.metadata#>>'{fulfilment,customerDelivery,message}'
+              )) AS customer_service,
               (SELECT j.status FROM vf_fulfilment_jobs j WHERE j.order_id = o.id LIMIT 1) AS fulfilment_status,
               COALESCE((
                 SELECT json_agg(
