@@ -414,7 +414,30 @@ document.body.insertAdjacentHTML("beforeend", `
       select.innerHTML = "";
       wrap.hidden = true;
     }
-    const methodWrap = document.getElementById("vf-herosms-method-wrap");\n    const methodSelect = document.getElementById("vf-herosms-method-select");\n    methodWrap.hidden = !selected.supportsVerificationMethods;\n    methodSelect.innerHTML = "<option value=\\"sms\\">SMS · checking options…</option>";\n    if (selected.supportsVerificationMethods) {\n      fetch("/api/herosms/offers?productId=" + encodeURIComponent(selected.productId), { credentials: "same-origin", cache: "no-store" })\n        .then(response => response.json())\n        .then(data => {\n          if (!data.ok || !Array.isArray(data.methods) || !data.methods.length) throw new Error("No verification methods available");\n          methodSelect.innerHTML = data.methods.map(method => "<option value=\\\"" + esc(method.type) + "\\\">" + esc(method.label) + " · " + esc(money(method.priceCents)) + "</option>").join("");\n          selected.verificationType = methodSelect.value;\n          selected.estimate = Number(data.methods[0].priceCents);\n          document.getElementById("vf-checkout-price").textContent = money(selected.estimate);\n        })\n        .catch(() => { methodWrap.hidden = true; selected.verificationType = "sms"; });\n    }\n    dialog.showModal();
+    const methodWrap = document.getElementById("vf-herosms-method-wrap");
+    const methodSelect = document.getElementById("vf-herosms-method-select");
+    methodWrap.hidden = !selected.supportsVerificationMethods;
+    methodSelect.innerHTML = '<option value="sms">SMS · checking options…</option>';
+    selected.heroSmsMethods = [];
+    if (selected.supportsVerificationMethods) {
+      fetch("/api/herosms/offers?productId=" + encodeURIComponent(selected.productId), { credentials: "same-origin", cache: "no-store" })
+        .then(response => response.json())
+        .then(data => {
+          if (!data.ok || !Array.isArray(data.methods) || !data.methods.length) throw new Error("No verification methods available");
+          selected.heroSmsMethods = data.methods;
+          methodSelect.innerHTML = data.methods.map(method =>
+            '<option value="' + esc(method.type) + '">' + esc(method.label) + ' · ' + esc(money(method.priceCents)) + '</option>'
+          ).join("");
+          selected.verificationType = methodSelect.value;
+          selected.estimate = Number(data.methods[0].priceCents);
+          document.getElementById("vf-checkout-price").textContent = money(selected.estimate);
+        })
+        .catch(() => {
+          methodWrap.hidden = true;
+          selected.verificationType = "sms";
+        });
+    }
+    dialog.showModal();
   });
 
   grid.addEventListener("keydown", event => {
@@ -434,7 +457,17 @@ document.body.insertAdjacentHTML("beforeend", `
     }
   });
   document.getElementById("vf-checkout-close").addEventListener("click", () => dialog.close());
-  document.getElementById("vf-herosms-method-select").addEventListener("change", event => {\n    if (!selected) return;\n    selected.verificationType = event.target.value;\n    const option = event.target.selectedOptions[0];\n    const match = String(option?.textContent || "").match(/\\$([0-9]+(?:\\.[0-9]{2})?)/);\n    if (match) {\n      selected.estimate = Math.round(Number(match[1]) * 100);\n      document.getElementById("vf-checkout-price").textContent = money(selected.estimate);\n    }\n  });\n\n  form.addEventListener("submit", async event => {
+  document.getElementById("vf-herosms-method-select").addEventListener("change", event => {
+    if (!selected) return;
+    selected.verificationType = event.target.value;
+    const chosen = (selected.heroSmsMethods || []).find(method => method.type === selected.verificationType);
+    if (chosen) {
+      selected.estimate = Number(chosen.priceCents);
+      document.getElementById("vf-checkout-price").textContent = money(selected.estimate);
+    }
+  });
+
+  form.addEventListener("submit", async event => {
     event.preventDefault();
     if (!selected) return;
     submit.disabled = true;
@@ -451,7 +484,8 @@ document.body.insertAdjacentHTML("beforeend", `
       checkoutKey: selected.checkoutKey,
       productType: selected.productType,
       productId: selected.productId,
-      paymentMethod
+      paymentMethod,
+      ...(selected.supportsVerificationMethods ? { verificationType: selected.verificationType || "sms" } : {})
     };
     if (selected.productType === "long_term_number") payload.durationDays = Number(document.getElementById("vf-duration-select").value);
     if (selected.productType === "smm_service") {
