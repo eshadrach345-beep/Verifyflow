@@ -232,6 +232,12 @@ document.body.insertAdjacentHTML("beforeend", `
       return;
     }
     const openBuyDialog = () => {
+      const smmLink = card.querySelector("[data-smm-link]");
+      if (smmLink) {
+        smmLink.focus();
+        smmLink.scrollIntoView({ behavior: "smooth", block: "center" });
+        return true;
+      }
       const buyButton = card.querySelector("[data-vf-buy]");
       if (!buyButton) return false;
       if (buyButton.disabled) {
