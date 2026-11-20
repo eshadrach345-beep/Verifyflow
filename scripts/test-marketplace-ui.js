@@ -115,11 +115,11 @@ assert.ok(dashboard.includes("Receive an SMS code on a temporary number") &&
   "All catalogue product families must have concise, useful customer-facing descriptions");
 assert.ok(proxyCatalog.includes("pricePerGbCents") && proxyCatalog.includes("Number(plan.data_gb)"),
   "Shared mobile proxy catalogue must expose a derived per-GB price");
-assert.ok(dashboard.includes("Unlimited traffic") && dashboard.includes('"UNLIMITED TRAFFIC · "') &&
+assert.ok(dashboard.includes("Unlimited traffic") && dashboard.includes('"Unlimited traffic · "') &&
   dashboard.includes("pricePerDayCents"),
   "Dedicated proxy terms must show unlimited traffic, the selected term and an effective daily rate");
 assert.ok(dashboard.includes("groupProxyPlanRows") && dashboard.includes("pricePerGbCents") && dashboard.includes("durationOptions"), "Shared mobile proxy cards must show per-GB pricing and actual supplier duration tiers");
-assert.ok(dashboard.includes('"PRICE PER GB · "') && dashboard.includes('data-proxy-metered="true"') &&
+assert.ok(dashboard.includes('"per GB · "') && dashboard.includes('data-proxy-metered="true"') &&
   checkout.includes('"PER GB · "') && checkout.includes('Choose data package') &&
   premium.includes('data-proxy-metered="true"] .catalog-price-row strong::after'),
   "Shared mobile proxies must present per-GB prices, volume choices and live package totals");
