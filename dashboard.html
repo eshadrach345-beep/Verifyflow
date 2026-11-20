@@ -574,7 +574,7 @@
  const params=new URLSearchParams(window.location.search);
  const requestedCategory=params.get("category");
  const requestedSearch=params.get("search")||params.get("q")||"";
- let active=categoryKeys.includes(requestedCategory)?requestedCategory:"all", catalogue=null, loading=false, renderedCount=24;
+ let active=categoryKeys.includes(requestedCategory)?requestedCategory:"all", catalogue=null, loading=false, reloadRequested=false, renderedCount=24;
  const PAGE_SIZE=24;
  const topSearch=document.getElementById("vf-dash-search");
  if(searchInput) searchInput.value=requestedSearch;
@@ -777,7 +777,7 @@
    : results.length+" product"+(results.length===1?"":"s")+" · showing "+visible.length+" in "+(active==="all"?"all available categories":categoryLabels[active]);
  }
  async function load(){
-  if(loading)return;
+  if(loading){reloadRequested=true;return;}
   const country=String(countryInput?.value||"US").trim().toLowerCase();
   if(!/^[a-z]{2}$/.test(country)){
    catalogue=null;empty("Enter a valid two-letter country code, such as US or GB.");status.textContent="Country code required";return;
@@ -794,6 +794,7 @@
    catalogue=null;empty("We couldn't load the catalogue just now.");status.textContent="Please refresh to try again.";
   }finally{
    loading=false;refresh.disabled=false;refresh.textContent="↻ Refresh catalogue";
+   if(reloadRequested){reloadRequested=false;load();}
   }
  }
  async function loadMarketingCatalogue(){
