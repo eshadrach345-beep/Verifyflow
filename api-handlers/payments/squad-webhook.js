@@ -1,8 +1,7 @@
 "use strict";
 
-const { createHash } = require("node:crypto");
 const { getPool, sendJson } = require("../../lib/auth");
-const { verifySquadWebhook, verifySquadTransaction } = require("../../lib/squad-payment-service");
+const { verifySquadWebhook, verifyAndApplySquadPayment } = require("../../lib/squad-payment-service");
 
 async function readRawBody(req) {
   const chunks = []; let size = 0;
