@@ -3,6 +3,10 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/payment/squad-callback",
+      "destination": "/payment-return.html"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api?path=:path*"
     }
