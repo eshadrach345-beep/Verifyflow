@@ -9,7 +9,7 @@
   const serviceList = $("smm-service-list"), searchInput = $("smm-service-search");
   const selectVisible = $("smm-select-visible"), selectAllButton = $("smm-select-all");
   const selectAllTop = $("smm-select-all-top");
-  let providers = [], products = [], productsTableReady = true;
+  let providers = [], products = [], productsTableReady = true, productsSetupMessage = "Apply database migration 010_smm_categories.sql before publishing categorized products.";
   const selectedServices = new Set();
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
@@ -136,6 +136,7 @@
       providers = data.providers || [];
       products = data.products || [];
       productsTableReady = data.productsTableReady !== false;
+      productsSetupMessage = data.productsMessage || productsSetupMessage;
       renderServices(serviceSelect.value);
       saveButton.disabled = !productsTableReady;
       renderProducts();
@@ -199,7 +200,7 @@
   form.addEventListener("submit", async event => {
     event.preventDefault();
     const service = currentService(), markup = markupPercent();
-    if (!productsTableReady) { message.textContent = "Apply database migration 006_smm_product_manager.sql before publishing products."; return; }
+    if (!productsTableReady) { message.textContent = "Apply the required SMM database migration before publishing products."; return; }
     if (!service) { message.textContent = "Select a supplier service first."; return; }
     if (!Number.isFinite(markup) || markup < 0 || markup > 1000) { message.textContent = "Enter a markup percentage between 0 and 1,000."; return; }
     saveButton.disabled = true;
