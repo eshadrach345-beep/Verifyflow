@@ -138,6 +138,18 @@ assert.ok(accountPage.includes('welcomeToastTimer=window.setTimeout') &&
 assert.ok(admin.includes('id="smm-select-all-top"') && adminSmm.includes('selectAllTop?.addEventListener("click", selectAllServices)'),
   "Admin top-level Select All must select all services from the currently active supplier");
 assert.ok(checkout.includes("activateServiceCard"), "Full service-card clicks must open the configured product options");
+assert.ok(checkout.includes("selectProduct") && checkout.includes("returnUrl.searchParams.set(\"selectProduct\""),
+  "A signed-out customer must return to the exact product they selected after sign-in");
+assert.ok(checkout.includes("tryOpenRequestedProduct") && accountPage.includes("accountReturnTo") &&
+  accountPage.includes("window.location.replace(accountReturnTo)"),
+  "After sign-in the selected product must reopen its checkout options");
+assert.ok(dashboard.includes("Pay per GB. Choose your data allowance") &&
+  dashboard.includes("Keep the same number for a selected period") &&
+  dashboard.includes("Order this service for a public profile or post"),
+  "Catalogue descriptions must be short and useful instead of tall repeated paragraphs");
+assert.ok(walletDepositApi.includes("009_wallet_smm_schema_repair.sql") &&
+  walletApi.includes("42P10") && fs.readFileSync("lib/launch-readiness.js", "utf8").includes("vf_wallet_topups"),
+  "Wallet funding failures must point to the wallet schema repair migration");
 assert.ok(proxyCatalog.includes("Math.min(configuredPercent, 18)") &&
   proxySupplier.includes("Math.min(requestedPercent, 18)"),
   "Proxy quote and catalogue retail margins must both be capped at a competitive 18 percent");
