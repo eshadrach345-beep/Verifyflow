@@ -45,7 +45,7 @@
         <div class="vf-checkout-price"><span>Estimated total</span><strong id="vf-checkout-price">—</strong></div>
         <p class="vf-checkout-note">The final price is confirmed using a fresh supplier quote before payment.</p>
         <label id="vf-duration-wrap" class="catalog-duration" hidden>Rental period<select id="vf-duration-select"></select></label>
-        <p class="vf-checkout-note">Payment is in USD through Monnify card checkout. International USD payments require account activation and currently support Mastercard. Taxes are not included.</p>
+        <p class="vf-checkout-note">Catalogue prices are shown in USD. Monnify collects USD only when international collection is enabled on the account; otherwise checkout is converted to NGN using VerifyFlow’s configured rate and the payment methods enabled on the account. Taxes are not included.</p>
         <p id="vf-checkout-message" class="vf-checkout-message" role="status" aria-live="polite"></p>
         <button id="vf-checkout-submit" class="vf-buy-button" type="submit">Continue to secure payment ↗</button>
       </form>

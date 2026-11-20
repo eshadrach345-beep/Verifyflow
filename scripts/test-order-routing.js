@@ -38,6 +38,8 @@ assert.ok(smm.includes("service, link, quantity"));
 assert.ok(catalog.includes('...(heroSms.ok ? (heroSms.items?.rentalItems || []) : [])'));
 assert.ok(!checkout.includes('if (category === "rentals" && item.provider === "herosms") return null;'));
 assert.ok(checkout.includes('fetch("/api/orders/create"'));
+assert.ok(orderCreate.includes("getCheckoutAmount(quote.salePriceCents)"), "Checkout must convert USD catalogue prices to the account-enabled payment currency");
+assert.ok(orderCreate.includes("paymentAmountMinor") && orderCreate.includes("paymentCurrency"), "Monnify request and stored payment must use the same actual currency amount");
 assert.ok(refresh.includes("refreshOrderFromSupplier"));
 assert.ok(fulfilment.includes('env.MONNIFY_ENVIRONMENT || "").toUpperCase() !== "LIVE"'));
 console.log("Order routing audit passed (payment verification, all supplier adapters, SMM submit/status and launch locks).");

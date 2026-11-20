@@ -66,7 +66,7 @@ async function main() {
     assert.equal(body.summary.esim, 1);
     assert.equal(body.summary.proxies, 1);
     assert.equal(body.summary.dedicated, 1);
-    assert.equal(body.sections.sms.items[0].priceCents, 55);
+    assert.equal(body.sections.sms.items[0].priceCents, 105); // $0.70 minimum markup introduced by the OTP pricing pass.
     assert.equal(body.sections.rentals.items[0].durations[0].priceCents, 2100);
     assert.equal(body.sections.rentals.items[0].durations[1].priceCents, 5880);
     assert.equal(body.sections.esim.items[0].priceCents, 2025);
