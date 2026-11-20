@@ -59,11 +59,14 @@ module.exports = async function handler(req, res) {
       [user.id, hashToken(verificationToken)]
     );
     await client.query("COMMIT");
-    try { await sendVerificationEmail({ email: user.email, name: user.full_name, token: verificationToken }); }
+    let emailSent = false;
+    try { await sendVerificationEmail({ email: user.email, name: user.full_name, token: verificationToken }); emailSent = true; }
     catch (emailError) { console.error("[auth/register-email]", emailError.code || "EMAIL_SEND_FAILED"); }
     return sendJson(res, 201, {
-      ok: true, verificationRequired: true,
-      message: "Your account has been created. Check your email for a verification link. You must verify your email before signing in."
+      ok: true, verificationRequired: true, emailSent,
+      message: emailSent
+        ? "Your account has been created. A verification link has been sent to your email. You must verify your email before signing in."
+        : "Your account has been created, but we could not confirm that the verification email was sent. Please use Resend verification email to try again."
     });
   } catch (error) {
     if (client) await client.query("ROLLBACK").catch(() => {});
