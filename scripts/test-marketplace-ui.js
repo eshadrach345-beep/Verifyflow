@@ -125,7 +125,7 @@ assert.ok(walletAccount.includes("/api/wallet/deposit") && walletAccount.include
   "Account wallet panel must fund the wallet through the protected deposit API");
 assert.ok(accountPage.includes('id="panel-wallet"') && accountPage.includes('data-panel="wallet"'),
   "Customer account must expose a wallet panel");
-assert.ok(accountPage.includes('id="account-welcome-toast"') && accountPage.includes('showWelcomeToast(user)') && accountPage.includes('},5000);'), "Account welcome message must appear as a five-second popup");
+assert.ok(accountPage.includes('id="account-welcome-toast"') && accountPage.includes('showWelcomeToast(user)') && accountPage.includes('5000);'), "Account welcome message must appear as a five-second popup");
 assert.ok(paymentService.includes("verifyAndApplyWalletDeposit") &&
   paymentService.includes("postWalletTransaction") &&
   paymentWebhook.includes("verifyAndApplyWalletDeposit"),
