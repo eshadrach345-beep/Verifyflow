@@ -94,7 +94,7 @@ module.exports = async function handler(req, res) {
         providers: providers.map(provider => ({
           provider: provider.provider, label: provider.label, connected: provider.connected,
           message: provider.message, balance: provider.balance, currency: provider.currency,
-          services: provider.eligibleServices || []
+          services: (provider.eligibleServices || []).map(service => ({ ...service, ...classifySmmService(service) }))
         })),
         products,
         productsTableReady,
