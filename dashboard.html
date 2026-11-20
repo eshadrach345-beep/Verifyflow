@@ -397,6 +397,74 @@
 }
 @media(max-width:350px){.catalog-grid{grid-template-columns:1fr}}
 </style>
+<style id="verifyflow-moderate-catalogue">
+/* More compact, balanced OTP catalogue and dashboard spacing */
+.dash-shell{padding-top:26px;padding-bottom:46px}
+.dash-heading{margin-bottom:19px}
+.dash-heading h1{font-size:clamp(27px,3vw,36px);letter-spacing:-.7px}
+.dash-heading p{font-size:14px}
+.dash-account-link{padding:10px 15px;font-size:13px}
+.customer-strip{padding:14px 18px;margin-bottom:19px;border-radius:10px}
+.customer-strip-mark{width:40px;height:40px;flex-basis:40px;font-size:18px}
+.customer-strip-copy strong{font-size:15px}
+.customer-strip-copy span{font-size:13px}
+.catalog-section{padding:20px 20px 22px;border-radius:12px}
+.catalog-toolbar{margin-bottom:16px}
+.catalog-toolbar h2{font-size:24px}
+.catalog-toolbar p{font-size:13px}
+.catalog-refresh{min-height:40px;padding:9px 14px;font-size:12px}
+.catalog-controls{gap:12px;margin-bottom:15px}
+.catalog-control input{min-height:42px;padding:10px 12px;font-size:15px}
+.catalog-tabs{gap:7px;margin-bottom:10px}
+.catalog-tab{padding:8px 12px;font-size:12px}
+.catalog-state-row{min-height:32px;margin:8px 0 10px}
+.catalog-status{font-size:12px}
+.catalog-grid{gap:11px}
+.catalog-item{border-radius:10px}
+.catalog-item-visual{height:88px;min-height:88px}
+.catalog-art-icon{width:46px;height:46px;border-radius:13px;font-size:21px}
+.catalog-country-flag{font-size:10px;padding:4px 7px}
+.catalog-item-copy{padding:12px!important;min-height:0}
+.catalog-item-copy h3{font-size:15px;line-height:1.3;margin-bottom:5px}
+.catalog-item-copy p{font-size:12px;line-height:1.4;margin-bottom:5px}
+.catalog-item-detail{font-size:11px;line-height:1.4}
+.catalog-price-row{margin-top:9px;padding-top:8px}
+.catalog-price-row strong{font-size:17px}
+.catalog-price-row small{font-size:10px}
+.orders-panel{margin-top:20px;padding:19px;border-radius:11px}
+.orders-heading h2{font-size:22px}
+.order-row{padding:13px 0}
+.dash-bottom{padding:20px;border-radius:10px}
+.dash-bottom h2{font-size:19px}
+.dash-bottom p{font-size:13px}
+@media(max-width:600px){
+ .dash-shell{padding:21px 12px 38px}
+ .dash-heading h1{font-size:28px}
+ .dash-heading p{font-size:13px}
+ .customer-strip{padding:12px;gap:9px}
+ .customer-strip-mark{width:35px;height:35px;flex-basis:35px}
+ .customer-strip-copy strong{font-size:14px}
+ .customer-strip-copy span{font-size:12px}
+ .catalog-section{padding:14px 11px 16px}
+ .catalog-toolbar h2{font-size:21px}
+ .catalog-controls{gap:9px}
+ .catalog-control input{min-height:40px;font-size:14px}
+ .catalog-tab{font-size:11px;padding:8px 10px}
+ .catalog-grid{gap:8px}
+ .catalog-item-visual{height:78px;min-height:78px}
+ .catalog-art-icon{width:40px;height:40px;font-size:19px}
+ .catalog-item-copy{padding:10px!important}
+ .catalog-item-copy h3{font-size:13px;line-height:1.28}
+ .catalog-item-copy p{font-size:11px;line-height:1.35}
+ .catalog-item-detail{font-size:10px;line-height:1.35}
+ .catalog-price-row{margin-top:8px;padding-top:7px}
+ .catalog-price-row strong{font-size:15px}
+ .catalog-price-row small{font-size:9px}
+ .orders-panel{padding:13px;margin-top:15px}
+ .orders-heading h2{font-size:18px}
+ .dash-bottom{padding:15px}
+}
+</style>
 </head><body><header class="vf-store-header"><div class="vf-topbar">
 <a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
 <a class="vf-location" href="#catalogue"><small>Explore</small><strong>All products</strong></a>
@@ -566,6 +634,12 @@
   const categories=active==="all"?categoryKeys:[active];
   const results=[];
   let availableSections=0;
+  const smsPopularity = item => {
+   const name=String(item?.name||item?.title||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+   const popular=["whatsapp","telegram","gmail","google","instagram","facebook","tiktok","discord","microsoft","outlook","amazon","apple","snapchat","uber","binance","paypal","steam","x com","twitter","yahoo","twitch","reddit","linkedin","openai"];
+   const index=popular.findIndex(app=>name===app||name.startsWith(app+" ")||name.includes(" "+app+" ")||name.endsWith(" "+app));
+   return index<0?popular.length:index;
+  };
   for(const category of categories){
    const section=catalogue.sections?.[category];
    if(!section?.ok) continue;
@@ -574,6 +648,7 @@
    rows.filter(item=>!query||JSON.stringify(item).toLowerCase().includes(query)||(categoryLabels[category]||"").toLowerCase().includes(query))
     .forEach(item=>results.push({category,item}));
   }
+  results.sort((a,b)=>a.category===b.category&&a.category==="sms"?smsPopularity(a.item)-smsPopularity(b.item):0);
   if(!results.length){
    const marketing=catalogue.sections?.marketing;
    if(active==="marketing"&&marketing?.loading){
