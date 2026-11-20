@@ -24,11 +24,12 @@
       const voidMobCard = '<article class="admin-card"><strong>VoidMob</strong><div class="big">' + esc(voidMob.connected ? "API connected" : "API not connected") + '</div>' +
         '<small>Wallet balance: <b>' + esc(voidMob.balanceFormatted || "—") + '</b></small>' +
         '<small>' + esc(voidMob.message || "Read-only account check.") + '</small></article>';
-      const hero = data.heroSms || { connected: false, message: "HeroSMS retail API status unavailable." };
-      const heroCard = '<article class="admin-card"><strong>HeroSMS</strong><div class="big">' + esc(hero.connected ? "Account API connected" : "Account API not connected") + '</div>' +
-        '<small>Wallet balance: <b>' + esc(hero.balance == null ? "—" : Number(hero.balance).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " " + (hero.currency || "USD")) + '</b></small>' +
-        '<small>Retail inventory key: <b>' + esc(hero.retailApiConfigured ? "Configured" : "Not configured") + '</b></small>' +
-        '<small>' + esc(hero.message || "Read-only Account API check.") + '</small></article>';
+      const hero = data.heroSms || { connected: false, accountKeyConfigured: false, retailApiConfigured: false, message: "HeroSMS status unavailable." };
+      const accountStatus = hero.connected ? "Account balance API connected" : hero.accountKeyConfigured ? "Account balance API rejected / unavailable" : "Account balance API not configured";
+      const heroCard = '<article class="admin-card"><strong>HeroSMS</strong><div class="big">' + esc(accountStatus) + '</div>' +
+        '<small>Account balance: <b>' + esc(hero.balance == null ? "—" : Number(hero.balance).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " " + (hero.currency || "USD")) + '</b></small>' +
+        '<small>Retail catalogue key: <b>' + esc(hero.retailApiConfigured ? "Configured" : "Not configured") + '</b></small>' +
+        '<small>' + esc(hero.message || "Account balance and retail catalogue credentials are checked separately.") + '</small></article>';
       host.innerHTML = voidMobCard + heroCard + data.providers.map(provider => {
         const status = provider.connected ? "Connected" : "Not connected";
         const services = Number(provider.eligibleCount || 0);
