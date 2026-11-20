@@ -698,19 +698,25 @@
    if(!orders.length){ordersList.innerHTML='<p class="orders-empty">You have no orders yet. Your purchases will appear here.</p>';return;}
    ordersList.innerHTML=orders.map(order=>{
     const delivery=order.customer_delivery||null;
+    const service=order.customer_service||null;
     const isOtp=order.product_type==="sms_otp";
+    const isRental=order.product_type==="long_term_number";
     const isSmm=order.product_type==="smm_service";
     const details=[];
-    if(isOtp&&delivery){
-     if(delivery.phoneNumber)details.push('<div class="order-delivery-line"><span>Assigned number</span><strong>'+esc(delivery.phoneNumber)+'</strong></div>');
-     if(delivery.code)details.push('<div class="order-otp-code"><span>Verification code</span><strong>'+esc(delivery.code)+'</strong></div>');
-     if(delivery.message)details.push('<div class="order-sms-message"><span>SMS message</span><p>'+esc(delivery.message)+'</p></div>');
-     if(!delivery.received&&delivery.status!=="expired")details.push('<p class="order-waiting">Waiting for the verification SMS. This order checks for new messages automatically.</p>');
-     if(delivery.status==="expired")details.push('<p class="order-waiting">This activation has expired or was cancelled. Contact support if you need an order review.</p>');
+    if((isOtp||isRental)&&(delivery||service)){
+     const phone=delivery?.phoneNumber||service?.phone_number;
+     if(phone)details.push('<div class="order-delivery-line"><span>Assigned number</span><strong>'+esc(phone)+'</strong></div>');
+     if(delivery?.code||service?.code)details.push('<div class="order-otp-code"><span>Latest verification code</span><strong>'+esc(delivery?.code||service?.code)+'</strong></div>');
+     if(delivery?.message||service?.message)details.push('<div class="order-sms-message"><span>Latest SMS message</span><p>'+esc(delivery?.message||service?.message)+'</p></div>');
+     if(service?.expires_at)details.push('<div class="order-delivery-line"><span>Number expires</span><strong>'+esc(new Date(service.expires_at).toLocaleString())+'</strong></div>');
+     if(isOtp&&delivery&&!delivery.received&&delivery.status!=="expired")details.push('<p class="order-waiting">Waiting for the verification SMS. This order checks for new messages automatically.</p>');
+     if(isRental&&delivery&&!delivery.message)details.push('<p class="order-waiting">No new rental SMS is reported yet. Refresh the rental to check again.</p>');
+     if(delivery?.status==="expired")details.push('<p class="order-waiting">This activation or rental has expired or was cancelled. Contact support if you need an order review.</p>');
     }
     const state=String(order.fulfilment_status||order.status||"pending").replaceAll("_"," ");
     const pollable=order.has_supplier_order===true&&["sms_otp","smm_service"].includes(order.product_type)&&!["completed","failed","unknown"].includes(String(order.fulfilment_status||"").toLowerCase());
-    const refreshButton=pollable?'<button type="button" class="order-refresh-button" data-refresh-order="'+esc(order.id)+'">'+(isOtp?"Check for SMS":"Refresh progress")+'</button>':"";
+    const showRefresh=pollable||(isRental&&order.has_supplier_order===true);
+    const refreshButton=showRefresh?'<button type="button" class="order-refresh-button" data-refresh-order="'+esc(order.id)+'">'+(isOtp?"Check for SMS":isRental?"Refresh rental messages":"Refresh progress")+'</button>':"";
     const sub=order.order_number+" · "+new Date(order.created_at).toLocaleDateString();
     return '<article class="order-row"><div class="order-main"><div><strong>'+esc(order.product_name)+'</strong><small>'+esc(sub)+'</small></div><span class="order-status order-'+esc(order.status)+'">'+esc(state)+'</span></div>'+
      (details.length?'<div class="order-delivery">'+details.join("")+'</div>':"")+
