@@ -40,6 +40,8 @@ for (const category of categories) {
     "Dashboard must expose the " + category + " category tab");
 }
 assert.ok(dashboard.includes('data-catalog-tab="all"'), "Dashboard must expose All products");
+assert.ok(dashboard.includes('id="smm-platform-filter"') && dashboard.includes('id="smm-subcategory-filter"'), "Social Media catalogue must expose platform and service-type filters");
+assert.ok(dashboard.includes('active!=="marketing"||category!=="marketing"'), "SMM filters must not hide products when customers return to All products");
 assert.ok(dashboard.includes("const dedupeProducts=") && dashboard.includes("priceOf(item)>previous.price"),
   "The customer catalogue must remove duplicate listings while retaining the highest retail price");
 assert.ok(dashboard.includes('data-vf-card-open') && checkout.includes('event.target.closest("[data-vf-card-open]")'),
