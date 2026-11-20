@@ -88,8 +88,8 @@ th{font-size:12px;letter-spacing:.5px}
 <script>
 document.documentElement.classList.add("vf-admin-pending");
 fetch("/api/admin/access",{credentials:"same-origin",cache:"no-store",headers:{Accept:"application/json"}})
-.then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok||!data.ok)throw new Error("denied");document.documentElement.classList.remove("vf-admin-pending");})
-.catch(()=>{document.documentElement.classList.remove("vf-admin-pending");document.documentElement.classList.add("vf-admin-denied");window.location.replace("/account.html?next=%2Fadmin.html");});
+.then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok||!data.ok){window.location.replace("/admin-login.html?next=%2Fadmin.html");return;}document.documentElement.classList.remove("vf-admin-pending");})
+.catch(()=>{window.location.replace("/admin-login.html?next=%2Fadmin.html");});
 </script>
 </head>
 <body>
