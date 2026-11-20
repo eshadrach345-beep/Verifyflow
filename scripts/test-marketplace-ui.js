@@ -140,6 +140,11 @@ assert.ok(accountPage.includes('welcomeToastTimer=window.setTimeout') &&
 assert.ok(admin.includes('id="smm-select-all-top"') && adminSmm.includes('selectAllTop?.addEventListener("click", selectAllServices)'),
   "Admin top-level Select All must select all services from the currently active supplier");
 assert.ok(checkout.includes("activateServiceCard"), "Full service-card clicks must open the configured product options");
+assert.ok(checkout.includes("selectProduct") && checkout.includes("returnUrl.searchParams.set(\"selectProduct\""), "Signed-out product selection must be preserved through login");
+assert.ok(checkout.includes("tryOpenRequestedProduct") && accountPage.includes("accountReturnTo") && accountPage.includes("window.location.replace(accountReturnTo)"), "Successful sign-in must return to the selected product and reopen checkout");
+assert.ok(dashboard.includes("Pay per GB. Choose your data allowance") && dashboard.includes("Keep the same number for a selected period") && dashboard.includes("Order this service for a public profile or post"), "Storefront product descriptions must be concise");
+assert.ok(checkout.includes("window.location.assign(data.checkoutUrl)"), "Successful Monnify checkout preparation must redirect to the hosted payment page");
+
 assert.ok(checkout.includes("selectProduct") && checkout.includes("returnUrl.searchParams.set(\"selectProduct\""),
   "A signed-out customer must return to the exact product they selected after sign-in");
 assert.ok(dashboard.includes("const requestedCountry=params.get(\"country\")") &&
