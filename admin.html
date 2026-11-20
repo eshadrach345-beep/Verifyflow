@@ -125,7 +125,8 @@ fetch("/api/admin/access",{credentials:"same-origin",cache:"no-store",headers:{A
 <input type="hidden" id="smm-product-id">
 <label>Supplier<select id="smm-provider" required><option value="peakerr">Peakerr</option><option value="justanotherpanel">JustAnotherPanel</option></select></label>
 <label>Supplier service<select id="smm-service-id" required><option value="">Loading services…</option></select></label>
-<label>Platform<input id="smm-platform" maxlength="60" placeholder="TikTok, Instagram, YouTube…" required></label>
+<label>Main category / platform<input id="smm-platform" maxlength="60" placeholder="Instagram, TikTok, YouTube…" required></label>
+<label>Subcategory<input id="smm-subcategory" maxlength="60" placeholder="Followers, Likes, Views…" required></label>
 <label>Storefront product name<input id="smm-product-name" maxlength="140" placeholder="TikTok Likes" required></label>
 <label>Retail markup (%)<input id="smm-markup-percent" type="number" min="0" max="1000" step="0.1" value="50" placeholder="50" required></label>
 <label class="smm-description">Product description (optional)<textarea id="smm-description" rows="2" maxlength="500" placeholder="Describe what the customer is purchasing."></textarea></label>
