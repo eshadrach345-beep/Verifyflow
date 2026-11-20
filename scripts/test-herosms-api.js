@@ -63,6 +63,9 @@ async function main() {
     const status = await getActivation("42");
     assert.equal(status.status, "code_received");
     assert.equal(status.code, "012345");
+    const smsQuote = await quoteProduct("sms_otp", { productId: "tg", country: "us", verificationType: "sms" });
+    assert.equal(smsQuote.supplierPriceCents, 25);
+    assert.equal(smsQuote.supplierInput.verificationType, "sms");
     const rentalQuote = await quoteProduct("long_term_number", { productId: "tg", country: "us", durationDays: 3 });
     assert.equal(rentalQuote.provider, "herosms");
     assert.equal(rentalQuote.supplierPriceCents, 150);
