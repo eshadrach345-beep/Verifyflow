@@ -115,6 +115,7 @@ assert.ok(dashboard.includes("Receive an SMS code on a temporary number") &&
   dashboard.includes("Keep the same number for a selected period") &&
   dashboard.includes("Order this service for a public profile or post"),
   "All catalogue product families must have concise, useful customer-facing descriptions");
+assert.ok(proxyCatalog.includes('/proxy_plans?type=all&available=true'), "Proxy catalogue must request only currently purchasable plans");
 assert.ok(proxyCatalog.includes("pricePerGbCents") && proxyCatalog.includes("Number(plan.data_gb)"),
   "Shared mobile proxy catalogue must expose a derived per-GB price");
 assert.ok(dashboard.includes("Unlimited traffic") && dashboard.includes('"Unlimited traffic · "') &&
