@@ -707,24 +707,28 @@
    const type=String(x.type||"shared").toLowerCase();
    const shared=type==="shared";
    const options=Array.isArray(x.durationOptions)&&x.durationOptions.length?x.durationOptions:[{
-    id:x.id,durationDays:Number(x.durationDays)||0,period:x.period||"",priceCents:x.priceCents,
-    pricePerGbCents:x.pricePerGbCents,available:x.available!==false,discountPercent:0
+    id:x.id,dataGb:Number(x.dataGb)||null,durationDays:Number(x.durationDays)||0,period:x.period||"",priceCents:x.priceCents,
+    pricePerGbCents:x.pricePerGbCents,pricePerDayCents:null,available:x.available!==false,discountPercent:0
    }];
    const selected=options[0];
-   const volume=shared?(x.dataGb!=null?x.dataGb+" GB":"Data package"):"Unlimited traffic";
+   const selectedVolume=shared?(selected.dataGb||x.dataGb):null;
+   const volume=shared?(selectedVolume?selectedVolume+" GB":"Data package"):"Unlimited traffic";
    const duration=selected.durationDays?selected.durationDays+" days":(selected.period||x.period||"Monthly term");
    const location=[x.country,x.carrier,x.region].filter(Boolean).join(" · ");
    const detail=String(x.description||(shared
-    ? "Shared mobile proxy data is priced by the gigabyte. Choose an available plan duration; longer terms may offer a lower per-GB rate. Package totals and the exact term are shown before checkout."
-    : "A dedicated mobile proxy routes traffic through a real 4G/5G carrier device. It includes unmetered traffic for the displayed plan term."));
-   const rate=shared&&Number(selected.pricePerGbCents)>0?Number(selected.pricePerGbCents):0;
+    ? "Shared mobile proxies are charged by the gigabyte. Choose a data allowance below; larger packages reduce the effective price per GB. Each shared data package has a fixed validity period shown at checkout."
+    : "A dedicated mobile proxy routes traffic through a real 4G/5G carrier device. It includes unmetered traffic, with daily, weekly or monthly rental periods where available."));
+   const rate=shared?Number(selected.pricePerGbCents||0):Number(selected.pricePerDayCents||0);
    const discount=Number(selected.discountPercent||0);
-   const discountNote=discount>0?" · "+discount+"% lower per GB vs "+(options[0].durationDays||"shortest")+"-day term":"";
+   const discountUnit=shared?"per GB":"per day";
+   const discountNote=discount>0?" · Save "+discount+"% "+discountUnit+" vs the shortest option":"";
    const priceNote=shared&&rate>0
-    ? "PRICE PER GB · "+volume+" package · "+duration+" · package total "+money(selected.priceCents,"USD")+discountNote+" · before VAT/tax"
-    : shared?volume+" package · "+duration+" · before VAT/tax":"unmetered · per "+duration+" · before VAT/tax";
+    ? "PRICE PER GB · "+volume+" package · "+duration+" validity · package total "+money(selected.priceCents,"USD")+discountNote+" · before VAT/tax"
+    : shared?volume+" package · "+duration+" validity · before VAT/tax"
+    : "UNLIMITED TRAFFIC · "+duration+" · effective "+money(rate)+" per day · plan total "+money(selected.priceCents,"USD")+discountNote+" · before VAT/tax";
    const proxyOptionsAttribute=' data-proxy-options="'+esc(JSON.stringify(options))+'"'+(shared?' data-proxy-metered="true"':"");
-   return card("proxies",x.name||"Mobile proxy",(shared?"Shared mobile proxy · ":"Dedicated mobile proxy · ")+volume+" · "+duration,
+   const productTitle=options.length>1?(shared?"Shared Mobile Proxy":"Dedicated Mobile Proxy"):(x.name||"Mobile proxy");
+   return card("proxies",productTitle,(shared?"Pay-per-GB shared proxy · ":"Dedicated mobile proxy · ")+volume+" · "+duration,
     detail+(location?" Location: "+location:""),shared&&rate>0?rate:selected.priceCents,priceNote,
     x.available?"AVAILABLE":"CHECK AVAILABILITY",x.currency,x.country||"",key,proxyOptionsAttribute);
   }
