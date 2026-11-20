@@ -684,6 +684,8 @@
    loadOrders();
   }catch{}
  }
+ let orderCache=[];
+ let orderRefreshInFlight=false;
  async function loadOrders(){
   try{
    const response=await fetch("/api/orders",{credentials:"same-origin",cache:"no-store"});
@@ -691,11 +693,62 @@
    if(!response.ok||!result.ok)return;
    ordersPanel.hidden=false;
    const orders=result.orders||[];
+   orderCache=orders;
    ordersCount.textContent=orders.length+" order"+(orders.length===1?"":"s");
    if(!orders.length){ordersList.innerHTML='<p class="orders-empty">You have no orders yet. Your purchases will appear here.</p>';return;}
-   ordersList.innerHTML=orders.map(order=>'<article class="order-row"><div><strong>'+esc(order.product_name)+'</strong><small>'+esc(order.order_number)+' · '+new Date(order.created_at).toLocaleDateString()+'</small></div><span class="order-status order-'+esc(order.status)+'">'+esc(order.status.replaceAll("_"," "))+'</span></article>').join("");
+   ordersList.innerHTML=orders.map(order=>{
+    const delivery=order.customer_delivery||null;
+    const isOtp=order.product_type==="sms_otp";
+    const isSmm=order.product_type==="smm_service";
+    const details=[];
+    if(isOtp&&delivery){
+     if(delivery.phoneNumber)details.push('<div class="order-delivery-line"><span>Assigned number</span><strong>'+esc(delivery.phoneNumber)+'</strong></div>');
+     if(delivery.code)details.push('<div class="order-otp-code"><span>Verification code</span><strong>'+esc(delivery.code)+'</strong></div>');
+     if(delivery.message)details.push('<div class="order-sms-message"><span>SMS message</span><p>'+esc(delivery.message)+'</p></div>');
+     if(!delivery.received&&delivery.status!=="expired")details.push('<p class="order-waiting">Waiting for the verification SMS. This order checks for new messages automatically.</p>');
+     if(delivery.status==="expired")details.push('<p class="order-waiting">This activation has expired or was cancelled. Contact support if you need an order review.</p>');
+    }
+    const state=String(order.fulfilment_status||order.status||"pending").replaceAll("_"," ");
+    const pollable=order.has_supplier_order===true&&["sms_otp","smm_service"].includes(order.product_type)&&!["completed","failed","unknown"].includes(String(order.fulfilment_status||"").toLowerCase());
+    const refreshButton=pollable?'<button type="button" class="order-refresh-button" data-refresh-order="'+esc(order.id)+'">'+(isOtp?"Check for SMS":"Refresh progress")+'</button>':"";
+    const sub=order.order_number+" · "+new Date(order.created_at).toLocaleDateString();
+    return '<article class="order-row"><div class="order-main"><div><strong>'+esc(order.product_name)+'</strong><small>'+esc(sub)+'</small></div><span class="order-status order-'+esc(order.status)+'">'+esc(state)+'</span></div>'+
+     (details.length?'<div class="order-delivery">'+details.join("")+'</div>':"")+
+     (isSmm?'<p class="order-waiting">Social service fulfilment: '+esc(state)+'. Progress is checked automatically while the order is active.</p>':"")+
+     refreshButton+'</article>';
+   }).join("");
   }catch{}
  }
+ async function refreshCustomerOrder(orderId){
+  const response=await fetch("/api/orders/refresh",{method:"POST",credentials:"same-origin",cache:"no-store",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({orderId})});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||!data.ok)throw new Error(data.error||"Order status could not be refreshed.");
+  return data;
+ }
+ ordersList.addEventListener("click",async event=>{
+  const button=event.target.closest("[data-refresh-order]");
+  if(!button||button.disabled)return;
+  button.disabled=true;button.textContent="Checking…";
+  try{await refreshCustomerOrder(button.dataset.refreshOrder);await loadOrders();}
+  catch(error){button.textContent=error.message||"Try again";button.disabled=false;}
+ });
+ async function refreshPendingCustomerOrders(){
+  if(orderRefreshInFlight||document.visibilityState==="hidden")return;
+  const pending=orderCache.filter(order=>order.has_supplier_order===true&&
+   ["sms_otp","smm_service"].includes(order.product_type)&&
+   !["completed","failed","unknown"].includes(String(order.fulfilment_status||"").toLowerCase()));
+  if(!pending.length)return;
+  orderRefreshInFlight=true;
+  let changed=false;
+  try{
+   for(const order of pending.slice(0,5)){
+    try{await refreshCustomerOrder(order.id);changed=true;}catch{}
+   }
+   if(changed)await loadOrders();
+  }finally{orderRefreshInFlight=false;}
+ }
+ setInterval(refreshPendingCustomerOrders,12000);
+
  load();loadAccount();
 })();
 </script>
