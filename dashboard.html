@@ -736,7 +736,7 @@
   for(const plan of sourceRows){
    const type=String(plan.type||"shared").toLowerCase();
    const dataGb=Number(plan.dataGb),days=Number(plan.durationDays);
-   if(type!=="shared"||!Number.isFinite(dataGb)||dataGb<=0||!Number.isSafeInteger(days)||days<1){
+   if(type!=="shared"||plan.available===false||!Number.isFinite(dataGb)||dataGb<=0||!Number.isSafeInteger(days)||days<1){
     separate.push(plan);continue;
    }
    const name=String(plan.name||"mobile proxy").toLowerCase()
