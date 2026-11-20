@@ -59,6 +59,7 @@ async function main() {
     const body = JSON.parse(res.body);
 
     assert.equal(res.statusCode, 200);
+    assert.equal(res.headers["Cache-Control"], "public, s-maxage=30, stale-while-revalidate=120");
     assert.equal(body.ok, true);
     assert.equal(body.country, "us");
     assert.equal(body.summary.sms, 1);
