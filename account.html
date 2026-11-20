@@ -240,7 +240,7 @@
     <div class="auth-field"><label for="register-name">Full name</label><input id="register-name" name="fullName" autocomplete="name" required minlength="2" maxlength="80" placeholder="Your full name"></div>
     <div class="auth-field"><label for="register-email">Email address</label><input id="register-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></div>
     <div class="auth-field"><label for="register-password">Create password</label><input id="register-password" name="password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required placeholder="At least 10 characters"></div>
-    <button class="auth-submit" type="submit">Create my account</button><p class="auth-message" id="register-message" role="status" aria-live="polite"></p>
+    <button class="auth-submit" type="submit">Create my account</button><p class="auth-message" id="register-message" role="status" aria-live="polite"></p><p class="auth-terms" id="register-email-help">After registering, check your inbox for the verification email. If it is not there, check your Spam or Junk folder. You can also request another link below.</p><button class="auth-submit" id="resend-verification-register" type="button">Resend verification email</button><p class="auth-message" id="resend-register-message" role="status" aria-live="polite"></p>
     <p class="auth-terms">By creating an account, you agree to our <a href="/terms.html">Terms</a> and <a href="/privacy.html">Privacy Policy</a>.</p>
    </form>
   </div>
@@ -546,7 +546,7 @@
    const data=await response.json().catch(()=>({}));
    if(!response.ok||!data.ok)throw new Error(data.error||"We couldn't complete that request. Please try again.");
    form.reset();
-   if(data.verificationRequired){message.textContent=data.message||"Check your inbox for a verification link before signing in.";return;}
+   if(data.verificationRequired){message.textContent=(data.message||"Your account has been created. Check your inbox for a verification link.")+" If you cannot find it, check your Spam or Junk folder. You can request another link below.";return;}
    await openPortal(data.user);
   }catch(error){message.textContent=error.message||"Something went wrong. Please try again."}
   finally{button.disabled=false;button.textContent=buttonLabel}
@@ -554,8 +554,8 @@
  loginForm.addEventListener("submit",event=>{event.preventDefault();submitAuth(loginForm,"/api/auth/login","login-message","Sign in to your account");});
  registerForm.addEventListener("submit",event=>{event.preventDefault();submitAuth(registerForm,"/api/auth/register","register-message","Create my account");});
 
- document.getElementById("resend-verification").addEventListener("click",async()=>{
-  const email=document.getElementById("login-email").value.trim(),message=document.getElementById("resend-message"),button=document.getElementById("resend-verification");
+ async function resendVerification(emailInputId,messageId,buttonId){
+  const email=document.getElementById(emailInputId).value.trim(),message=document.getElementById(messageId),button=document.getElementById(buttonId);
   message.textContent="";
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){message.textContent="Enter your email address above first.";return;}
   button.disabled=true;button.textContent="Sending…";
@@ -566,7 +566,9 @@
    message.textContent=data.message||"If your account needs verification, a new link will be sent.";
   }catch(error){message.textContent=error.message||"Please try again.";}
   finally{button.disabled=false;button.textContent="Resend verification email";}
- });
+ }
+ document.getElementById("resend-verification").addEventListener("click",()=>resendVerification("login-email","resend-message","resend-verification"));
+ document.getElementById("resend-verification-register").addEventListener("click",()=>resendVerification("register-email","resend-register-message","resend-verification-register"));
 
  document.getElementById("profile-form").addEventListener("submit",async event=>{
   event.preventDefault();
