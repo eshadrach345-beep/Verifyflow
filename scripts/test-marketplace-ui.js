@@ -28,6 +28,9 @@ for (const category of categories) {
     "Dashboard must expose the " + category + " category tab");
 }
 assert.ok(dashboard.includes('data-catalog-tab="all"'), "Dashboard must expose All products");
+assert.ok(dashboard.includes("www.google.com/s2/favicons"), "Recognised services must use real service-logo images");
+assert.ok(dashboard.includes("categoryLogoFor") && dashboard.includes("data-fallback"), "Every catalogue card must have an illustrated image fallback");
+assert.ok(dashboard.includes("catalog-brand-logo"), "Product cards must render image assets rather than text-only icons");
 assert.ok(dashboard.includes('params.get("search")'), "Dashboard must hydrate search from the URL");
 
 // The homepage All services control must open a real category menu rather than act as an anchor.
