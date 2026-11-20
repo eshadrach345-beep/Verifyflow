@@ -243,6 +243,8 @@ document.body.insertAdjacentHTML("beforeend", `
 
   function activateServiceCard(card) {
     if (!card) return;
+    // Ensure the asynchronous checkout controls exist before trying to activate a card.
+    try { renderButtons(); } catch {}
     const targetInput = card.querySelector("[data-smm-link]");
     if (targetInput) {
       targetInput.focus();
@@ -279,7 +281,7 @@ document.body.insertAdjacentHTML("beforeend", `
         return;
       }
       attempts += 1;
-      if (attempts >= 12) {
+      if (attempts >= 40) {
         delete card.dataset.vfActivationPending;
         if (status) status.textContent = "This listing is still loading. Refresh the catalogue and try again.";
         return;
