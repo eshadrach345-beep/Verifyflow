@@ -548,7 +548,15 @@
 }
 @media(min-width:761px) and (max-width:1050px){.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(prefers-reduced-motion:reduce){.catalog-chevron{transition:none}}
-</style></head><body><header class="vf-store-header"><div class="vf-topbar">
+</style><style>
+/* Compact mobile-proxy identity: keep the provider/service mark subtle on every screen. */
+.catalog-compact.catalog-proxies .catalog-item-visual{width:48px!important;min-height:68px!important;padding:6px!important}
+.catalog-compact.catalog-proxies .catalog-art-icon{width:32px!important;height:32px!important;border-radius:9px!important}
+.catalog-compact.catalog-proxies .catalog-brand-logo{width:22px!important;height:22px!important;padding:1px!important;filter:none!important}
+.catalog-compact.catalog-proxies .catalog-item-copy{padding:8px 10px!important}
+@media(max-width:600px){.catalog-compact.catalog-proxies{grid-template-columns:48px minmax(0,1fr)!important}.catalog-compact.catalog-proxies .catalog-item-visual{width:48px!important;min-height:66px!important}.catalog-compact.catalog-proxies .catalog-art-icon{width:30px!important;height:30px!important}}
+</style>
+</head><body><header class="vf-store-header"><div class="vf-topbar">
 <a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
 <button class="vf-location" id="vf-category-toggle" type="button" aria-expanded="false" aria-controls="vf-category-menu"><small>Explore</small><strong>All products <span aria-hidden="true">⌄</span></strong></button>
 <form class="vf-search" action="/dashboard.html#catalogue" method="get" role="search"><label class="sr-only" for="vf-dash-search">Search all products</label><input id="vf-dash-search" name="search" type="search" placeholder="Search every product, service or country..." autocomplete="off"><button type="submit" aria-label="Search all products">⌕</button></form>
@@ -864,7 +872,7 @@
     ?plan=>String(Number(plan.dataGb))+"|"+String(Number(plan.durationDays))
     :plan=>String(Number(plan.durationDays));
    const values=variants.map(selector);
-   if(variants.length<2||new Set(values).size!==values.length){separate.push(...variants);continue;}
+   if(new Set(values).size!==values.length){separate.push(...variants);continue;}
    const sorted=[...variants].sort((a,b)=>shared
     ?Number(a.dataGb)-Number(b.dataGb)||Number(a.durationDays)-Number(b.durationDays)
     :Number(a.durationDays)-Number(b.durationDays));
