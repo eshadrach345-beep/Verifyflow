@@ -98,20 +98,27 @@ document.body.insertAdjacentHTML("beforeend", `
       }
       if (!product.id || !Number.isSafeInteger(Number(product.price)) || Number(product.price) <= 0) return;
       const durations = product.durations || [];
-      if (category === "proxies" && product.planType === "shared") {
+      if (category === "proxies") {
         let proxyOptions = [];
         try { proxyOptions = JSON.parse(card.dataset.proxyOptions || "[]"); } catch { proxyOptions = []; }
         if (proxyOptions.length > 1) {
+          const shared = product.planType === "shared";
           const area = document.createElement("div");
           area.className = "vf-buy-area vf-proxy-buy-area";
-          area.innerHTML = '<label class="vf-rental-price">Plan duration<select data-proxy-duration>' +
-            proxyOptions.map((option,index) => '<option value="' + index + '">' +
-              esc(option.durationDays || option.period || "Plan term") + (option.durationDays ? ' days' : '') +
-              (Number(option.discountPercent)>0 ? ' · Save ' + esc(option.discountPercent) + '% per GB' : '') +
-              '</option>').join("") +
+          area.innerHTML = '<label class="vf-rental-price">' + (shared ? 'Choose data package' : 'Choose rental period') +
+            '<select data-proxy-duration>' +
+            proxyOptions.map((option,index) => {
+              const size = Number(option.dataGb) > 0 ? option.dataGb + ' GB' : '';
+              const days = Number(option.durationDays) || 0;
+              const term = days ? days + ' days' : (option.period || 'Plan term');
+              const label = shared ? size + (term ? ' · ' + term + ' validity' : '') : term;
+              return '<option value="' + index + '">' + esc(label) +
+                (Number(option.discountPercent)>0 ? ' · Save ' + esc(option.discountPercent) + (shared ? '% per GB' : '% per day') : '') +
+                '</option>';
+            }).join("") +
             '</select><small data-proxy-price-summary></small></label>' +
             '<button class="vf-buy-button" type="button" data-vf-buy="true" data-product-type="mobile_proxy" data-product-id="' +
-            esc(proxyOptions[0].id) + '" data-product-name="' + esc(item.name || "Shared mobile proxy") +
+            esc(proxyOptions[0].id) + '" data-product-name="' + esc(item.name || "Mobile proxy") +
             '" data-product-price="' + esc(proxyOptions[0].priceCents) + '">Continue to checkout →</button>';
           card.querySelector(".catalog-item-copy")?.appendChild(area);
           const select = area.querySelector("[data-proxy-duration]");
@@ -123,20 +130,30 @@ document.body.insertAdjacentHTML("beforeend", `
             if (!option) return;
             const days = Number(option.durationDays) || 0;
             const durationLabel = days ? days + " days" : (option.period || "Selected term");
-            const rate = Number(option.pricePerGbCents || 0);
+            const dataGb = Number(option.dataGb) || 0;
+            const perGb = Number(option.pricePerGbCents || 0);
+            const perDay = Number(option.pricePerDayCents || 0);
             const total = Number(option.priceCents || 0);
             const discount = Number(option.discountPercent || 0);
+            const unitRate = shared ? perGb : perDay;
             buy.dataset.productId = option.id;
             buy.dataset.productPrice = String(total);
-            buy.dataset.productName = (item.name || "Shared mobile proxy") + " · " + durationLabel;
-            if (rateLabel && rate > 0) rateLabel.textContent = money(rate);
-            if (priceNote) priceNote.textContent = (rate > 0 ? "PRICE PER GB · " : "") +
-              "Package total " + money(total) + " · " + durationLabel +
-              (discount > 0 ? " · " + discount + "% lower per GB than the shortest term" : "") + " · before VAT/tax";
+            buy.dataset.productName = shared
+              ? "Shared Mobile Proxy · " + dataGb + " GB"
+              : "Dedicated Mobile Proxy · " + durationLabel;
+            if (rateLabel) rateLabel.textContent = money(shared && perGb > 0 ? perGb : total);
+            if (priceNote) priceNote.textContent = shared
+              ? "PER GB · " + dataGb + " GB package · " + durationLabel + " validity · total " + money(total) +
+                (discount > 0 ? " · Save " + discount + "% per GB" : "") + " · before VAT/tax"
+              : "UNLIMITED TRAFFIC · total " + money(total) + " for " + durationLabel +
+                (perDay > 0 ? " · effective " + money(perDay) + " per day" : "") +
+                (discount > 0 ? " · Save " + discount + "% per day" : "") + " · before VAT/tax";
             const summary = area.querySelector("[data-proxy-price-summary]");
-            if (summary) summary.textContent = "Package total: " + money(total) +
-              (rate > 0 ? " · " + money(rate) + " per GB" : "") +
-              (discount > 0 ? " · " + discount + "% lower per GB than the shortest term" : "");
+            if (summary) summary.textContent = shared
+              ? money(perGb) + " per GB · " + dataGb + " GB total package: " + money(total) +
+                (discount > 0 ? " · " + discount + "% lower per GB than the smallest package" : "")
+              : money(total) + " total · " + money(unitRate) + " per day equivalent · " + durationLabel +
+                (discount > 0 ? " · " + discount + "% lower per day than the daily term" : "");
           };
           select.addEventListener("change",applyProxyTerm);
           applyProxyTerm();
