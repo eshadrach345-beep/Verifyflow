@@ -183,8 +183,8 @@ assert.ok(walletLibrary.includes("ON CONFLICT (user_id, reference_type, referenc
   "Wallet ledger must be idempotent and expose failed-order refunds");
 assert.ok(walletApi.includes("getSessionUser") && walletApi.includes("vf_wallet_transactions"),
   "Wallet balance and history must be restricted to the signed-in customer");
-assert.ok(walletDepositApi.includes("getCheckoutAmount") && walletDepositApi.includes("initializeTransaction"),
-  "Wallet deposits must use configured currency conversion and Monnify hosted checkout");
+assert.ok(walletDepositApi.includes("getCheckoutAmount") && walletDepositApi.includes("initiateSquadPayment"),
+  "Wallet deposits must use configured currency conversion and Squad hosted checkout");
 assert.ok(walletAccount.includes("/api/wallet/deposit") && walletAccount.includes("amountUsdCents"),
   "Account wallet panel must fund the wallet through the protected deposit API");
 assert.ok(accountPage.includes('id="panel-wallet"') && accountPage.includes('data-panel="wallet"'),
