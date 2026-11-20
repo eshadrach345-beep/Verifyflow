@@ -2,6 +2,7 @@
 
 const { getPool, getSessionUser, sendJson, readJson, sameOrigin } = require("../../lib/auth");
 const { readProvider } = require("../../lib/smm-catalog");
+const { classifySmmService } = require("../../lib/smm-categorizer");
 
 const PROVIDERS = ["peakerr", "justanotherpanel"];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -47,7 +48,8 @@ function moneyToMinor(value) {
 function productRow(row) {
   return {
     id: row.id, provider: row.provider, serviceId: row.supplier_service_id,
-    platform: row.platform, productName: row.product_name, description: row.description,
+    platform: row.platform, category: row.platform, subcategory: row.subcategory || "Other",
+    classificationStatus: row.classification_status || "needs_review", productName: row.product_name, description: row.description,
     supplierRate: row.supplier_rate == null ? null : String(row.supplier_rate),
     supplierCurrency: row.supplier_currency,
     min: Number(row.min_quantity), max: Number(row.max_quantity),
@@ -78,26 +80,29 @@ module.exports = async function handler(req, res) {
       // service lists so the admin can inspect them and report the setup issue.
       const providers = await Promise.all(PROVIDERS.map(readProvider));
       let products = [], productsTableReady = true;
+      let productsMessage = null;
       try {
         const result = await getPool().query(
-          "SELECT * FROM vf_smm_products ORDER BY updated_at DESC LIMIT 500"
+          "SELECT id, provider, supplier_service_id, platform, subcategory, classification_status, product_name, description, supplier_rate, supplier_currency, min_quantity, max_quantity, retail_rate_minor_per_1000, is_active, created_at, updated_at FROM vf_smm_products ORDER BY updated_at DESC LIMIT 500"
         );
         products = result.rows.map(productRow);
       } catch (error) {
-        if (error.code !== "42P01") throw error;
+        if (!["42P01", "42703"].includes(error.code)) throw error;
         productsTableReady = false;
+        productsMessage = error.code === "42P01"
+          ? "The SMM product table is not installed yet. Apply database migration 006_smm_product_manager.sql."
+          : "The SMM category fields are not installed yet. Apply database migration 010_smm_categories.sql.";
       }
       return sendJson(res, 200, {
         ok: true,
         providers: providers.map(provider => ({
           provider: provider.provider, label: provider.label, connected: provider.connected,
           message: provider.message, balance: provider.balance, currency: provider.currency,
-          services: provider.eligibleServices || []
+          services: (provider.eligibleServices || []).map(service => ({ ...service, ...classifySmmService(service) }))
         })),
         products,
         productsTableReady,
-        productsMessage: productsTableReady ? null :
-          "The SMM product table is not installed yet. Apply database migration 006_smm_product_manager.sql to enable saving and publishing products.",
+        productsMessage: productsTableReady ? null : productsMessage,
         updatedAt: new Date().toISOString()
       });
     }
@@ -167,7 +172,9 @@ module.exports = async function handler(req, res) {
       const retailRateMinor = toRetailMinor(service);
       if (!retailRateMinor) return null;
       return {
-        serviceId: cleanSupplierText(service.id, 160).trim(), platform: cleanSupplierText(service.category || "Other", 60),
+        serviceId: cleanSupplierText(service.id, 160).trim(), platform: cleanSupplierText(classifySmmService(service).platform, 60),
+        subcategory: cleanSupplierText(classifySmmService(service).subcategory, 60),
+        classificationStatus: classifySmmService(service).classificationStatus,
         productName: cleanSupplierText(service.name || "Supplier service", 140),
         description: cleanSupplierText(service.description || "", 500),
         supplierRate: Number.isFinite(supplierRate) && supplierRate >= 0 ? supplierRate : null,
@@ -188,11 +195,11 @@ module.exports = async function handler(req, res) {
       }
       if (!rows.length) return sendJson(res, 409, { ok: false, error: "None of the selected services has a supported USD or NGN supplier rate. Check the supplier catalogue rates." });
       const saved = await getPool().query(
-        "WITH incoming AS (SELECT * FROM jsonb_to_recordset($1::jsonb) AS x(service_id TEXT, platform TEXT, product_name TEXT, description TEXT, supplier_rate NUMERIC, supplier_currency CHAR(3), min_quantity INTEGER, max_quantity INTEGER, retail_rate_minor_per_1000 BIGINT)) " +
-        "INSERT INTO vf_smm_products (provider,supplier_service_id,platform,product_name,description,supplier_rate,supplier_currency,min_quantity,max_quantity,retail_rate_minor_per_1000,is_active,updated_at) " +
-        "SELECT $2,i.service_id,i.platform,i.product_name,i.description,i.supplier_rate,i.supplier_currency,i.min_quantity,i.max_quantity,i.retail_rate_minor_per_1000,TRUE,NOW() FROM incoming i " +
+        "WITH incoming AS (SELECT * FROM jsonb_to_recordset($1::jsonb) AS x(service_id TEXT, platform TEXT, subcategory TEXT, classification_status TEXT, product_name TEXT, description TEXT, supplier_rate NUMERIC, supplier_currency CHAR(3), min_quantity INTEGER, max_quantity INTEGER, retail_rate_minor_per_1000 BIGINT)) " +
+        "INSERT INTO vf_smm_products (provider,supplier_service_id,platform,subcategory,classification_status,product_name,description,supplier_rate,supplier_currency,min_quantity,max_quantity,retail_rate_minor_per_1000,is_active,updated_at) " +
+        "SELECT $2,i.service_id,i.platform,i.subcategory,i.classification_status,i.product_name,i.description,i.supplier_rate,i.supplier_currency,i.min_quantity,i.max_quantity,i.retail_rate_minor_per_1000,TRUE,NOW() FROM incoming i " +
         "ON CONFLICT (provider, supplier_service_id) WHERE is_active = TRUE DO UPDATE SET " +
-        "platform=EXCLUDED.platform, product_name=EXCLUDED.product_name, description=EXCLUDED.description, " +
+        "platform=EXCLUDED.platform, subcategory=EXCLUDED.subcategory, classification_status=EXCLUDED.classification_status, product_name=EXCLUDED.product_name, description=EXCLUDED.description, " +
         "supplier_rate=EXCLUDED.supplier_rate, supplier_currency=EXCLUDED.supplier_currency, " +
         "min_quantity=EXCLUDED.min_quantity, max_quantity=EXCLUDED.max_quantity, " +
         "retail_rate_minor_per_1000=EXCLUDED.retail_rate_minor_per_1000, is_active=TRUE, updated_at=NOW() " +
@@ -200,6 +207,8 @@ module.exports = async function handler(req, res) {
         [JSON.stringify(rows.map(row => ({
           service_id: row.serviceId,
           platform: row.platform,
+          subcategory: row.subcategory,
+          classification_status: row.classificationStatus,
           product_name: row.productName,
           description: row.description,
           supplier_rate: row.supplierRate,
@@ -220,25 +229,33 @@ module.exports = async function handler(req, res) {
     if (id && !UUID.test(id)) return sendJson(res, 400, { ok: false, error: "The saved product reference is invalid." });
     const service = (supplier.eligibleServices || []).find(item => item.id === serviceId);
     if (!service) return sendJson(res, 409, { ok: false, error: "That supplier service is no longer available. Refresh the service list and choose again." });
-    const row = serviceMeta({ ...service, category: String(body.platform || service.category || "Other"), name: String(body.productName || service.name), description: String(body.description || service.description || "") });
+    const autoClassification = classifySmmService({ ...service, name: body.productName || service.name, description: body.description || service.description });
+    const row = serviceMeta(service);
     if (!row) return sendJson(res, 400, { ok: false, error: "This service has no usable supplier rate in USD or NGN. A percentage price cannot be calculated." });
-    const productValues = [provider, row.serviceId, row.platform, row.productName, row.description,
+    row.platform = cleanSupplierText(body.platform || autoClassification.platform, 60);
+    row.subcategory = cleanSupplierText(body.subcategory || autoClassification.subcategory, 60);
+    const manualCategoryOverride = (body.platform && body.platform !== autoClassification.platform) ||
+      (body.subcategory && body.subcategory !== autoClassification.subcategory);
+    row.classificationStatus = manualCategoryOverride ? "medium" : autoClassification.classificationStatus;
+    row.productName = cleanSupplierText(body.productName || service.name, 140);
+    row.description = cleanSupplierText(body.description || service.description || "", 500);
+    const productValues = [provider, row.serviceId, row.platform, row.subcategory, row.classificationStatus, row.productName, row.description,
       row.supplierRate, row.supplierCurrency, row.min, row.max, row.retailRateMinor];
     let saved;
     if (id) {
       saved = await getPool().query(
-        "UPDATE vf_smm_products SET provider=$2, supplier_service_id=$3, platform=$4, product_name=$5, description=$6, " +
-        "supplier_rate=$7, supplier_currency=$8, min_quantity=$9, max_quantity=$10, retail_rate_minor_per_1000=$11, " +
+        "UPDATE vf_smm_products SET provider=$2, supplier_service_id=$3, platform=$4, subcategory=$5, classification_status=$6, product_name=$7, description=$8, " +
+        "supplier_rate=$9, supplier_currency=$10, min_quantity=$11, max_quantity=$12, retail_rate_minor_per_1000=$13, " +
         "is_active=TRUE, updated_at=NOW() WHERE id=$1 RETURNING *",
         [id, ...productValues]
       );
       if (!saved.rowCount) return sendJson(res, 404, { ok: false, error: "The product you are editing no longer exists. Refresh the list and try again." });
     } else {
       saved = await getPool().query(
-        "INSERT INTO vf_smm_products (provider,supplier_service_id,platform,product_name,description,supplier_rate,supplier_currency,min_quantity,max_quantity,retail_rate_minor_per_1000,is_active,updated_at) " +
-        "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,TRUE,NOW()) " +
+        "INSERT INTO vf_smm_products (provider,supplier_service_id,platform,subcategory,classification_status,product_name,description,supplier_rate,supplier_currency,min_quantity,max_quantity,retail_rate_minor_per_1000,is_active,updated_at) " +
+        "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,TRUE,NOW()) " +
         "ON CONFLICT (provider, supplier_service_id) WHERE is_active = TRUE DO UPDATE SET " +
-        "platform=EXCLUDED.platform, product_name=EXCLUDED.product_name, description=EXCLUDED.description, " +
+        "platform=EXCLUDED.platform, subcategory=EXCLUDED.subcategory, classification_status=EXCLUDED.classification_status, product_name=EXCLUDED.product_name, description=EXCLUDED.description, " +
         "supplier_rate=EXCLUDED.supplier_rate, supplier_currency=EXCLUDED.supplier_currency, " +
         "min_quantity=EXCLUDED.min_quantity, max_quantity=EXCLUDED.max_quantity, " +
         "retail_rate_minor_per_1000=EXCLUDED.retail_rate_minor_per_1000, updated_at=NOW() RETURNING *",

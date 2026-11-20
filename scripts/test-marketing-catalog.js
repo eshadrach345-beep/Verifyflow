@@ -5,6 +5,8 @@ const originalAuth = require.cache[authPath];
 const rows = [{
   id: "9e8d0ed1-1d2a-4e31-a211-b5486df4fe0d",
   platform: "TikTok",
+  subcategory: "Likes",
+  classification_status: "high",
   product_name: "Likes",
   description: "TikTok post likes",
   min_quantity: 50,
@@ -27,6 +29,9 @@ async function main() {
   assert.equal(data.ok, true);
   assert.equal(data.items.length, 1);
   assert.equal(data.items[0].platform, "TikTok");
+  assert.equal(data.items[0].category, "TikTok");
+  assert.equal(data.items[0].subcategory, "Likes");
+  assert.equal(data.items[0].classificationStatus, "high");
   assert.equal(data.items[0].name, "Likes");
   assert.equal(data.items[0].min, 50);
   assert.equal(data.items[0].max, 50000);

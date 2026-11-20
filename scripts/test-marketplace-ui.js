@@ -40,6 +40,8 @@ for (const category of categories) {
     "Dashboard must expose the " + category + " category tab");
 }
 assert.ok(dashboard.includes('data-catalog-tab="all"'), "Dashboard must expose All products");
+assert.ok(dashboard.includes('id="smm-platform-filter"') && dashboard.includes('id="smm-subcategory-filter"'), "Social Media catalogue must expose platform and service-type filters");
+assert.ok(dashboard.includes('active!=="marketing"||category!=="marketing"'), "SMM filters must not hide products when customers return to All products");
 assert.ok(dashboard.includes("const dedupeProducts=") && dashboard.includes("priceOf(item)>previous.price"),
   "The customer catalogue must remove duplicate listings while retaining the highest retail price");
 assert.ok(dashboard.includes('data-vf-card-open') && checkout.includes('event.target.closest("[data-vf-card-open]")'),
@@ -227,7 +229,7 @@ assert.ok(adminSmm.includes('JSON.stringify({ action: "deduplicate" })') && admi
 assert.ok(smmAdminApi.includes("readProvider(provider)"), "Admin must validate chosen supplier service IDs");
 assert.ok(smmAdminApi.includes("retail_rate_minor_per_1000"), "Admin must persist a retail rate per 1,000");
 assert.ok(smmAdminApi.includes("productsTableReady"), "Admin must report whether the SMM product table is installed");
-assert.ok(smmAdminApi.includes('error.code !== "42P01"'), "Missing SMM table must be handled without hiding supplier catalogues");
+assert.ok(smmAdminApi.includes('["42P01", "42703"].includes(error.code)'), "Missing SMM table or category columns must be handled without hiding supplier catalogues");
 assert.ok(smmAdminApi.includes("productsMessage"), "Admin must explain when the SMM database migration is missing");
 assert.ok(smmSupplier.includes('action: "add"') && smmSupplier.includes('action: "status"'), "SMM supplier orders and status must be wired");
 assert.ok(orderCreate.includes("FROM vf_smm_products WHERE id = $1 AND is_active = TRUE"), "Checkout must quote saved active product records");

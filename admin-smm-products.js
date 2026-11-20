@@ -9,7 +9,7 @@
   const serviceList = $("smm-service-list"), searchInput = $("smm-service-search");
   const selectVisible = $("smm-select-visible"), selectAllButton = $("smm-select-all");
   const selectAllTop = $("smm-select-all-top");
-  let providers = [], products = [], productsTableReady = true;
+  let providers = [], products = [], productsTableReady = true, productsSetupMessage = "Apply database migration 010_smm_categories.sql before publishing categorized products.";
   const selectedServices = new Set();
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
@@ -55,7 +55,7 @@
     serviceList.innerHTML = visible.length ? visible.map(item =>
       '<label class="smm-service-option"><input type="checkbox" data-smm-service-check="' + esc(item.id) + '"' +
       (selectedServices.has(item.id) ? " checked" : "") + '><span><b>' + esc(item.name) + '</b><small>' +
-      esc(item.category) + ' · ID ' + esc(item.id) + ' · ' + esc(item.min) + '–' + esc(item.max) +
+      esc(item.platform || item.category || "Other") + ' → ' + esc(item.subcategory || "Other") + (item.confidence ? ' · ' + esc(item.confidence) : '') + ' · ID ' + esc(item.id) + ' · ' + esc(item.min) + '–' + esc(item.max) +
       ' · Supplier rate: ' + esc(item.supplierRateReported ?? "not provided") + ' ' + esc(item.supplierCurrency || "") + '/1K</small></span></label>'
     ).join("") : '<div class="empty">No matching services in this supplier catalogue.</div>';
     updateSelectionSummary();
@@ -84,6 +84,7 @@
         " · Cancel: " + (item.cancel ? "listed" : "not listed");
     if (item && !$("smm-product-name").value.trim()) $("smm-product-name").value = item.name;
     if (item && !$("smm-platform").value.trim()) $("smm-platform").value = item.category || "Other";
+    if (item && !$("smm-subcategory").value.trim()) $("smm-subcategory").value = item.subcategory || "Other";
   }
   function renderProducts() {
     if (!products.length) {
@@ -96,7 +97,7 @@
       String(a.productName || "").localeCompare(String(b.productName || ""))
     );
     productsBody.innerHTML = orderedProducts.map(item =>
-      '<tr><td><b>' + esc(item.productName) + '</b><br><span class="muted">' + esc(item.platform) + '</span>' +
+      '<tr><td><b>' + esc(item.productName) + '</b><br><span class="muted">' + esc(item.platform) + ' / ' + esc(item.subcategory || "Other") + '</span>' +
       (item.description ? '<br><span class="muted">' + esc(item.description) + '</span>' : '') + '</td>' +
       '<td>' + esc(item.provider === "peakerr" ? "Peakerr" : "JustAnotherPanel") + '<br><span class="muted">Service ID ' + esc(item.serviceId) + '</span></td>' +
       '<td>' + esc(item.min) + '–' + esc(item.max) + '</td>' +
@@ -135,6 +136,7 @@
       providers = data.providers || [];
       products = data.products || [];
       productsTableReady = data.productsTableReady !== false;
+      productsSetupMessage = data.productsMessage || productsSetupMessage;
       renderServices(serviceSelect.value);
       saveButton.disabled = !productsTableReady;
       renderProducts();
@@ -151,6 +153,7 @@
     $("smm-product-id").value = "";
     serviceSelect.value = "";
     $("smm-platform").value = "";
+    $("smm-subcategory").value = "";
     $("smm-product-name").value = "";
     $("smm-markup-percent").value = "50";
     $("smm-description").value = "";
@@ -197,7 +200,7 @@
   form.addEventListener("submit", async event => {
     event.preventDefault();
     const service = currentService(), markup = markupPercent();
-    if (!productsTableReady) { message.textContent = "Apply database migration 006_smm_product_manager.sql before publishing products."; return; }
+    if (!productsTableReady) { message.textContent = "Apply the required SMM database migration before publishing products."; return; }
     if (!service) { message.textContent = "Select a supplier service first."; return; }
     if (!Number.isFinite(markup) || markup < 0 || markup > 1000) { message.textContent = "Enter a markup percentage between 0 and 1,000."; return; }
     saveButton.disabled = true;
@@ -208,7 +211,7 @@
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           id: $("smm-product-id").value || null, provider: supplierSelect.value,
-          serviceId: service.id, platform: $("smm-platform").value,
+          serviceId: service.id, platform: $("smm-platform").value, subcategory: $("smm-subcategory").value,
           productName: $("smm-product-name").value, description: $("smm-description").value,
           markupPercent: markup
         })
@@ -264,6 +267,7 @@
       supplierSelect.value = item.provider;
       renderServices(item.serviceId);
       $("smm-platform").value = item.platform;
+      $("smm-subcategory").value = item.subcategory || "Other";
       $("smm-product-name").value = item.productName;
       $("smm-markup-percent").value = item.markupPercent ?? 50;
       $("smm-description").value = item.description || "";
