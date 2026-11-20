@@ -84,6 +84,7 @@
         " · Cancel: " + (item.cancel ? "listed" : "not listed");
     if (item && !$("smm-product-name").value.trim()) $("smm-product-name").value = item.name;
     if (item && !$("smm-platform").value.trim()) $("smm-platform").value = item.category || "Other";
+    if (item && !$("smm-subcategory").value.trim()) $("smm-subcategory").value = item.subcategory || "Other";
   }
   function renderProducts() {
     if (!products.length) {
@@ -96,7 +97,7 @@
       String(a.productName || "").localeCompare(String(b.productName || ""))
     );
     productsBody.innerHTML = orderedProducts.map(item =>
-      '<tr><td><b>' + esc(item.productName) + '</b><br><span class="muted">' + esc(item.platform) + '</span>' +
+      '<tr><td><b>' + esc(item.productName) + '</b><br><span class="muted">' + esc(item.platform) + ' / ' + esc(item.subcategory || "Other") + '</span>' +
       (item.description ? '<br><span class="muted">' + esc(item.description) + '</span>' : '') + '</td>' +
       '<td>' + esc(item.provider === "peakerr" ? "Peakerr" : "JustAnotherPanel") + '<br><span class="muted">Service ID ' + esc(item.serviceId) + '</span></td>' +
       '<td>' + esc(item.min) + '–' + esc(item.max) + '</td>' +
@@ -151,6 +152,7 @@
     $("smm-product-id").value = "";
     serviceSelect.value = "";
     $("smm-platform").value = "";
+    $("smm-subcategory").value = "";
     $("smm-product-name").value = "";
     $("smm-markup-percent").value = "50";
     $("smm-description").value = "";
@@ -208,7 +210,7 @@
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           id: $("smm-product-id").value || null, provider: supplierSelect.value,
-          serviceId: service.id, platform: $("smm-platform").value,
+          serviceId: service.id, platform: $("smm-platform").value, subcategory: $("smm-subcategory").value,
           productName: $("smm-product-name").value, description: $("smm-description").value,
           markupPercent: markup
         })
@@ -264,6 +266,7 @@
       supplierSelect.value = item.provider;
       renderServices(item.serviceId);
       $("smm-platform").value = item.platform;
+      $("smm-subcategory").value = item.subcategory || "Other";
       $("smm-product-name").value = item.productName;
       $("smm-markup-percent").value = item.markupPercent ?? 50;
       $("smm-description").value = item.description || "";
