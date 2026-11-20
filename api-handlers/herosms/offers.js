@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
         const offer = await getVerificationOffer(selection.productId, Number(selection.countryId), type);
         return {
           type,
-          label: type === "sms" ? "SMS" : type === "call" ? "Incoming call" : "Voice (All-in-One)",
+          label: type === "sms" ? "Text (SMS)" : type === "call" ? "Voice call" : "Text + Voice (All-in-One)",
           priceCents: retailPriceCents(offer.supplierPriceCents, "sms")
         };
       } catch (error) {
