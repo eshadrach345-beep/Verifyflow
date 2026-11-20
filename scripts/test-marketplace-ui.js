@@ -7,6 +7,7 @@ const home = fs.readFileSync("index.html", "utf8");
 const dashboard = fs.readFileSync("dashboard.html", "utf8");
 const checkout = fs.readFileSync("dashboard-checkout.js", "utf8");
 const styles = fs.readFileSync("styles.css", "utf8");
+const premium = fs.readFileSync("premium.css", "utf8");
 const robots = fs.readFileSync("robots.txt", "utf8");
 const sitemap = fs.readFileSync("sitemap.xml", "utf8");
 const admin = fs.readFileSync("admin.html", "utf8");
@@ -116,7 +117,7 @@ assert.ok(dashboard.includes("Unlimited traffic") && dashboard.includes("unmeter
   "Dedicated proxy terms must not be presented as shared data packages");
 assert.ok(dashboard.includes("groupProxyPlanRows") && dashboard.includes("pricePerGbCents") && dashboard.includes("durationOptions"), "Shared mobile proxy cards must show per-GB pricing and actual supplier duration tiers");
 assert.ok(dashboard.includes('"PRICE PER GB · "') && dashboard.includes('data-proxy-metered="true"') &&
-  checkout.includes('"PRICE PER GB · "') && css.includes('data-proxy-metered="true"] .catalog-price-row strong::after'),
+  checkout.includes('"PRICE PER GB · "') && premium.includes('data-proxy-metered="true"] .catalog-price-row strong::after'),
   "Shared mobile proxies must label the displayed retail price per GB and refresh it when a supplier term is chosen");
 assert.ok(dashboard.includes("option.discountPercent=baseRate>0&&rate>0&&rate<baseRate") &&
   checkout.includes("lower per GB than the shortest term"),
