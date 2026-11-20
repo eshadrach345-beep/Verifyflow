@@ -8,6 +8,7 @@
   const saveButton = $("smm-save"), bulkButton = $("smm-bulk-publish");
   const serviceList = $("smm-service-list"), searchInput = $("smm-service-search");
   const selectVisible = $("smm-select-visible"), selectAllButton = $("smm-select-all");
+  const selectAllTop = $("smm-select-all-top");
   let providers = [], products = [], productsTableReady = true;
   const selectedServices = new Set();
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
@@ -32,7 +33,16 @@
     bulkButton.textContent = count ? "Publish " + count.toLocaleString() + " selected services" : "Publish selected services";
     if (selectAllButton) {
       selectAllButton.disabled = services.length === 0;
-      selectAllButton.textContent = services.length ? "Select entire catalogue (" + services.length.toLocaleString() + ")" : "Catalogue unavailable";
+      selectAllButton.textContent = services.length ? "Select all in this catalogue (" + services.length.toLocaleString() + ")" : "Catalogue unavailable";
+    }
+    if (selectAllTop) {
+      selectAllTop.disabled = services.length === 0;
+      const label = selectAllTop.querySelector("b");
+      const detail = selectAllTop.querySelector("span");
+      if (label) label.textContent = services.length ? "Select all " + services.length.toLocaleString() + " services" : "Supplier catalogue unavailable";
+      if (detail) detail.textContent = currentSupplier()?.label
+        ? "Select every loaded service from " + currentSupplier().label
+        : "Choose a supplier to load its services";
     }
     if (selectVisible) {
       selectVisible.disabled = visible.length === 0;
@@ -154,13 +164,16 @@
   });
   serviceSelect.addEventListener("change", updateServiceInfo);
   $("smm-reset").addEventListener("click", clearForm);
-  selectAllButton.addEventListener("click", () => {
+  function selectAllServices() {
     const services = currentSupplier()?.services || [];
     services.forEach(item => selectedServices.add(item.id));
     renderSelectionList();
     message.textContent = "Selected all " + services.length.toLocaleString() + " services in " +
       (currentSupplier()?.label || "this supplier") + ". Review the list, then publish when ready.";
-  });
+    $("smm-bulk-publisher")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  selectAllButton.addEventListener("click", selectAllServices);
+  selectAllTop?.addEventListener("click", selectAllServices);
   selectVisible.addEventListener("change", () => {
     visibleServices().forEach(item => selectVisible.checked
       ? selectedServices.add(item.id) : selectedServices.delete(item.id));

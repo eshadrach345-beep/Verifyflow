@@ -7,6 +7,7 @@ const home = fs.readFileSync("index.html", "utf8");
 const dashboard = fs.readFileSync("dashboard.html", "utf8");
 const checkout = fs.readFileSync("dashboard-checkout.js", "utf8");
 const styles = fs.readFileSync("styles.css", "utf8");
+const premium = fs.readFileSync("premium.css", "utf8");
 const robots = fs.readFileSync("robots.txt", "utf8");
 const sitemap = fs.readFileSync("sitemap.xml", "utf8");
 const admin = fs.readFileSync("admin.html", "utf8");
@@ -39,6 +40,15 @@ for (const category of categories) {
     "Dashboard must expose the " + category + " category tab");
 }
 assert.ok(dashboard.includes('data-catalog-tab="all"'), "Dashboard must expose All products");
+assert.ok(dashboard.includes("const dedupeProducts=") && dashboard.includes("priceOf(item)>previous.price"),
+  "The customer catalogue must remove duplicate listings while retaining the highest retail price");
+assert.ok(dashboard.includes('data-vf-card-open') && checkout.includes('event.target.closest("[data-vf-card-open]")'),
+  "Every product card must have a working Choose options action");
+assert.ok(dashboard.includes('id="vf-category-backdrop"') && dashboard.includes('role="dialog"') &&
+  dashboard.includes('aria-modal="true"') && dashboard.includes('document.body.classList.add("vf-category-open")'),
+  "Dashboard All products navigation must open a real accessible off-canvas side drawer");
+assert.ok(checkout.includes("Preparing secure options for this service") && checkout.includes("openBuyDialog"),
+  "A card selected while checkout controls are loading must retry until options are ready");
 assert.ok(dashboard.includes("www.google.com/s2/favicons"), "Recognised services must use real service-logo images");
 assert.ok(dashboard.includes("categoryLogoFor") && dashboard.includes("data-fallback"), "Every catalogue card must have an illustrated image fallback");
 assert.ok(dashboard.includes("catalog-brand-logo"), "Product cards must render image assets rather than text-only icons");
@@ -103,10 +113,22 @@ assert.ok(dashboard.includes("private phone number reserved for your use") &&
   "All catalogue product families must have practical customer-facing descriptions");
 assert.ok(proxyCatalog.includes("pricePerGbCents") && proxyCatalog.includes("Number(plan.data_gb)"),
   "Shared mobile proxy catalogue must expose a derived per-GB price");
-assert.ok(dashboard.includes("Unlimited traffic") && dashboard.includes("unmetered · per "),
-  "Dedicated proxy terms must not be presented as shared data packages");
+assert.ok(dashboard.includes("Unlimited traffic") && dashboard.includes('"UNLIMITED TRAFFIC · "') &&
+  dashboard.includes("pricePerDayCents"),
+  "Dedicated proxy terms must show unlimited traffic, the selected term and an effective daily rate");
 assert.ok(dashboard.includes("groupProxyPlanRows") && dashboard.includes("pricePerGbCents") && dashboard.includes("durationOptions"), "Shared mobile proxy cards must show per-GB pricing and actual supplier duration tiers");
-assert.ok(checkout.includes("data-proxy-duration") && checkout.includes("activateServiceCard"), "Proxy duration selection and full service-card clicks must be interactive");
+assert.ok(dashboard.includes('"PRICE PER GB · "') && dashboard.includes('data-proxy-metered="true"') &&
+  checkout.includes('"PER GB · "') && checkout.includes('Choose data package') &&
+  premium.includes('data-proxy-metered="true"] .catalog-price-row strong::after'),
+  "Shared mobile proxies must present per-GB prices, volume choices and live package totals");
+assert.ok(dashboard.includes('replace(/\\b\\d+(?:\\.\\d+)?\\s*(?:gb|gigabytes?)\\b/g," ")') &&
+  dashboard.includes("pricePerDayCents") && dashboard.includes('discountUnit=shared?"per GB":"per day"'),
+  "Shared volume tiers and dedicated daily/weekly/monthly plans must group separately with accurate discount units");
+assert.ok(checkout.includes("data-proxy-duration") && checkout.includes("Choose rental period") &&
+  checkout.includes("Save " + "' + esc(option.discountPercent) + (shared ? '% per GB' : '% per day')") &&
+  checkout.includes("pricePerDayCents"),
+  "Proxy selector must show volume discounts for shared packages and per-day savings for dedicated rental durations");
+assert.ok(checkout.includes("activateServiceCard"), "Full service-card clicks must open the configured product options");
 assert.ok(proxyCatalog.includes("Math.min(configuredPercent, 18)") &&
   proxySupplier.includes("Math.min(requestedPercent, 18)"),
   "Proxy quote and catalogue retail margins must both be capped at a competitive 18 percent");
@@ -162,6 +184,10 @@ assert.ok(adminSmm.includes('fetch("/api/admin/smm-products"'), "Admin must save
 assert.ok(adminSmm.includes("Save and publish product"), "Admin must provide an explicit publish action");
 assert.ok(adminSmm.includes("Database setup required"), "Admin must disable publishing until the SMM product table exists");
 assert.ok(admin.includes("smm-select-all") && admin.includes("smm-select-visible") && admin.includes("smm-service-list"), "Admin must support selecting the full or filtered supplier catalogue");
+assert.ok(admin.includes('id="smm-select-all-top"') && adminSmm.includes('selectAllTop?.addEventListener("click", selectAllServices)'),
+  "Admin must expose a visible top-level Select All control that selects the currently chosen supplier catalogue");
+assert.ok(!admin.includes('href="/premium.css"') && fs.readFileSync("admin.css", "utf8").includes("high-contrast light operations workspace"),
+  "Admin must use its dedicated high-contrast workspace styles instead of the storefront dark theme");
 assert.ok(admin.includes("smm-markup-percent"), "Admin must accept a percentage markup instead of a fixed retail price");
 assert.ok(adminSmm.includes("action: \"bulk\"") && adminSmm.includes("selectedServices"), "Admin must bulk publish the selected supplier services");
 assert.ok(smmAdminApi.includes("jsonb_to_recordset") && smmAdminApi.includes("markupPercent"), "Admin API must calculate and save bulk retail prices from percentage markup");
