@@ -407,7 +407,7 @@
  function showWelcomeToast(user){
   const toast=document.getElementById("account-welcome-toast");
   if(!toast)return;
-  const name=String(user?.fullName||user?.full_name||"").trim().split(/\\s+/)[0]||"there";
+  const name=String(user?.fullName||user?.full_name||"").trim().split(/\s+/)[0]||"there";
   toast.textContent="Welcome back, "+name+"!";
   toast.hidden=false;
   toast.classList.remove("is-visible");
