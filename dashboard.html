@@ -675,7 +675,18 @@
    if(!section?.ok) continue;
    availableSections++;
    const rows=Array.isArray(section.items)?section.items:[];
-   rows.filter(item=>!query||JSON.stringify(item).toLowerCase().includes(query)||(categoryLabels[category]||"").toLowerCase().includes(query))
+   // Published social booster services are always shown from the lowest retail
+   // price per 1,000 to the highest. This is recalculated on every catalogue load,
+   // so newly bulk-imported services automatically land in the right price order.
+   const orderedRows=category==="marketing"
+    ? [...rows].sort((a,b)=>{
+       const priceA=Number(a.pricePer1000Minor),priceB=Number(b.pricePer1000Minor);
+       const validA=Number.isSafeInteger(priceA)&&priceA>0,validB=Number.isSafeInteger(priceB)&&priceB>0;
+       if(validA!==validB)return validA?-1:1;
+       return validA?priceA-priceB:String(a.name||"").localeCompare(String(b.name||""));
+      })
+    : rows;
+   orderedRows.filter(item=>!query||JSON.stringify(item).toLowerCase().includes(query)||(categoryLabels[category]||"").toLowerCase().includes(query))
     .forEach(item=>results.push({category,item}));
   }
   results.sort((a,b)=>a.category===b.category&&a.category==="sms"?smsPopularity(a.item)-smsPopularity(b.item):0);
