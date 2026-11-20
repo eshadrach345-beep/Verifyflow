@@ -2,40 +2,40 @@
 const { getPool, getSessionUser, sendJson, readJson, sameOrigin } = require("../lib/auth");
 
 const MAX_MESSAGE = 4000;
-const HANDOFF_RE = /\\b(human|real person|live agent|customer support|talk to (a |)person|speak to (a |)person|support agent|representative)\\b/i;
+const HANDOFF_RE = /\b(human|real person|live agent|customer support|talk to (a |)person|speak to (a |)person|support agent|representative)\b/i;
 
 const HELP_TOPICS = [
-  [/\\b(register|sign ?up|create (an? )?account|new account)\\b/i,
+  [/\b(register|sign ?up|create (an? )?account|new account)\b/i,
     "To create an account, open My account / Sign in, choose Create account, enter your name and email, then follow the email-verification link or code. After verification, sign in and open the dashboard. Never share your password or verification code with support."],
-  [/\\b(login|log in|sign ?in|cannot access|can't access|locked out|password)\\b/i,
+  [/\b(login|log in|sign ?in|cannot access|can't access|locked out|password)\b/i,
     "To sign in, open My account and use the email and password registered with VerifyFlow. For a forgotten password, use Forgot password on the sign-in page and follow the reset email. Check your spam/junk folder too. If the reset email does not arrive, ask for a human support agent."],
-  [/\\b(email|verify(ing|ication)?|verification link|verification code|confirm email|resend)\\b/i,
+  [/\b(email|verify(ing|ication)?|verification link|verification code|confirm email|resend)\b/i,
     "Email verification is required before you can use account features. Open the latest VerifyFlow verification email and follow its link. Check spam/junk and make sure you are checking the same email address you registered with. Use the Resend verification email option on the account page if available. An expired link should be replaced by a newly requested one."],
-  [/\\b(otp|sms code|text message|sms not|code not|no code|not received|waiting for code)\\b/i,
+  [/\b(otp|sms code|text message|sms not|code not|no code|not received|waiting for code)\b/i,
     "For an SMS verification order, first complete checkout and confirm the order appears in Dashboard → Recent orders. The assigned phone number appears on the order. The verification code and received SMS text appear there once the supplier delivers them; use Check for SMS to refresh while waiting. Some services take longer or may expire. Never send the OTP to anyone, including support. If the order stays waiting or expires, request human support with your order number."],
-  [/\\b(phone number|number rental|rent(al)?|long.?term|dedicated number)\\b/i,
+  [/\b(phone number|number rental|rent(al)?|long.?term|dedicated number)\b/i,
     "Open the Long-term numbers or Dedicated numbers category, choose an available country/service and review the displayed duration and price before checkout. After payment, check Recent orders for the order status and any number or activation details. Availability and permitted durations depend on the selected service."],
-  [/\\b(esim|e-sim|qr code|activation)\\b/i,
+  [/\b(esim|e-sim|qr code|activation)\b/i,
     "Open eSIM data, compare the available plans and coverage details, then choose the plan that matches your device and destination before paying. After an order is fulfilled, check the order details for the activation information. Your device must support eSIM and be carrier-unlocked. Do not delete an installed eSIM profile unless your provider's instructions tell you to."],
-  [/\\b(proxy|proxies|ip address|gateway)\\b/i,
+  [/\b(proxy|proxies|ip address|gateway)\b/i,
     "Open Mobile proxies and review each plan's type, duration, availability and price. After a successful order, use the order details in your account for any connection information supplied for that plan. Keep proxy credentials private and never post them in a public chat."],
-  [/\\b(smm|social media|boost|followers|likes|views|comments|subscribers|instagram|tiktok|youtube)\\b/i,
+  [/\b(smm|social media|boost|followers|likes|views|comments|subscribers|instagram|tiktok|youtube)\b/i,
     "For Social Media Boosters, choose a published service, paste the public profile/post URL requested on the product card, and enter a quantity within the displayed minimum and maximum. Verify the URL carefully before checkout. After Monnify confirms payment, the selected service is submitted to its configured fulfilment API when live fulfilment is enabled. Progress can take time and depends on the service and target account. Do not submit private links or change the target while the order is processing."],
-  [/\\b(link|url|target|profile|post)\\b/i,
+  [/\b(link|url|target|profile|post)\b/i,
     "For Social Media Boosters, use the public URL of the exact profile, post, video or content item requested by that service. Make sure it opens without logging in and belongs to the correct platform. A wrong or private URL can prevent a supplier from completing the order."],
-  [/\\b(quantity|minimum|maximum|units)\\b/i,
+  [/\b(quantity|minimum|maximum|units)\b/i,
     "Enter a whole-number quantity that is between the minimum and maximum shown on the product card. The estimated SMM total is calculated from the retail rate per 1,000 and your selected quantity. The server checks the product, quantity and final quote again during checkout."],
-  [/\\b(payment|pay(ment)?|card|checkout|monnify|declined|failed payment)\\b/i,
+  [/\b(payment|pay(ment)?|card|checkout|monnify|declined|failed payment)\b/i,
     "VerifyFlow currently presents secure checkout through Monnify where the account and payment environment permit it. Return to your dashboard after checkout and check the order/payment status. A checkout page closing does not by itself prove payment succeeded. Do not pay again while an earlier payment is still pending; ask human support to review the order number if the status does not update."],
-  [/\\b(paid|payment successful|deducted|debited|charged|money gone|not delivered|not working|stuck|pending order)\\b/i,
+  [/\b(paid|payment successful|deducted|debited|charged|money gone|not delivered|not working|stuck|pending order)\b/i,
     "A successful bank/card debit and a fulfilled supplier order are separate steps. VerifyFlow must confirm the payment with Monnify before supplier fulfilment can begin. Check Dashboard → Recent orders for the latest status. If payment is confirmed but the service is still processing, allow the supplier to update; if it remains stuck or shows failed, request a human review with your order number. Never send full card details or banking passwords."],
-  [/\\b(refund|money back|reversal|reverse|cancel order|cancel)\\b/i,
+  [/\b(refund|money back|reversal|reverse|cancel order|cancel)\b/i,
     "Refunds and reversals require an order/payment review. I cannot approve or promise a refund in this chat. Please request a human support agent and provide your VerifyFlow order number plus a short description. Never send full card details, banking passwords or OTPs."],
-  [/\\b(order history|recent orders|order status|track|tracking|where is my order)\\b/i,
+  [/\b(order history|recent orders|order status|track|tracking|where is my order)\b/i,
     "Sign in and open the dashboard. The Recent orders section shows your order number, product and current status. SMS verification orders also show their assigned number and display the OTP/SMS text when received. Use the refresh control on an SMS order if it is still waiting. For payment or fulfilment problems, share only the order number with human support."],
-  [/\\b(account|profile|details|change email|change name)\\b/i,
+  [/\b(account|profile|details|change email|change name)\b/i,
     "Open My account to review your profile and account options. For account changes that are not available on the page, request human support. Support will never need your password, OTP, full card number or secret key."],
-  [/\\b(supplier|provider|api key|admin|backend|internal)\\b/i,
+  [/\b(supplier|provider|api key|admin|backend|internal)\b/i,
     "VerifyFlow keeps supplier connections and operational credentials private. Customers only need the product, price, order status and their own delivery details. For an order issue, I can connect you to customer support without exposing internal supplier information."]
 ];
 
