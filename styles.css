@@ -1436,3 +1436,14 @@ input:focus,select:focus,textarea:focus{border-color:#7898bf!important;box-shado
 @media(prefers-reduced-motion:reduce){
  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* Final accent cleanup and true single-column phone catalogue */
+.button-lime{box-shadow:0 8px 22px #17243a24,inset 0 1px 0 #ffffffa6!important}
+.glyph-lime{background:#edf2f8!important;color:#536f9f!important}
+.vf-support-toggle span{color:#e8eef7!important}
+@media(max-width:760px){
+ .catalog-grid{grid-template-columns:1fr!important}
+ .catalog-item{display:grid;grid-template-columns:104px minmax(0,1fr);align-items:stretch}
+ .catalog-item-visual{height:100%!important;min-height:112px}
+ .catalog-item-copy{padding:13px!important}
+}
