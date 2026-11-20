@@ -518,13 +518,14 @@
     </div>
     <div class="catalog-controls">
       <label class="catalog-control" for="catalog-country">SMS / rental country
-        <input id="catalog-country" type="text" value="US" maxlength="2" list="catalog-country-options" autocomplete="off" spellcheck="false" aria-describedby="catalog-country-help">
-        <datalist id="catalog-country-options">
-          <option value="US"><option value="GB"><option value="CA"><option value="AU">
-          <option value="DE"><option value="FR"><option value="IN"><option value="NG">
-          <option value="ZA"><option value="KE"><option value="BR"><option value="JP">
-          <option value="MX"><option value="PH"><option value="SG">
-        </datalist>
+        <select id="catalog-country" aria-describedby="catalog-country-help">
+          <option value="us">United States</option><option value="gb">United Kingdom</option>
+          <option value="ca">Canada</option><option value="au">Australia</option>
+          <option value="de">Germany</option><option value="fr">France</option>
+          <option value="in">India</option><option value="ng">Nigeria</option>
+          <option value="za">South Africa</option><option value="ke">Kenya</option>
+          <option value="br">Brazil</option><option value="jp">Japan</option>
+        </select>
         <small id="catalog-country-help">Country availability varies by product. Browse supported services and current options.</small>
       </label>
       <label class="catalog-control catalog-search-control" for="catalog-search">Search products
@@ -650,34 +651,57 @@
  function empty(message,hint){
   grid.innerHTML='<div class="catalog-empty"><span>✦</span><strong>'+esc(message)+'</strong><small>'+esc(hint||"Try another category, change the country code or refresh the catalogue.")+'</small></div>';
  }
+ function populateCountryOptions(countries){
+  if(!countryInput||!Array.isArray(countries)||!countries.length)return;
+  const current=String(countryInput.value||catalogue?.country||"us").toLowerCase();
+  const rows=countries.filter(item=>item&&/^[a-z]{2}$/i.test(String(item.code||""))).map(item=>({
+   code:String(item.code).toLowerCase(),name:String(item.name||item.code)
+  }));
+  if(!rows.some(item=>item.code===current)){
+   const known=countryNames[current];
+   if(known)rows.push({code:current,name:known});
+  }
+  if(!rows.some(item=>item.code==="us"))rows.unshift({code:"us",name:"United States"});
+  rows.sort((a,b)=>a.code==="us"?-1:b.code==="us"?1:a.name.localeCompare(b.name));
+  countryInput.replaceChildren(...rows.map(item=>{const option=document.createElement("option");option.value=item.code;option.textContent=item.name;return option;}));
+  countryInput.value=rows.some(item=>item.code===current)?current:"us";
+ }
  function renderProduct(category,x){
   const key=productKey(category,x);
   if(category==="sms"){
-   return card("sms",x.name||"SMS verification","One-time verification · "+String(catalogue.country||"us").toUpperCase(),x.available?"Numbers currently available.":"Currently unavailable.",x.priceCents,"per activation · before VAT/tax",x.available?"AVAILABLE":"OUT OF STOCK",x.currency,catalogue.country,key);
+   return card("sms",x.name||"SMS verification","One-time verification · "+String(catalogue.country||"us").toUpperCase(), "Receive a one-time SMS code on a temporary number for account or service verification. Availability and acceptance depend on the selected platform and country.",x.priceCents,"per activation · before VAT/tax",x.available?"AVAILABLE":"OUT OF STOCK",x.currency,catalogue.country,key);
   }
   if(category==="esim"){
    const data=x.unlimited?"Unlimited data":(x.dataGb==null?"Data plan":x.dataGb+" GB");
    const countries=Array.isArray(x.countries)?x.countries:[];
    const coverage=countries.slice(0,7).join(", ")+(countries.length>7?" +"+(countries.length-7)+" more":"");
    const features=[x.validityDays?x.validityDays+" days":null,x.networkType||null,x.routingLocation?"Routes via "+x.routingLocation:null].filter(Boolean).join(" · ");
-   return card("esim",x.title||"eSIM data plan",data+" · "+(x.validityDays||"Flexible")+" days",coverage||features||"Coverage details available",x.priceCents,"per plan · before VAT/tax","DATA PLAN",x.currency,countries[0]||"",key);
+   const detail="Install a digital SIM profile on an unlocked, eSIM-compatible phone or tablet to use mobile data without inserting a physical SIM. Check device compatibility, coverage and validity before purchase. "+(coverage||features||"Plan coverage and features are shown above.");
+   return card("esim",x.title||"eSIM data plan",data+" · "+(x.validityDays||"Flexible")+" days",detail,x.priceCents,"per plan · before VAT/tax","DATA PLAN",x.currency,countries[0]||"",key);
   }
   if(category==="proxies"){
-   const type=String(x.type||"mobile").replaceAll("_"," ");
-   const volume=x.dataGb!=null?x.dataGb+" GB":"Plan";
-   const duration=x.durationDays?x.durationDays+" days":(x.period||"Flexible term");
-   const detail=[x.country,x.carrier,x.region].filter(Boolean).join(" · ")||"Mobile network access";
-   return card("proxies",x.name||"Mobile proxy",type+" · "+volume+" · "+duration,detail,x.priceCents,"per package · before VAT/tax",x.available?"AVAILABLE":"CHECK AVAILABILITY",x.currency,x.country||"",key);
+   const type=String(x.type||"shared").toLowerCase();
+   const shared=type==="shared";
+   const volume=x.dataGb!=null?x.dataGb+" GB":"Data package";
+   const duration=x.durationDays?x.durationDays+" days":(x.period|| (shared?"30 days":"Flexible term"));
+   const location=[x.country,x.carrier,x.region].filter(Boolean).join(" · ");
+   const detail=String(x.description|| (shared
+    ? "Pay for the data volume you select. Traffic is routed through a shared pool of real 4G/5G mobile carrier IPs, with HTTP(S) or SOCKS5 and rotating or sticky sessions where supported."
+    : "A dedicated mobile proxy routes your traffic through a real 4G/5G carrier device. Dedicated plans are billed by the selected term and may include unmetered traffic."));
+   const rate=shared&&Number(x.pricePerGbCents)>0?" · "+money(x.pricePerGbCents,"USD")+"/GB":"";
+   return card("proxies",x.name||"Mobile proxy", (shared?"Shared mobile proxy · ":"Dedicated mobile proxy · ")+volume+" · "+duration,detail+(location?" Location: "+location:""),x.priceCents,shared?volume+" total"+rate+" · before VAT/tax":"per "+(x.period||"term")+" · before VAT/tax",x.available?"AVAILABLE":"CHECK AVAILABILITY",x.currency,x.country||"",key);
   }
   if(category==="dedicated"){
-   return card("dedicated",x.name||x.country||"Dedicated number",(x.name||x.country||"Country option")+" · Monthly",x.inStock?"Monthly number inventory is currently available.":"No monthly number inventory is currently reported.",x.priceCents,"per month · before VAT/tax",x.inStock?"IN STOCK":"OUT OF STOCK",x.currency,x.country,key);
+   const detail="A private phone number reserved for your use on a monthly plan. Use it to receive ongoing SMS messages and verification codes on services that accept dedicated or rented numbers. Platform rules differ, so check that your intended service accepts this number type before buying.";
+   return card("dedicated",x.name||x.country||"Dedicated number",(x.name||x.country||"Country option")+" · Monthly",detail+" "+(x.inStock?"Numbers are currently available.":"No monthly number inventory is currently reported."),x.priceCents,"per month · before VAT/tax",x.inStock?"IN STOCK":"OUT OF STOCK",x.currency,x.country,key);
   }
   if(category==="rentals"){
    const durations=Array.isArray(x.durations)?x.durations:[];
    const detail=(x.availableCount!=null?x.availableCount+" numbers · ":"")+(durations.length?durations.map(option=>option.days+" days: "+money(option.priceCents,option.currency)).join(" · "):"No rental durations currently listed");
    const prices=durations.map(option=>Number(option.priceCents)).filter(value=>Number.isSafeInteger(value)&&value>0);
    const from=prices.length?Math.min(...prices):null;
-   return card("rentals",x.name||"Long-term number",String(catalogue.country||"us").toUpperCase()+" · Choose your rental period",detail,from,"from · before VAT/tax",x.available&&durations.length?"AVAILABLE":"LIMITED","USD",catalogue.country,key);
+   const description="Keep the same phone number for a chosen multi-day period so you can receive follow-up SMS messages and repeat verification codes, rather than relying on a one-time activation. Useful for supported services such as WhatsApp, Telegram and other apps that accept rented numbers. Availability varies by country and platform.";
+   return card("rentals",x.name||"Long-term number",String(catalogue.country||"us").toUpperCase()+" · Choose your rental period",description+" "+detail,from,"from · before VAT/tax",x.available&&durations.length?"AVAILABLE":"LIMITED","USD",catalogue.country,key);
   }
   if(category==="marketing"){
    return card("marketing",(x.platform||"Social media")+" "+(x.name||"service"),x.description||"Social Media Boosters", "Choose a quantity between "+x.min+" and "+x.max+" and enter the public destination link.",x.pricePer1000Minor,"per 1,000 · USD · before applicable tax","AVAILABLE","USD","",key);
@@ -706,7 +730,9 @@
    // Published social booster services are always shown from the lowest retail
    // price per 1,000 to the highest. This is recalculated on every catalogue load,
    // so newly bulk-imported services automatically land in the right price order.
-   const orderedRows=category==="marketing"
+   const orderedRows=["sms","rentals"].includes(category)
+    ? [...rows].sort((a,b)=>smsPopularity(a)-smsPopularity(b)||String(a.name||"").localeCompare(String(b.name||"")))
+    : category==="marketing"
     ? [...rows].sort((a,b)=>{
        const priceA=Number(a.pricePer1000Minor),priceB=Number(b.pricePer1000Minor);
        const validA=Number.isSafeInteger(priceA)&&priceA>0,validB=Number.isSafeInteger(priceB)&&priceB>0;
@@ -762,7 +788,7 @@
    const data=await response.json();
    if(!response.ok||!data.sections)throw new Error("Please refresh again shortly.");
    catalogue=data;
-   const countryList=document.getElementById("catalog-country-options");
+   populateCountryOptions(data.countries);
    render();if(active==="marketing"||active==="all")loadMarketingCatalogue();
   }catch(error){
    catalogue=null;empty("We couldn't load the catalogue just now.");status.textContent="Please refresh to try again.";
