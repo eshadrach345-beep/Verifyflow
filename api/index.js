@@ -61,3 +61,6 @@ module.exports = async function handler(req, res) {
   }
   return target(req, res);
 };
+
+// Preserve raw request bodies for signed provider webhooks; readJson handles ordinary API payloads.
+module.exports.config = { api: { bodyParser: false } };
