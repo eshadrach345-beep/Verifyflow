@@ -37,6 +37,7 @@ assert.ok(smm.includes('action: "status"'));
 assert.ok(smm.includes("service, link, quantity"));
 assert.ok(catalog.includes("heroSmsRentalItems"), "HeroSMS long-term numbers remain part of the merged retail catalogue");
 assert.ok(catalog.includes("sealCatalogProductToken") && orderCreate.includes("openCatalogProductToken"), "Supplier selections are encrypted for customers and resolved server-side");
+assert.ok(orderCreate.includes("error.status === 400") && orderCreate.includes("INVALID_CATALOG_SELECTION"), "Invalid or tampered catalogue selections must return a client error");
 assert.ok(!checkout.includes("data-provider=") && !checkout.includes("data-country="), "Checkout DOM must not expose supplier routing attributes");
 assert.ok(!checkout.includes('if (category === "rentals" && item.provider === "herosms") return null;'));
 assert.ok(checkout.includes('fetch("/api/orders/create"'));
