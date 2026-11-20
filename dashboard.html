@@ -946,7 +946,8 @@
    if(values.includes(current))select.value=current;
   };
   fill(platformFilter,[...new Set(items.map(item=>item.platform||"Other"))].sort((a,b)=>a.localeCompare(b)),"All platforms");
-  fill(subcategoryFilter,[...new Set(items.map(item=>item.subcategory||"Other"))].sort((a,b)=>a.localeCompare(b)),"All service types");
+  const platformItems=platformFilter?.value?items.filter(item=>(item.platform||"Other")===platformFilter.value):items;
+  fill(subcategoryFilter,[...new Set(platformItems.map(item=>item.subcategory||"Other"))].sort((a,b)=>a.localeCompare(b)),"All service types");
   const visible=active==="marketing";
   if(platformFilterWrap)platformFilterWrap.hidden=!visible;
   if(subcategoryFilterWrap)subcategoryFilterWrap.hidden=!visible;
@@ -972,7 +973,7 @@
   render();
  }));
 
- platformFilter?.addEventListener("change",()=>{renderedCount=PAGE_SIZE;render();});
+ platformFilter?.addEventListener("change",()=>{updateMarketingFilters();renderedCount=PAGE_SIZE;render();});
  subcategoryFilter?.addEventListener("change",()=>{renderedCount=PAGE_SIZE;render();});
  if(loadMore)loadMore.addEventListener("click",()=>{renderedCount+=PAGE_SIZE;render();});
  if(categoryToggle&&categoryMenu){
