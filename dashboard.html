@@ -879,7 +879,7 @@
       })
     : rows;
    orderedRows.filter(item=>
-      (category!=="marketing"||(!platformFilter?.value||item.platform===platformFilter.value)&&(!subcategoryFilter?.value||item.subcategory===subcategoryFilter.value)) &&
+      (active!=="marketing"||category!=="marketing"||(!platformFilter?.value||item.platform===platformFilter.value)&&(!subcategoryFilter?.value||item.subcategory===subcategoryFilter.value)) &&
       (!query||JSON.stringify(item).toLowerCase().includes(query)||(categoryLabels[category]||"").toLowerCase().includes(query))
     ).forEach(item=>results.push({category,item}));
   }
