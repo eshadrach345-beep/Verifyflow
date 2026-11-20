@@ -128,6 +128,15 @@ assert.ok(checkout.includes("data-proxy-duration") && checkout.includes("Choose 
   checkout.includes("Save " + "' + esc(option.discountPercent) + (shared ? '% per GB' : '% per day')") &&
   checkout.includes("pricePerDayCents"),
   "Proxy selector must show volume discounts for shared packages and per-day savings for dedicated rental durations");
+assert.ok(dashboard.includes('plan=>String(Number(plan.dataGb))+"|"+String(Number(plan.durationDays))') &&
+  dashboard.includes("shortest term for this data allowance") &&
+  checkout.includes("option.discountBasis"),
+  "Shared proxy options must retain every real GB-and-duration combination and explain the correct discount comparison");
+assert.ok(accountPage.includes('welcomeToastTimer=window.setTimeout') &&
+  accountPage.includes('},5000);') && accountPage.includes('toast.hidden=true;'),
+  "Account welcome notification must be a temporary five-second popup, not a persistent page banner");
+assert.ok(admin.includes('id="smm-select-all-top"') && adminSmm.includes('selectAllTop?.addEventListener("click", selectAllServices)'),
+  "Admin top-level Select All must select all services from the currently active supplier");
 assert.ok(checkout.includes("activateServiceCard"), "Full service-card clicks must open the configured product options");
 assert.ok(proxyCatalog.includes("Math.min(configuredPercent, 18)") &&
   proxySupplier.includes("Math.min(requestedPercent, 18)"),

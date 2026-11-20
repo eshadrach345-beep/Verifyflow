@@ -113,7 +113,8 @@ document.body.insertAdjacentHTML("beforeend", `
               const term = days ? days + ' days' : (option.period || 'Plan term');
               const label = shared ? size + (term ? ' · ' + term + ' validity' : '') : term;
               return '<option value="' + index + '">' + esc(label) +
-                (Number(option.discountPercent)>0 ? ' · Save ' + esc(option.discountPercent) + (shared ? '% per GB' : '% per day') : '') +
+                (Number(option.discountPercent)>0 ? ' · Save ' + esc(option.discountPercent) + (shared ? '% per GB' : '% per day') +
+                  ' vs ' + esc(option.discountBasis || (shared ? 'entry-level package' : 'daily term')) : '') +
                 '</option>';
             }).join("") +
             '</select><small data-proxy-price-summary></small></label>' +
@@ -144,14 +145,14 @@ document.body.insertAdjacentHTML("beforeend", `
             if (rateLabel) rateLabel.textContent = money(shared && perGb > 0 ? perGb : total);
             if (priceNote) priceNote.textContent = shared
               ? "PER GB · " + dataGb + " GB package · " + durationLabel + " validity · total " + money(total) +
-                (discount > 0 ? " · Save " + discount + "% per GB" : "") + " · before VAT/tax"
+                (discount > 0 ? " · Save " + discount + "% per GB vs " + (option.discountBasis || "entry-level package") : "") + " · before VAT/tax"
               : "UNLIMITED TRAFFIC · total " + money(total) + " for " + durationLabel +
                 (perDay > 0 ? " · effective " + money(perDay) + " per day" : "") +
-                (discount > 0 ? " · Save " + discount + "% per day" : "") + " · before VAT/tax";
+                (discount > 0 ? " · Save " + discount + "% per day vs " + (option.discountBasis || "daily term") : "") + " · before VAT/tax";
             const summary = area.querySelector("[data-proxy-price-summary]");
             if (summary) summary.textContent = shared
               ? money(perGb) + " per GB · " + dataGb + " GB total package: " + money(total) +
-                (discount > 0 ? " · " + discount + "% lower per GB than the smallest package" : "")
+                (discount > 0 ? " · " + discount + "% lower per GB vs " + (option.discountBasis || "entry-level package") : "")
               : money(total) + " total · " + money(unitRate) + " per day equivalent · " + durationLabel +
                 (discount > 0 ? " · " + discount + "% lower per day than the daily term" : "");
           };

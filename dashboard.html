@@ -721,7 +721,7 @@
    const rate=shared?Number(selected.pricePerGbCents||0):Number(selected.pricePerDayCents||0);
    const discount=Number(selected.discountPercent||0);
    const discountUnit=shared?"per GB":"per day";
-   const discountNote=discount>0?" · Save "+discount+"% "+discountUnit+" vs the shortest option":"";
+   const discountNote=discount>0?" · Save "+discount+"% "+discountUnit+" vs "+(selected.discountBasis||"the entry-level option"):"";
    const priceNote=shared&&rate>0
     ? "PRICE PER GB · "+volume+" package · "+duration+" validity · package total "+money(selected.priceCents,"USD")+discountNote+" · before VAT/tax"
     : shared?volume+" package · "+duration+" validity · before VAT/tax"
@@ -782,17 +782,47 @@
   }
   for(const variants of groups.values()){
    const shared=String(variants[0].type||"shared").toLowerCase()==="shared";
-   const selector=shared?plan=>Number(plan.dataGb):plan=>Number(plan.durationDays);
+   // Shared plans can have the same data allowance at different validities.
+   // Keep each real (GB, duration) combination selectable instead of dropping
+   // the whole family when the same GB amount appears more than once.
+   const selector=shared
+    ?plan=>String(Number(plan.dataGb))+"|"+String(Number(plan.durationDays))
+    :plan=>String(Number(plan.durationDays));
    const values=variants.map(selector);
    if(variants.length<2||new Set(values).size!==values.length){separate.push(...variants);continue;}
-   const sorted=[...variants].sort((a,b)=>selector(a)-selector(b));
+   const sorted=[...variants].sort((a,b)=>shared
+    ?Number(a.dataGb)-Number(b.dataGb)||Number(a.durationDays)-Number(b.durationDays)
+    :Number(a.durationDays)-Number(b.durationDays));
    const baseOption=proxyDurationOption(sorted[0]);
    const baseRate=Number(shared?baseOption.pricePerGbCents:baseOption.pricePerDayCents)||0;
+   const volumeTerms=new Map();
+   if(shared) for(const plan of sorted){
+    const volume=Number(plan.dataGb);
+    if(!volumeTerms.has(volume))volumeTerms.set(volume,new Set());
+    volumeTerms.get(volume).add(Number(plan.durationDays));
+   }
    const options=sorted.map(plan=>{
     const option=proxyDurationOption(plan);
     const rate=Number(shared?option.pricePerGbCents:option.pricePerDayCents)||0;
-    option.discountPercent=baseRate>0&&rate>0&&rate<baseRate
-      ?Math.round((1-rate/baseRate)*100):0;
+    let comparisonRate=baseRate;
+    if(shared){
+     const terms=volumeTerms.get(Number(option.dataGb));
+     if(terms&&terms.size>1){
+      const sameVolume=sorted.filter(row=>Number(row.dataGb)===Number(option.dataGb))
+       .sort((a,b)=>Number(a.durationDays)-Number(b.durationDays));
+      comparisonRate=Number(proxyDurationOption(sameVolume[0]).pricePerGbCents)||baseRate;
+      option.discountBasis="shortest term for this data allowance";
+     }else{
+      const sameTerm=sorted.filter(row=>Number(row.durationDays)===Number(option.durationDays))
+       .sort((a,b)=>Number(a.dataGb)-Number(b.dataGb));
+      comparisonRate=Number(proxyDurationOption(sameTerm[0]).pricePerGbCents)||baseRate;
+      option.discountBasis=Number(sameTerm[0]?.dataGb||1)+" GB package";
+     }
+    }else{
+     option.discountBasis="daily term";
+    }
+    option.discountPercent=comparisonRate>0&&rate>0&&rate<comparisonRate
+      ?Math.round((1-rate/comparisonRate)*100):0;
     return option;
    });
    separate.push({...sorted[0],durationOptions:options});
