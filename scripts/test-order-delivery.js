@@ -48,7 +48,7 @@ const account = fs.readFileSync("account.html", "utf8");
 assert.ok(orderApi.includes("AS customer_delivery"));
 assert.ok(orderApi.includes("AS customer_service"));
 assert.ok(!orderApi.includes("o.metadata AS"), "Raw order metadata must not be returned to customers");
-assert.ok(dashboard.includes("Verification code"));
+assert.match(dashboard, /verification code/i);
 assert.ok(dashboard.includes("Check for SMS"));
 assert.ok(account.includes("Latest code"));
 console.log("Customer order delivery tests passed (OTP parsing, customer-safe fields and dashboard rendering).");
