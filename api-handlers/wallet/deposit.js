@@ -8,7 +8,7 @@ const { getCheckoutAmount } = require("../../lib/checkout-currency");
 function checkoutUrlIsSafe(value) {
   try {
     const url = new URL(value);
-    return url.protocol === "https:" && /(^|\\.)monnify\\.com$/i.test(url.hostname);
+    return url.protocol === "https:" && /(^|\.)monnify\.com$/i.test(url.hostname);
   } catch {
     return false;
   }
@@ -36,7 +36,7 @@ module.exports = async function handler(req, res) {
     const config = getMonnifyConfig();
     const checkout = getCheckoutAmount(walletAmountMinor);
     const paymentReference = "VFWALLET_" + randomBytes(12).toString("hex").toUpperCase();
-    const redirectUrl = (process.env.PUBLIC_APP_URL || "https://verifyflow.us.ci").replace(/\\/+$/, "") +
+    const redirectUrl = (process.env.PUBLIC_APP_URL || "https://verifyflow.us.ci").replace(/\/+$/, "") +
       "/payment-return.html?paymentReference=" + encodeURIComponent(paymentReference);
     const pool = getPool();
     await pool.query(
