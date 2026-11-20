@@ -242,6 +242,7 @@
 </header>
 <main class="account-page"><div class="account-wrap">
  <a class="account-breadcrumb" href="/dashboard.html">← Back to your dashboard</a>
+ <div id="account-welcome-toast" class="account-welcome-toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
  <div id="account-loading" class="account-loading"><strong>Checking your account…</strong>Just a moment while we load your customer details.</div>
  <div id="account-error" class="account-error" hidden><strong>We couldn't load your account.</strong><span id="account-error-text">Please try again.</span><p><button class="profile-save" id="account-retry" type="button">Try again</button></p></div>
 
@@ -402,6 +403,21 @@
  function showPortal(){
   loading.hidden=true;errorBox.hidden=true;authView.hidden=true;portalView.hidden=false;
  }
+ let welcomeToastTimer=null;
+ function showWelcomeToast(user){
+  const toast=document.getElementById("account-welcome-toast");
+  if(!toast)return;
+  const name=String(user?.fullName||user?.full_name||"").trim().split(/\\s+/)[0]||"there";
+  toast.textContent="Welcome back, "+name+"!";
+  toast.hidden=false;
+  toast.classList.remove("is-visible");
+  window.requestAnimationFrame(()=>toast.classList.add("is-visible"));
+  if(welcomeToastTimer)window.clearTimeout(welcomeToastTimer);
+  welcomeToastTimer=window.setTimeout(()=>{
+   toast.classList.remove("is-visible");
+   window.setTimeout(()=>{toast.hidden=true;},220);
+  },5000);
+ }
  function selectPanel(name){
   document.querySelectorAll(".account-nav [data-panel]").forEach(button=>{
    const selected=button.dataset.panel===name;
@@ -553,6 +569,7 @@
  setInterval(autoRefreshActiveOrders,15000);
  async function openPortal(user){
   showPortal();
+  showWelcomeToast(user);
   const requestedPanel=new URLSearchParams(window.location.search).get("panel");
   selectPanel(["overview","profile","orders","wallet"].includes(requestedPanel)?requestedPanel:"overview");
   renderProfile({fullName:user.fullName||"",email:user.email||"",createdAt:user.createdAt||"",preferredCurrency:"USD",timezone:"Africa/Lagos"});
