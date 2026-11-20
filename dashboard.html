@@ -686,6 +686,7 @@
  }
 
  function render(){
+  if(loadMore)loadMore.hidden=true;
   if(!catalogue){empty("The catalogue is being refreshed.");return;}
   const query=String(searchInput?.value||"").trim().toLowerCase();
   const categories=active==="all"?categoryKeys:[active];
