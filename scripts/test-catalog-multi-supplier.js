@@ -38,11 +38,21 @@ async function main() {
     assert.equal(res.statusCode, 200);
     assert.equal(body.ok, true);
     assert.equal(body.sections.sms.items.length, 2);
-    assert.deepEqual(body.sections.sms.items.map(x => x.provider).sort(), ["herosms", "voidmob"]);
-    assert.equal(body.sections.sms.items.find(x => x.provider === "herosms").availableCount, 15);
+    assert.equal(body.sections.sms.items.every(item => /^vf1\./.test(item.id)), true);
+    const { openCatalogProductToken } = require("../lib/catalog-token");
+    const decodedSms = body.sections.sms.items.map(item => openCatalogProductToken(item.id));
+    assert.deepEqual(decodedSms.map(item => item.provider).sort(), ["herosms", "voidmob"]);
+    assert.equal(body.sections.sms.items.some(item => Object.hasOwn(item, "provider")), false);
+    assert.equal(body.sections.sms.items.some(item => Object.hasOwn(item, "availableCount")), false);
     assert.equal(body.sections.rentals.items.length, 1);
-    assert.equal(body.sections.rentals.items[0].provider, "herosms");
+    const decodedRental = openCatalogProductToken(body.sections.rentals.items[0].id);
+    assert.equal(decodedRental.provider, "herosms");
+    assert.equal(decodedRental.productType, "long_term_number");
+    assert.equal(Object.hasOwn(body.sections.rentals.items[0], "provider"), false);
     assert.equal(Object.hasOwn(body, "supplierCoverage"), false, "public catalogue must not expose supplier coverage metadata");
+    for (const secret of ["voidmob", "herosms", "void-telegram", "countryId", "supplierPriceCents"]) {
+      assert.equal(JSON.stringify(body).includes(secret), false, "Public catalogue must not expose " + secret);
+    }
   } finally {
     global.fetch = oldFetch;
     if (oldVoid === undefined) delete process.env.VOIDMOB_API_KEY; else process.env.VOIDMOB_API_KEY = oldVoid;

@@ -492,6 +492,7 @@
  .catalog-load-more{width:100%;margin-top:16px}
 }
 </style>
+  <link rel="stylesheet" href="/premium.css">
 </head><body><header class="vf-store-header"><div class="vf-topbar">
 <a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
 <button class="vf-location" id="vf-category-toggle" type="button" aria-expanded="false" aria-controls="vf-category-menu"><small>Explore</small><strong>All products <span aria-hidden="true">⌄</span></strong></button>
@@ -640,7 +641,7 @@
  };
  const productKey=(category,item)=>{
   const base=item.id??item.productId??item.country??item.title??item.name??item.full_title??"";
-  return String(item.provider||item.providerLabel||"")+":"+String(base);
+  return String(base);
  };
  const card=(category,title,meta,detail,priceCents,priceNote,tag="AVAILABLE",currency="USD",country="",key="")=>{
   const brand=logoFor(title,category),flag=flagFor(country);

@@ -7,6 +7,7 @@ const { quoteProduct } = require("../../lib/voidmob");
 const { getCheckoutAmount } = require("../../lib/checkout-currency");
 const { ensureWalletAccount, postWalletTransaction } = require("../../lib/wallet");
 const { enqueuePaidOrder, processFulfilmentForOrder } = require("../../lib/fulfilment");
+const { openCatalogProductToken } = require("../../lib/catalog-token");
 
 function validCheckoutKey(value) {
   return typeof value === "string" && /^[A-Za-z0-9_-]{20,80}$/.test(value);
@@ -204,11 +205,18 @@ module.exports = async function handler(req, res) {
         }
       };
     } else {
+      // The customer only submits an encrypted catalogue selection. Supplier
+      // identity, raw inventory IDs and country routing are resolved server-side.
+      const selection = openCatalogProductToken(String(body.productId || ""));
+      if (selection.productType !== productType) {
+        return sendJson(res, 400, { ok: false, error: "That product selection does not match the selected service. Refresh the catalogue." });
+      }
+      selectedProvider = selection.provider;
       const input = {
-        productId: String(body.productId || ""),
-        country: String(body.country || "us").toLowerCase(),
+        productId: selection.productId,
+        country: selection.country,
         durationDays: Number(body.durationDays),
-        provider: selectedProvider
+        provider: selection.provider
       };
       quote = await quoteProduct(productType, input);
     }
@@ -378,7 +386,7 @@ module.exports = async function handler(req, res) {
     }
   } catch (error) {
     console.error("[orders/create]", error.code || error.message);
-    const status = error.status === 404 ? 404 : error.status === 409 ? 409 :
+    const status = error.status === 400 ? 400 : error.status === 404 ? 404 : error.status === 409 ? 409 :
       error.code === "SUPPLIER_NOT_CONFIGURED" ? 503 :
       error.code === "COUNTRY_UNAVAILABLE" || error.code === "INVALID_DURATION" ? 400 : 503;
     const messages = {
@@ -392,7 +400,8 @@ module.exports = async function handler(req, res) {
       CHECKOUT_EXCHANGE_RATE_INVALID: "The local checkout exchange rate is invalid. Please contact support.",
       SUPPLIER_NOT_CONFIGURED: "The supplier catalogue is temporarily unavailable.",
       SUPPLIER_PRICE_INVALID: "A current product price could not be confirmed.",
-      INVALID_PRODUCT: "Please select a valid product from the catalogue."
+      INVALID_PRODUCT: "Please select a valid product from the catalogue.",
+      INVALID_CATALOG_SELECTION: "That product selection is no longer valid. Refresh the catalogue and try again."
     };
     return sendJson(res, status, { ok: false, error: messages[error.code] || "We couldn't prepare this order. Please refresh the catalogue and try again." });
   }

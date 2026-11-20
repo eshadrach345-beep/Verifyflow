@@ -78,7 +78,7 @@ async function main() {
     const esimQuote = await quoteProduct("esim", { productId: "prod_mock" });
     assert.equal(esimQuote.salePriceCents, 2025);
     const proxyQuote = await quoteProduct("mobile_proxy", { productId: "plan_mock" });
-    assert.equal(proxyQuote.salePriceCents, 4050);
+    assert.equal(proxyQuote.salePriceCents, 3540); // 18% maximum markup after the competitive proxy repricing.
     assert.equal(proxyQuote.productSnapshot.planType, "shared");
 
     const beforePurchaseCalls = calls.length;
