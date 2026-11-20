@@ -60,7 +60,7 @@ async function createWalletOrder({ user, checkoutKey, productType, selectedProvi
     const balanceMinor = Number(wallet.rows[0]?.balance_minor || 0);
     if (balanceMinor < quote.salePriceCents) {
       await client.query("ROLLBACK");
-      const error = new Error("Your wallet balance is too low. Add funds or choose Monnify at checkout.");
+      const error = new Error("Your wallet balance is too low. Add funds or choose Squad at checkout.");
       error.code = "WALLET_INSUFFICIENT_FUNDS";
       error.status = 402;
       throw error;
