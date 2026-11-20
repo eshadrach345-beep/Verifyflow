@@ -1036,13 +1036,13 @@
    catalogue=null;empty("Enter a valid two-letter country code, such as US or GB.");status.textContent="Country code required";return;
   }
   const cached=readCatalogueCache(country);
+  if(catalogue?.country!==country)catalogue=null;
   if(!catalogue&&cached){
    catalogue=cached;
    populateCountryOptions(cached.countries);
    render();
    status.textContent="Showing saved prices while we refresh live availability…";
-  }else if(catalogue?.country!==country){
-   catalogue=null;
+  }else if(!catalogue){
    empty("Loading the latest catalogue…");
   }
   loading=true;refresh.disabled=true;refresh.textContent="↻ Refreshing…";
