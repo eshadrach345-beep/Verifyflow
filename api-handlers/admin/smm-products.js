@@ -174,7 +174,17 @@ module.exports = async function handler(req, res) {
         "updated AS (UPDATE vf_smm_products p SET platform=i.platform, product_name=i.product_name, description=i.description, supplier_rate=i.supplier_rate, supplier_currency=i.supplier_currency, min_quantity=i.min_quantity, max_quantity=i.max_quantity, retail_rate_minor_per_1000=i.retail_rate_minor_per_1000, is_active=TRUE, updated_at=NOW() FROM incoming i WHERE p.provider=$2 AND p.supplier_service_id=i.service_id RETURNING p.*), " +
         "inserted AS (INSERT INTO vf_smm_products (provider,supplier_service_id,platform,product_name,description,supplier_rate,supplier_currency,min_quantity,max_quantity,retail_rate_minor_per_1000,is_active,updated_at) SELECT $2,i.service_id,i.platform,i.product_name,i.description,i.supplier_rate,i.supplier_currency,i.min_quantity,i.max_quantity,i.retail_rate_minor_per_1000,TRUE,NOW() FROM incoming i WHERE NOT EXISTS (SELECT 1 FROM vf_smm_products p WHERE p.provider=$2 AND p.supplier_service_id=i.service_id) RETURNING *) " +
         "SELECT * FROM updated UNION ALL SELECT * FROM inserted",
-        [JSON.stringify(rows), provider]
+        [JSON.stringify(rows.map(row => ({
+          service_id: row.serviceId,
+          platform: row.platform,
+          product_name: row.productName,
+          description: row.description,
+          supplier_rate: row.supplierRate,
+          supplier_currency: row.supplierCurrency,
+          min_quantity: row.min,
+          max_quantity: row.max,
+          retail_rate_minor_per_1000: row.retailRateMinor
+        }))), provider]
       );
       return sendJson(res, 200, {
         ok: true, savedCount: saved.rowCount, skippedCount: invalid.length,
@@ -197,7 +207,14 @@ module.exports = async function handler(req, res) {
     );
     return sendJson(res, 200, { ok: true, product: productRow(saved.rows[0]) });
   } catch (error) {
-    console.error("[admin/smm-products]", error.code || error.message);
+    console.error("[admin/smm-products]", JSON.stringify({
+      code: error.code || "ADMIN_SMM_ERROR",
+      message: String(error.message || "Database operation failed").slice(0, 240),
+      column: error.column || null,
+      dataType: error.dataType || null,
+      constraint: error.constraint || null,
+      where: error.where ? String(error.where).slice(0, 240) : null
+    }));
     const missingMigration = error.code === "42P01";
     return sendJson(res, 503, {
       ok: false,
