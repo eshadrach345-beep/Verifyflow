@@ -470,12 +470,34 @@
 .catalog-art-icon{border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important;overflow:visible}
 .catalog-brand-logo{position:relative!important;inset:auto!important;display:block;width:54px;height:54px;padding:3px;object-fit:contain;border-radius:12px;background:transparent!important;z-index:2;filter:drop-shadow(0 3px 8px rgba(20,42,58,.12))}
 </style>
+<style id="verifyflow-mobile-catalogue-fix">
+.vf-location{display:grid;gap:3px;text-align:left;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;padding:8px 10px;border-radius:8px;min-width:112px}
+.vf-location strong span{margin-left:5px;font-size:15px}
+.vf-location[aria-expanded="true"]{background:#eef3f4}
+.vf-category-menu{position:absolute;z-index:30;top:calc(100% - 2px);left:max(3vw,12px);width:min(290px,calc(100vw - 24px));max-height:min(70vh,440px);overflow:auto;background:#fff;border:1px solid #d5d9d9;border-radius:12px;box-shadow:0 14px 38px rgba(15,23,42,.18);padding:7px}
+.vf-category-menu[hidden]{display:none}
+.vf-category-menu a{display:block;padding:13px 12px;border-radius:8px;color:#263746;font:600 14px/1.3 Inter,Arial,sans-serif}
+.vf-category-menu a:hover,.vf-category-menu a:focus{background:#f0f5f5;outline:none}
+.catalog-load-more{display:block;margin:20px auto 4px;min-height:46px;padding:0 24px;border:1px solid #bfc8cc;border-radius:24px;background:#fff;color:#172b38;font:700 14px Inter,Arial,sans-serif;cursor:pointer}
+.catalog-load-more[hidden]{display:none}
+@media(max-width:600px){
+ .vf-store-header{position:relative}
+ .vf-topbar{gap:6px}
+ .vf-location{min-width:84px;padding:7px 5px}
+ .vf-location small{font-size:10px}
+ .vf-location strong{font-size:12px}
+ .vf-search{min-width:0}
+ .vf-category-menu{position:absolute;left:8px;right:8px;width:auto}
+ .catalog-grid{content-visibility:auto;contain-intrinsic-size:1px 1200px}
+ .catalog-load-more{width:100%;margin-top:16px}
+}
+</style>
 </head><body><header class="vf-store-header"><div class="vf-topbar">
 <a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
-<a class="vf-location" href="#catalogue"><small>Explore</small><strong>All products</strong></a>
+<button class="vf-location" id="vf-category-toggle" type="button" aria-expanded="false" aria-controls="vf-category-menu"><small>Explore</small><strong>All products <span aria-hidden="true">⌄</span></strong></button>
 <form class="vf-search" action="/dashboard.html#catalogue" method="get" role="search"><label class="sr-only" for="vf-dash-search">Search all products</label><input id="vf-dash-search" name="search" type="search" placeholder="Search every product, service or country..." autocomplete="off"><button type="submit" aria-label="Search all products">⌕</button></form>
 <a class="vf-account" href="/account.html"><small>Your space</small><strong>Sign in / Account</strong></a></div>
-<nav class="vf-subnav" aria-label="Product categories"><a href="#catalogue" data-nav-category="all">☰ <b>All products</b></a><a href="#catalogue" data-nav-category="sms">SMS verification</a><a href="#catalogue" data-nav-category="rentals">Number rentals</a><a href="#catalogue" data-nav-category="dedicated">Dedicated numbers</a><a href="#catalogue" data-nav-category="esim">eSIM data</a><a href="#catalogue" data-nav-category="proxies">Mobile proxies</a><a href="#catalogue" data-nav-category="marketing">Social Media Boosters</a></nav></header><main class="dash-shell">
+<nav class="vf-subnav" aria-label="Product categories"><a href="#catalogue" data-nav-category="all">☰ <b>All products</b></a><a href="#catalogue" data-nav-category="sms">SMS verification</a><a href="#catalogue" data-nav-category="rentals">Number rentals</a><a href="#catalogue" data-nav-category="dedicated">Dedicated numbers</a><a href="#catalogue" data-nav-category="esim">eSIM data</a><a href="#catalogue" data-nav-category="proxies">Mobile proxies</a><a href="#catalogue" data-nav-category="marketing">Social Media Boosters</a></nav><div class="vf-category-menu" id="vf-category-menu" hidden><a href="#catalogue" data-menu-category="all">All products</a><a href="#catalogue" data-menu-category="sms">SMS verification</a><a href="#catalogue" data-menu-category="rentals">Number rentals</a><a href="#catalogue" data-menu-category="dedicated">Dedicated numbers</a><a href="#catalogue" data-menu-category="esim">eSIM data</a><a href="#catalogue" data-menu-category="proxies">Mobile proxies</a><a href="#catalogue" data-menu-category="marketing">Social Media Boosters</a></div></header><main class="dash-shell">
 <div class="dash-wrap">
   <a class="dash-crumb" href="/">← BACK TO HOME</a>
   <div class="dash-heading">
@@ -520,6 +542,7 @@
     </div>
     <div class="catalog-state-row"><div class="catalog-status" id="catalog-status" aria-live="polite">Loading all product categories…</div><span class="catalog-live-indicator"><i></i> Live listings</span></div>
     <div class="catalog-grid" id="catalog-grid"></div>
+    <button class="catalog-load-more" id="catalog-load-more" type="button" hidden>Load more products</button>
     <p class="catalog-footnote">Prices are shown in USD. Availability and prices can change before checkout. Applicable taxes are not calculated or collected by VerifyFlow at this stage. Coverage varies by product and country. USD card checkout requires activation by Monnify.</p>
   </section>
 
@@ -533,6 +556,9 @@
 </main><footer class="site-footer"><div class="footer-main"><a class="brand brand-footer" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><p>One flow. Every connection.</p><div class="footer-links"><a href="/faq.html">FAQ</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/acceptable-use.html">Acceptable use</a></div></div><div class="footer-bottom"><span>© 2026 VerifyFlow. All rights reserved.</span><span>Designed for a world that never stands still.</span></div></footer><script>
 (() => {
  const grid=document.getElementById("catalog-grid");
+ const loadMore=document.getElementById("catalog-load-more");
+ const categoryToggle=document.getElementById("vf-category-toggle");
+ const categoryMenu=document.getElementById("vf-category-menu");
  const status=document.getElementById("catalog-status");
  const refresh=document.getElementById("catalog-refresh");
  const countryInput=document.getElementById("catalog-country");
@@ -547,7 +573,8 @@
  const params=new URLSearchParams(window.location.search);
  const requestedCategory=params.get("category");
  const requestedSearch=params.get("search")||params.get("q")||"";
- let active=categoryKeys.includes(requestedCategory)?requestedCategory:"all", catalogue=null, loading=false;
+ let active=categoryKeys.includes(requestedCategory)?requestedCategory:"all", catalogue=null, loading=false, renderedCount=24;
+ const PAGE_SIZE=24;
  const topSearch=document.getElementById("vf-dash-search");
  if(searchInput) searchInput.value=requestedSearch;
  if(topSearch) topSearch.value=requestedSearch;
@@ -659,6 +686,7 @@
  }
 
  function render(){
+  if(loadMore)loadMore.hidden=true;
   if(!catalogue){empty("The catalogue is being refreshed.");return;}
   const query=String(searchInput?.value||"").trim().toLowerCase();
   const categories=active==="all"?categoryKeys:[active];
@@ -715,7 +743,12 @@
   status.textContent=query
    ? results.length+" matching product"+(results.length===1?"":"s")+" across all categories"
    : results.length+" product"+(results.length===1?"":"s")+" in "+(active==="all"?"all available categories":categoryLabels[active]);
-  grid.innerHTML=results.map(({category,item})=>renderProduct(category,item)).join("");
+  const visible=results.slice(0,renderedCount);
+  grid.innerHTML=visible.map(({category,item})=>renderProduct(category,item)).join("");
+  if(loadMore){loadMore.hidden=visible.length>=results.length;loadMore.textContent="Load more products ("+Math.min(PAGE_SIZE,results.length-visible.length)+" more)";}
+  status.textContent=query
+   ? results.length+" matching product"+(results.length===1?"":"s")+" · showing "+visible.length
+   : results.length+" product"+(results.length===1?"":"s")+" · showing "+visible.length+" in "+(active==="all"?"all available categories":categoryLabels[active]);
  }
  async function load(){
   if(loading)return;
@@ -750,15 +783,28 @@
   if(active==="marketing"||active==="all")render();
  }
  tabs.forEach(tab=>tab.addEventListener("click",()=>{
-  active=tab.dataset.catalogTab;
+  active=tab.dataset.catalogTab;renderedCount=PAGE_SIZE;
   tabs.forEach(item=>{const selected=item===tab;item.classList.toggle("is-active",selected);item.setAttribute("aria-selected",String(selected));});
   if((active==="marketing"||active==="all")&&(!catalogue?.sections?.marketing||!catalogue.sections.marketing.ok))loadMarketingCatalogue();
   render();
  }));
+
+ if(loadMore)loadMore.addEventListener("click",()=>{renderedCount+=PAGE_SIZE;render();});
+ if(categoryToggle&&categoryMenu){
+  const closeCategoryMenu=()=>{categoryMenu.hidden=true;categoryToggle.setAttribute("aria-expanded","false");};
+  categoryToggle.addEventListener("click",()=>{const opening=categoryMenu.hidden;categoryMenu.hidden=!opening;categoryToggle.setAttribute("aria-expanded",String(opening));});
+  categoryMenu.querySelectorAll("[data-menu-category]").forEach(link=>link.addEventListener("click",event=>{
+   event.preventDefault();const selected=tabs.find(tab=>tab.dataset.catalogTab===link.dataset.menuCategory);if(selected)selected.click();closeCategoryMenu();
+   document.getElementById("catalogue")?.scrollIntoView({behavior:"smooth",block:"start"});
+  }));
+  document.addEventListener("click",event=>{if(!categoryMenu.contains(event.target)&&!categoryToggle.contains(event.target))closeCategoryMenu();});
+  document.addEventListener("keydown",event=>{if(event.key==="Escape")closeCategoryMenu();});
+ }
  refresh.addEventListener("click",load);
  countryInput?.addEventListener("change",load);
  countryInput?.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();load();}});
  searchInput?.addEventListener("input",()=>{
+  renderedCount=PAGE_SIZE;
   if(searchInput.value.trim()){
    active="all";
    tabs.forEach(tab=>{const selected=tab.dataset.catalogTab==="all";tab.classList.toggle("is-active",selected);tab.setAttribute("aria-selected",String(selected));});
@@ -768,6 +814,7 @@
   render();
  });
  topSearch?.addEventListener("input",()=>{
+  renderedCount=PAGE_SIZE;
   if(searchInput&&searchInput.value!==topSearch.value)searchInput.value=topSearch.value;
   if(topSearch.value.trim()){
    active="all";
