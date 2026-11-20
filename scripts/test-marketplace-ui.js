@@ -84,7 +84,7 @@ assert.ok(dashboard.includes('id="catalog-country"') && dashboard.includes("popu
   "Country selector must be populated from the supported country catalogue");
 assert.ok(dashboard.includes('"whatsapp","telegram","gmail"') && dashboard.includes('["sms","rentals"].includes(category)'),
   "Long-term rentals and SMS products must sort with popular services first");
-assert.ok(dashboard.includes("Choose a rental period"), "Rental product cards must explain period selection");
+assert.ok(checkout.includes("data-rental-selected-price") && dashboard.includes("Choose your rental period"), "Rental product cards must explain period selection");
 assert.ok(checkout.includes("data-rental-selected-price") && checkout.includes("updateRentalPrice"),
   "Rental card price must update immediately when its period is changed");
 assert.ok(dashboard.includes("private phone number reserved for your use") &&
