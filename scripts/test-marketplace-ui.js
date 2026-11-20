@@ -39,6 +39,15 @@ for (const category of categories) {
     "Dashboard must expose the " + category + " category tab");
 }
 assert.ok(dashboard.includes('data-catalog-tab="all"'), "Dashboard must expose All products");
+assert.ok(dashboard.includes("const dedupeProducts=") && dashboard.includes("priceOf(item)>previous.price"),
+  "The customer catalogue must remove duplicate listings while retaining the highest retail price");
+assert.ok(dashboard.includes('data-vf-card-open') && checkout.includes('event.target.closest("[data-vf-card-open]")'),
+  "Every product card must have a working Choose options action");
+assert.ok(dashboard.includes('id="vf-category-backdrop"') && dashboard.includes('role="dialog"') &&
+  dashboard.includes('aria-modal="true"') && dashboard.includes('document.body.classList.add("vf-category-open")'),
+  "Dashboard All products navigation must open a real accessible off-canvas side drawer");
+assert.ok(checkout.includes("Preparing secure options for this service") && checkout.includes("openBuyDialog"),
+  "A card selected while checkout controls are loading must retry until options are ready");
 assert.ok(dashboard.includes("www.google.com/s2/favicons"), "Recognised services must use real service-logo images");
 assert.ok(dashboard.includes("categoryLogoFor") && dashboard.includes("data-fallback"), "Every catalogue card must have an illustrated image fallback");
 assert.ok(dashboard.includes("catalog-brand-logo"), "Product cards must render image assets rather than text-only icons");
@@ -162,6 +171,10 @@ assert.ok(adminSmm.includes('fetch("/api/admin/smm-products"'), "Admin must save
 assert.ok(adminSmm.includes("Save and publish product"), "Admin must provide an explicit publish action");
 assert.ok(adminSmm.includes("Database setup required"), "Admin must disable publishing until the SMM product table exists");
 assert.ok(admin.includes("smm-select-all") && admin.includes("smm-select-visible") && admin.includes("smm-service-list"), "Admin must support selecting the full or filtered supplier catalogue");
+assert.ok(admin.includes('id="smm-select-all-top"') && adminSmm.includes('selectAllTop?.addEventListener("click", selectAllServices)'),
+  "Admin must expose a visible top-level Select All control that selects the currently chosen supplier catalogue");
+assert.ok(!admin.includes('href="/premium.css"') && fs.readFileSync("admin.css", "utf8").includes("high-contrast light operations workspace"),
+  "Admin must use its dedicated high-contrast workspace styles instead of the storefront dark theme");
 assert.ok(admin.includes("smm-markup-percent"), "Admin must accept a percentage markup instead of a fixed retail price");
 assert.ok(adminSmm.includes("action: \"bulk\"") && adminSmm.includes("selectedServices"), "Admin must bulk publish the selected supplier services");
 assert.ok(smmAdminApi.includes("jsonb_to_recordset") && smmAdminApi.includes("markupPercent"), "Admin API must calculate and save bulk retail prices from percentage markup");
