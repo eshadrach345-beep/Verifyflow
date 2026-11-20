@@ -70,12 +70,20 @@ async function main() {
     assert.equal(body.sections.rentals.items[0].durations[0].priceCents, 2100);
     assert.equal(body.sections.rentals.items[0].durations[1].priceCents, 5880);
     assert.equal(body.sections.esim.items[0].priceCents, 2025);
-    assert.equal(body.sections.proxies.items[0].priceCents, 4050);
+    assert.equal(body.sections.proxies.items[0].priceCents, 3540); // 18% capped retail markup.\n    assert.equal(body.sections.proxies.items[0].pricePerGbCents, 354);
     assert.equal(body.sections.dedicated.items[0].priceCents, 4724);
     assert.equal(body.sections.sms.items[0].name, "Telegram");
     assert.equal(body.sections.esim.items[0].title, "Europe 5 GB · 30 Days");
     assert.equal(body.sections.proxies.items[0].country, "United Kingdom");
     assert.equal(body.sections.dedicated.items[0].inStock, true);
+    for (const category of ["sms", "rentals", "esim", "proxies", "dedicated"]) {
+      assert.match(body.sections[category].items[0].id, /^vf1\\./, category + " IDs must be opaque encrypted selections");
+    }
+    const publicCatalogue = JSON.stringify(body);
+    for (const secret of ["voidmob", "herosms", "svc_telegram", "prod_europe", "plan_mobile", "supplierPriceCents", "countryId"]) {
+      assert.equal(publicCatalogue.includes(secret), false, "Public catalogue must not expose " + secret);
+    }
+
     assert.equal(JSON.stringify(body).includes("base_price_cents"), false);
     assert.equal(JSON.stringify(body).includes("quoted_price_cents"), false);
     assert.equal(Object.hasOwn(body, "providers"), false);
