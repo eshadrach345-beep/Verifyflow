@@ -33,7 +33,7 @@ document.body.insertAdjacentHTML("beforeend", `
           <a href="/account.html?panel=wallet" class="account-text-link">Fund your wallet ↗</a>
         </fieldset>
         <p class="vf-checkout-note">The final price is confirmed using a fresh supplier quote before payment.</p>
-        <label id="vf-duration-wrap" class="catalog-duration" hidden>Rental period<select id="vf-duration-select"></select></label>
+        <label id="vf-duration-wrap" class="catalog-duration" hidden>Rental period<select id="vf-duration-select"></select></label>\n        <label id="vf-herosms-method-wrap" class="catalog-duration" hidden>Verification method<select id="vf-herosms-method-select"><option value="sms">SMS</option></select></label>
         <p class="vf-checkout-note">Catalogue prices are shown in USD. Monnify collects USD only when international collection is enabled on the account; otherwise checkout is converted to NGN using VerifyFlow’s configured rate and the payment methods enabled on the account. Taxes are not included.</p>
         <p id="vf-checkout-message" class="vf-checkout-message" role="status" aria-live="polite"></p>
         <button id="vf-checkout-submit" class="vf-buy-button" type="submit">Continue to secure payment ↗</button>
@@ -78,7 +78,7 @@ document.body.insertAdjacentHTML("beforeend", `
   }
 
   function productDetails(category, item) {
-    if (category === "sms") return { type: "sms_otp", id: item.id, available: item.available === true, price: item.priceCents };
+    if (category === "sms") return { type: "sms_otp", id: item.id, available: item.available === true, price: item.priceCents, supportsVerificationMethods: item.supportsVerificationMethods === true };
     if (category === "rentals") { const durations = (item.durations || []).filter(x => Number.isSafeInteger(Number(x.priceCents)) && Number(x.priceCents) > 0).map(x => ({ days: Number(x.days), price: Number(x.priceCents) })); return { type: "long_term_number", id: item.id, available: item.available === true, price: Math.min(...durations.map(x => x.price)), durations }; }
     if (category === "esim") return { type: "esim", id: item.id, available: true, price: item.priceCents };
     if (category === "proxies") return { type: "mobile_proxy", id: item.id, available: item.available !== false, price: item.priceCents, planType: String(item.type || "shared").toLowerCase() };
@@ -191,7 +191,7 @@ document.body.insertAdjacentHTML("beforeend", `
       const button = '<button class="vf-buy-button" type="button" data-vf-buy="true" ' +
         'data-product-type="' + esc(product.type) + '" data-product-id="' + esc(product.id) + '" ' +
         'data-product-name="' + esc(item.title || item.name || item.full_title || item.country || "VerifyFlow service") + '" ' +
-        'data-product-price="' + esc(product.price) + '" data-duration-prices="' + esc(JSON.stringify(durations)) + '"' + (product.available && durations.length !== 0 || product.available && category !== "rentals" ? "" : " disabled") +
+        'data-product-price="' + esc(product.price) + '" data-herosms-methods="' + (product.supportsVerificationMethods ? "true" : "false") + '" data-duration-prices="' + esc(JSON.stringify(durations)) + '"' + (product.available && durations.length !== 0 || product.available && category !== "rentals" ? "" : " disabled") +
         '>Continue to checkout →</button>';
       card.querySelector(".catalog-item-copy")?.insertAdjacentHTML("beforeend", '<div class="vf-buy-area">' + select + button + '</div>');
       if (category === "rentals" && cheapestDuration) {
@@ -393,7 +393,7 @@ document.body.insertAdjacentHTML("beforeend", `
       quantity: smmQuantity,
       durationPrices: JSON.parse(button.dataset.durationPrices || "[]"),
       checkoutKey: key(),
-      durationDays: Number(card?.querySelector("[data-rental-days]")?.value || 0)
+      durationDays: Number(card?.querySelector("[data-rental-days]")?.value || 0),\n      supportsVerificationMethods: button.dataset.herosmsMethods === "true",\n      verificationType: "sms"
     };
     if (productType === "smm_service") selected.productName += " · " + smmQuantity.toLocaleString() + " units";
     if (selected.productType === "long_term_number") {
@@ -414,7 +414,7 @@ document.body.insertAdjacentHTML("beforeend", `
       select.innerHTML = "";
       wrap.hidden = true;
     }
-    dialog.showModal();
+    const methodWrap = document.getElementById("vf-herosms-method-wrap");\n    const methodSelect = document.getElementById("vf-herosms-method-select");\n    methodWrap.hidden = !selected.supportsVerificationMethods;\n    methodSelect.innerHTML = "<option value=\\"sms\\">SMS · checking options…</option>";\n    if (selected.supportsVerificationMethods) {\n      fetch("/api/herosms/offers?productId=" + encodeURIComponent(selected.productId), { credentials: "same-origin", cache: "no-store" })\n        .then(response => response.json())\n        .then(data => {\n          if (!data.ok || !Array.isArray(data.methods) || !data.methods.length) throw new Error("No verification methods available");\n          methodSelect.innerHTML = data.methods.map(method => "<option value=\\\"" + esc(method.type) + "\\\">" + esc(method.label) + " · " + esc(money(method.priceCents)) + "</option>").join("");\n          selected.verificationType = methodSelect.value;\n          selected.estimate = Number(data.methods[0].priceCents);\n          document.getElementById("vf-checkout-price").textContent = money(selected.estimate);\n        })\n        .catch(() => { methodWrap.hidden = true; selected.verificationType = "sms"; });\n    }\n    dialog.showModal();
   });
 
   grid.addEventListener("keydown", event => {
@@ -434,7 +434,7 @@ document.body.insertAdjacentHTML("beforeend", `
     }
   });
   document.getElementById("vf-checkout-close").addEventListener("click", () => dialog.close());
-  form.addEventListener("submit", async event => {
+  document.getElementById("vf-herosms-method-select").addEventListener("change", event => {\n    if (!selected) return;\n    selected.verificationType = event.target.value;\n    const option = event.target.selectedOptions[0];\n    const match = String(option?.textContent || "").match(/\\$([0-9]+(?:\\.[0-9]{2})?)/);\n    if (match) {\n      selected.estimate = Math.round(Number(match[1]) * 100);\n      document.getElementById("vf-checkout-price").textContent = money(selected.estimate);\n    }\n  });\n\n  form.addEventListener("submit", async event => {
     event.preventDefault();
     if (!selected) return;
     submit.disabled = true;
