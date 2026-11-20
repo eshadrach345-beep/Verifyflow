@@ -228,6 +228,12 @@
 @media(max-width:600px){.wallet-transaction{align-items:flex-start;flex-direction:column}.wallet-transaction-amount{font-size:15px}}
 </style>
   <link rel="stylesheet" href="/premium.css">
+<style>
+.account-welcome-toast{position:fixed;z-index:10000;top:18px;left:50%;width:min(520px,calc(100vw - 28px));padding:15px 19px;border:1px solid #b9dcd5;border-radius:12px;background:#12313c;color:#fff;text-align:center;font-size:15px;font-weight:800;line-height:1.45;box-shadow:0 16px 42px rgba(10,32,48,.24);opacity:0;transform:translate(-50%,-9px);transition:opacity .2s ease,transform .2s ease;pointer-events:none}
+.account-welcome-toast.is-visible{opacity:1;transform:translate(-50%,0)}
+.account-welcome-toast[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){.account-welcome-toast{transition:none}}
+</style>
 </head>
 <body>
 <div class="announcement">Your VerifyFlow account <span class="announce-divider">/</span> Profile, orders and activity</div>
@@ -242,6 +248,7 @@
 </header>
 <main class="account-page"><div class="account-wrap">
  <a class="account-breadcrumb" href="/dashboard.html">← Back to your dashboard</a>
+ <div id="account-welcome-toast" class="account-welcome-toast" role="status" aria-live="polite" hidden></div>
  <div id="account-welcome-toast" class="account-welcome-toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
  <div id="account-loading" class="account-loading"><strong>Checking your account…</strong>Just a moment while we load your customer details.</div>
  <div id="account-error" class="account-error" hidden><strong>We couldn't load your account.</strong><span id="account-error-text">Please try again.</span><p><button class="profile-save" id="account-retry" type="button">Try again</button></p></div>
@@ -400,8 +407,9 @@
  function showAuth(){
   loading.hidden=true;errorBox.hidden=true;portalView.hidden=true;authView.hidden=false;
  }
- function showPortal(){
+ function showPortal(user){
   loading.hidden=true;errorBox.hidden=true;authView.hidden=true;portalView.hidden=false;
+  showWelcomeToast(user);
  }
  let welcomeToastTimer=null;
  function showWelcomeToast(user){
@@ -568,7 +576,7 @@
  }
  setInterval(autoRefreshActiveOrders,15000);
  async function openPortal(user){
-  showPortal();
+  showPortal(user);
   showWelcomeToast(user);
   const requestedPanel=new URLSearchParams(window.location.search).get("panel");
   selectPanel(["overview","profile","orders","wallet"].includes(requestedPanel)?requestedPanel:"overview");
