@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("node:assert/strict");
-const { getCatalog, buyNumber, getActivation, setActivationStatus } = require("../lib/herosms");
+const { getCatalog, buyNumber, buyRentalNumber, getActivation, getRentalStatus, setActivationStatus, quoteProduct } = require("../lib/herosms");
 
 async function main() {
   const oldFetch = global.fetch;
@@ -25,6 +25,10 @@ async function main() {
       payload = { status: "success", services: { tg: { price: 1.5, quantity: 4 } } };
     } else if (action === "getNumberV2") {
       payload = { activationId: 42, phoneNumber: "+12025550123", activationCost: 0.25, countryCode: "US", canGetAnotherSms: true };
+    } else if (action === "getRentNumber") {
+      payload = { status: "success", phone: { id: 99, number: "+12025550124", cost: "1.50", endDate: "2026-12-01T12:00:00Z" } };
+    } else if (action === "getRentStatus") {
+      payload = { status: "success", values: { "0": { phoneFrom: "Verify", text: "Login code: 123456", date: "2026-11-20T12:00:00Z" } } };
     } else if (action === "getStatusV2") {
       payload = { status: "STATUS_OK", sms: { code: "012345" } };
     } else if (action === "setStatus") {
@@ -48,16 +52,30 @@ async function main() {
     const status = await getActivation("42");
     assert.equal(status.status, "code_received");
     assert.equal(status.code, "012345");
+    const rentalQuote = await quoteProduct("long_term_number", { productId: "tg", country: "us", durationDays: 3 });
+    assert.equal(rentalQuote.provider, "herosms");
+    assert.equal(rentalQuote.supplierPriceCents, 150);
+    assert.equal(rentalQuote.salePriceCents, 250);
+    assert.equal(rentalQuote.supplierInput.durationHours, 72);
+    const rental = await buyRentalNumber("tg", 1, 72, 150);
+    assert.equal(rental.supplierOrderId, "99");
+    assert.equal(rental.supplierData.phoneNumber, "+12025550124");
+    assert.equal(rental.status, "active");
+    const rentalStatus = await getRentalStatus("99");
+    assert.equal(rentalStatus.status, "active");
+    assert.equal(rentalStatus.code, "123456");
     const completed = await setActivationStatus("42", 6);
     assert.equal(completed.result, "ACCESS_ACTIVATION");
     assert(calls.some(call => call.action === "getNumberV2" && call.service === "tg"));
     assert(calls.some(call => call.action === "getStatusV2"));
+    assert(calls.some(call => call.action === "getRentNumber" && call.service === "tg"));
+    assert(calls.some(call => call.action === "getRentStatus"));
     assert(calls.some(call => call.action === "setStatus"));
   } finally {
     global.fetch = oldFetch;
     if (oldKey === undefined) delete process.env.HEROSMS_RETAIL_API_KEY;
     else process.env.HEROSMS_RETAIL_API_KEY = oldKey;
   }
-  console.log("HeroSMS retail API tests passed (catalogue, number purchase, OTP status and activation completion).");
+  console.log("HeroSMS retail API tests passed (catalogue, OTP and long-term rental purchase/status).");
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
