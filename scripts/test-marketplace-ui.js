@@ -106,11 +106,13 @@ assert.ok(dashboard.includes('"whatsapp","telegram","gmail"') && dashboard.inclu
 assert.ok(checkout.includes("data-rental-selected-price") && dashboard.includes("Choose your rental period"), "Rental product cards must explain period selection");
 assert.ok(checkout.includes("data-rental-selected-price") && checkout.includes("updateRentalPrice"),
   "Rental card price must update immediately when its period is changed");
-assert.ok(dashboard.includes("private phone number reserved for your use") &&
-  dashboard.includes("Receive a one-time SMS code") &&
-  dashboard.includes("unlocked, eSIM-compatible") &&
-  dashboard.includes("Shared mobile proxy") ,
-  "All catalogue product families must have practical customer-facing descriptions");
+assert.ok(dashboard.includes("Receive an SMS code on a temporary number") &&
+  dashboard.includes("Digital mobile data for an unlocked, eSIM-compatible device") &&
+  dashboard.includes("Pay per GB. Choose your data allowance and validity") &&
+  dashboard.includes("Private number for ongoing SMS and verification") &&
+  dashboard.includes("Keep the same number for a selected period") &&
+  dashboard.includes("Order this service for a public profile or post"),
+  "All catalogue product families must have concise, useful customer-facing descriptions");
 assert.ok(proxyCatalog.includes("pricePerGbCents") && proxyCatalog.includes("Number(plan.data_gb)"),
   "Shared mobile proxy catalogue must expose a derived per-GB price");
 assert.ok(dashboard.includes("Unlimited traffic") && dashboard.includes('"UNLIMITED TRAFFIC · "') &&
