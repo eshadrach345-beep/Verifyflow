@@ -33,7 +33,8 @@ document.body.insertAdjacentHTML("beforeend", `
           <a href="/account.html?panel=wallet" class="account-text-link">Fund your wallet ↗</a>
         </fieldset>
         <p class="vf-checkout-note">The final price is confirmed using a fresh supplier quote before payment.</p>
-        <label id="vf-duration-wrap" class="catalog-duration" hidden>Rental period<select id="vf-duration-select"></select></label>\n        <label id="vf-herosms-method-wrap" class="catalog-duration" hidden>Verification method<select id="vf-herosms-method-select"><option value="sms">SMS</option></select></label>
+        <label id="vf-duration-wrap" class="catalog-duration" hidden>Rental period<select id="vf-duration-select"></select></label>
+        <label id="vf-herosms-method-wrap" class="catalog-duration" hidden>Verification method<select id="vf-herosms-method-select"><option value="sms">SMS</option></select></label>
         <p class="vf-checkout-note">Catalogue prices are shown in USD. Monnify collects USD only when international collection is enabled on the account; otherwise checkout is converted to NGN using VerifyFlow’s configured rate and the payment methods enabled on the account. Taxes are not included.</p>
         <p id="vf-checkout-message" class="vf-checkout-message" role="status" aria-live="polite"></p>
         <button id="vf-checkout-submit" class="vf-buy-button" type="submit">Continue to secure payment ↗</button>
@@ -394,7 +395,8 @@ document.body.insertAdjacentHTML("beforeend", `
       durationPrices: JSON.parse(button.dataset.durationPrices || "[]"),
       checkoutKey: key(),
       durationDays: Number(card?.querySelector("[data-rental-days]")?.value || 0),
-      supportsVerificationMethods: button.dataset.herosmsMethods === "true",\n      verificationType: "sms"
+      supportsVerificationMethods: button.dataset.herosmsMethods === "true",
+      verificationType: "sms"
     };
     if (productType === "smm_service") selected.productName += " · " + smmQuantity.toLocaleString() + " units";
     if (selected.productType === "long_term_number") {
