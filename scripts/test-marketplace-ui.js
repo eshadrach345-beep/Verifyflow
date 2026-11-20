@@ -142,6 +142,9 @@ assert.ok(admin.includes('id="smm-select-all-top"') && adminSmm.includes('select
 assert.ok(checkout.includes("activateServiceCard"), "Full service-card clicks must open the configured product options");
 assert.ok(checkout.includes("selectProduct") && checkout.includes("returnUrl.searchParams.set(\"selectProduct\""),
   "A signed-out customer must return to the exact product they selected after sign-in");
+assert.ok(dashboard.includes("const requestedCountry=params.get(\"country\")") &&
+  dashboard.includes("countryInput.value=requestedCountry.toLowerCase()"),
+  "The selected product country must also be restored after sign-in");
 assert.ok(checkout.includes("tryOpenRequestedProduct") && accountPage.includes("accountReturnTo") &&
   accountPage.includes("window.location.replace(accountReturnTo)"),
   "After sign-in the selected product must reopen its checkout options");
