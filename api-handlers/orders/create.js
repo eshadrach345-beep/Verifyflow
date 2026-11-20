@@ -5,6 +5,8 @@ const { getPool, getSessionUser, sendJson, readJson, sameOrigin } = require("../
 const { getMonnifyConfig, initializeTransaction } = require("../../lib/monnify");
 const { quoteProduct } = require("../../lib/voidmob");
 const { getCheckoutAmount } = require("../../lib/checkout-currency");
+const { ensureWalletAccount, postWalletTransaction } = require("../../lib/wallet");
+const { enqueuePaidOrder, processFulfilmentForOrder } = require("../../lib/fulfilment");
 
 function validCheckoutKey(value) {
   return typeof value === "string" && /^[A-Za-z0-9_-]{20,80}$/.test(value);
@@ -17,6 +19,108 @@ function checkoutUrlIsSafe(value) {
   } catch {
     return false;
   }
+}
+
+
+async function createWalletOrder({ user, checkoutKey, productType, selectedProvider, quote, sandboxMode }) {
+  const pool = getPool();
+  const client = await pool.connect();
+  let orderId = null;
+  let orderNumber = null;
+  let existingOrder = false;
+  try {
+    await client.query("BEGIN");
+    const existing = await client.query(
+      "SELECT o.id, o.order_number, o.status, o.metadata, p.status AS payment_status " +
+      "FROM vf_orders o LEFT JOIN LATERAL (" +
+      "SELECT status FROM vf_payments WHERE order_id = o.id ORDER BY created_at DESC LIMIT 1" +
+      ") p ON TRUE WHERE o.user_id = $1 AND o.checkout_key = $2 LIMIT 1 FOR UPDATE OF o",
+      [user.id, checkoutKey]
+    );
+    if (existing.rowCount) {
+      const row = existing.rows[0];
+      if (row.status === "paid" && row.metadata?.checkout?.paymentMethod === "wallet") {
+        await client.query("COMMIT");
+        return { ok: true, walletPaid: true, reused: true, orderNumber: row.order_number };
+      }
+      await client.query("ROLLBACK");
+      const error = new Error("This checkout has already been started. Refresh your account orders.");
+      error.code = "CHECKOUT_ALREADY_EXISTS";
+      throw error;
+    }
+
+    await ensureWalletAccount(client, user.id);
+    const wallet = await client.query(
+      "SELECT balance_minor FROM vf_wallet_accounts WHERE user_id = $1 FOR UPDATE",
+      [user.id]
+    );
+    const balanceMinor = Number(wallet.rows[0]?.balance_minor || 0);
+    if (balanceMinor < quote.salePriceCents) {
+      await client.query("ROLLBACK");
+      const error = new Error("Your wallet balance is too low. Add funds or choose Monnify at checkout.");
+      error.code = "WALLET_INSUFFICIENT_FUNDS";
+      error.status = 402;
+      throw error;
+    }
+
+    orderId = randomUUID();
+    orderNumber = "VF-" + randomBytes(6).toString("hex").toUpperCase();
+    const walletReference = "VFWPAY_" + randomBytes(12).toString("hex").toUpperCase();
+    const orderIdempotencyKey = "vf-order-" + orderId.replace(/-/g, "");
+    const metadata = {
+      platform: quote.productSnapshot?.platform || productType,
+      ...(sandboxMode ? { sandboxTest: true, noFulfilment: true } : {}),
+      checkout: {
+        productSnapshot: quote.productSnapshot,
+        supplierInput: quote.supplierInput,
+        supplierPriceCents: quote.supplierPriceCents,
+        retailPriceCents: quote.salePriceCents,
+        retailCurrency: "USD",
+        paymentAmountMinor: quote.salePriceCents,
+        currency: "USD",
+        paymentMethod: "wallet",
+        walletPaid: true,
+        checkoutCreatedAt: new Date().toISOString()
+      }
+    };
+    await client.query(
+      "INSERT INTO vf_orders (id, user_id, order_number, provider, product_type, product_name, status, currency, subtotal_minor, total_minor, idempotency_key, checkout_key, metadata) " +
+      "VALUES ($1, $2, $3, $4, $5, $6, 'paid', 'USD', $7, $7, $8, $9, $10::jsonb)",
+      [orderId, user.id, orderNumber, quote.provider || selectedProvider, productType, quote.productName,
+        quote.salePriceCents, orderIdempotencyKey, checkoutKey, JSON.stringify(metadata)]
+    );
+    await client.query(
+      "INSERT INTO vf_payments (order_id, payment_reference, currency, amount_minor, status) " +
+      "VALUES ($1, $2, 'USD', $3, 'paid')",
+      [orderId, walletReference, quote.salePriceCents]
+    );
+    await postWalletTransaction(client, {
+      userId: user.id,
+      amountMinor: -quote.salePriceCents,
+      type: "purchase",
+      referenceType: "wallet_order",
+      referenceId: orderId,
+      description: "Purchase: " + quote.productName,
+      metadata: { orderId, orderNumber, paymentReference: walletReference }
+    });
+    await enqueuePaidOrder(client, orderId);
+    await client.query(
+      "INSERT INTO vf_order_events (order_id, event_type, message, details) VALUES ($1, 'wallet_payment_confirmed', 'Order paid from VerifyFlow wallet balance.', $2::jsonb)",
+      [orderId, JSON.stringify({ walletAmountMinor: quote.salePriceCents, currency: "USD" })]
+    );
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
+
+  if (!sandboxMode) {
+    try { await processFulfilmentForOrder(orderId); }
+    catch (error) { console.error("[orders/create/wallet-fulfilment]", error.code || error.message); }
+  }
+  return { ok: true, walletPaid: true, orderNumber, orderId };
 }
 
 module.exports = async function handler(req, res) {
@@ -41,7 +145,13 @@ module.exports = async function handler(req, res) {
 
     // Use USD only after international collection is activated on the Monnify contract.
     // Otherwise collect locally in NGN at the merchant-configured USD/NGN checkout rate.
-    const config = getMonnifyConfig();
+    const paymentMethod = String(body.paymentMethod || "monnify").toLowerCase();
+    if (!["wallet", "monnify"].includes(paymentMethod)) {
+      return sendJson(res, 400, { ok: false, error: "Choose Wallet or Monnify as your payment method." });
+    }
+    const config = paymentMethod === "monnify"
+      ? getMonnifyConfig()
+      : { environment: String(process.env.MONNIFY_ENVIRONMENT || "SANDBOX").toUpperCase() };
     const productType = String(body.productType || "");
     let selectedProvider = String(body.provider || "voidmob").toLowerCase();
     let quote;
@@ -123,6 +233,20 @@ module.exports = async function handler(req, res) {
     if (!Number.isSafeInteger(quote.salePriceCents) || quote.salePriceCents <= 0 ||
         (productType !== "smm_service" && (!Number.isSafeInteger(quote.supplierPriceCents) || quote.supplierPriceCents <= 0))) {
       return sendJson(res, 503, { ok: false, error: "A current price could not be confirmed for this product." });
+    }
+
+    if (paymentMethod === "wallet") {
+      try {
+        const result = await createWalletOrder({
+          user, checkoutKey, productType, selectedProvider, quote,
+          sandboxMode: String(config.environment || "").toUpperCase() !== "LIVE"
+        });
+        return sendJson(res, 200, result);
+      } catch (error) {
+        if (error.code === "WALLET_INSUFFICIENT_FUNDS") return sendJson(res, 402, { ok: false, error: error.message });
+        if (error.code === "CHECKOUT_ALREADY_EXISTS") return sendJson(res, 409, { ok: false, error: error.message });
+        throw error;
+      }
     }
 
     const checkoutAmount = getCheckoutAmount(quote.salePriceCents);
