@@ -5,7 +5,7 @@ const PRICE_RULES = {
   sms: { percent: 55, minimumMarkupCents: 5 },
   rentals: { percent: 40, minimumMarkupCents: 100 },
   esim: { percent: 35, minimumMarkupCents: 100 },
-  proxies: { percent: 35, minimumMarkupCents: 100 },
+  proxies: { percent: 18, minimumMarkupCents: 25 },
   dedicated: { percent: 35, minimumMarkupCents: 200 }
 };
 
@@ -27,8 +27,12 @@ function retailPriceCents(supplierPrice, category) {
   if (!Number.isSafeInteger(cost) || cost <= 0) return null;
 
   const rule = PRICE_RULES[category];
-  const percent = envNumber("VERIFYFLOW_" + category.toUpperCase() + "_MARKUP_PERCENT", rule.percent);
-  const minimum = envNumber("VERIFYFLOW_" + category.toUpperCase() + "_MIN_MARKUP_CENTS", rule.minimumMarkupCents);
+  const configuredPercent = envNumber("VERIFYFLOW_" + category.toUpperCase() + "_MARKUP_PERCENT", rule.percent);
+  const configuredMinimum = envNumber("VERIFYFLOW_" + category.toUpperCase() + "_MIN_MARKUP_CENTS", rule.minimumMarkupCents);
+  // Keep shared and dedicated proxy prices competitive: never exceed an 18% retail
+  // markup or a $0.25 minimum margin per supplier plan.
+  const percent = category === "proxies" ? Math.min(configuredPercent, 18) : configuredPercent;
+  const minimum = category === "proxies" ? Math.min(configuredMinimum, 25) : configuredMinimum;
   const percentagePrice = Math.ceil(cost * (1 + percent / 100) - 1e-9);
   const currentPrice = Math.max(percentagePrice, cost + minimum);
   // Preserve all existing OTP prices at $1.00 or above. For cheaper OTP options,
@@ -224,12 +228,18 @@ module.exports = async function handler(req, res) {
     country: plan.country_name || plan.country || "Global",
     carrier: plan.carrier || null,
     region: plan.region || null,
-    dataGb: plan.data_gb,
+    dataGb: plan.data_gb == null ? null : Number(plan.data_gb),
     durationDays: plan.duration_days,
-    period: plan.period,
+    period: plan.period || (String(plan.type || "").toLowerCase() === "shared" ? "30 days" : null),
     available: plan.available !== false,
     priceCents: retailPriceCents(plan.quoted_price_cents, "proxies"),
-    currency: "USD"
+    pricePerGbCents: String(plan.type || "").toLowerCase() === "shared" && Number(plan.data_gb) > 0
+      ? Math.ceil(retailPriceCents(plan.quoted_price_cents, "proxies") / Number(plan.data_gb))
+      : null,
+    currency: "USD",
+    description: String(plan.type || "").toLowerCase() === "shared"
+      ? "Shared pay-per-GB access through a pool of real 4G/5G mobile carrier devices. Use HTTP(S) or SOCKS5 connections with rotating or sticky sessions where supported by the selected plan."
+      : "A dedicated mobile proxy connection routed through a real 4G/5G carrier device. Designed for a more consistent mobile IP, with unmetered traffic on supported dedicated plans."
   }));
 
   const dedicatedItems = dedicated.items.map(item => ({
@@ -267,6 +277,13 @@ module.exports = async function handler(req, res) {
     country: requestedCountry,
     updatedAt: new Date().toISOString(),
     currency: "USD",
+    countries: (() => {
+      const rows = heroSms.ok && Array.isArray(heroSms.items?.countries) ? heroSms.items.countries : [];
+      const valid = rows.filter(item => item && /^[a-z]{2}$/i.test(String(item.code || "")))
+        .map(item => ({ code: String(item.code).toLowerCase(), name: String(item.name || item.code) }));
+      if (!valid.some(item => item.code === "us") && process.env.VOIDMOB_API_KEY) valid.unshift({ code: "us", name: "United States" });
+      return valid.sort((a, b) => (a.code === "us" ? -1 : b.code === "us" ? 1 : a.name.localeCompare(b.name)));
+    })(),
     taxNote: "Displayed prices are before applicable VAT or local sales taxes. These are added separately at checkout based on the customer's billing location.",
     sections,
     summary: {
