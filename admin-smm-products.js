@@ -7,6 +7,7 @@
   const serviceSelect = $("smm-service-id"), productsBody = $("smm-products");
   const saveButton = $("smm-save"), bulkButton = $("smm-bulk-publish");
   const serviceList = $("smm-service-list"), searchInput = $("smm-service-search");
+  const selectVisible = $("smm-select-visible"), selectAllButton = $("smm-select-all");
   let providers = [], products = [], productsTableReady = true;
   const selectedServices = new Set();
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
@@ -17,16 +18,30 @@
   const currentService = () => currentSupplier()?.services?.find(item => item.id === serviceSelect.value);
   const markupPercent = () => Number($("smm-markup-percent").value);
 
+  function visibleServices() {
+    const services = currentSupplier()?.services || [];
+    const query = String(searchInput.value || "").trim().toLowerCase();
+    return services.filter(item => !query || [item.name,item.category,item.id,item.type].join(" ").toLowerCase().includes(query));
+  }
   function updateSelectionSummary() {
+    const services = currentSupplier()?.services || [], visible = visibleServices();
     const count = selectedServices.size;
-    $("smm-selection-count").textContent = count.toLocaleString() + " service" + (count === 1 ? "" : "s") + " selected";
+    const selectedVisible = visible.filter(item => selectedServices.has(item.id)).length;
+    $("smm-selection-count").textContent = count.toLocaleString() + " of " + services.length.toLocaleString() + " available services selected";
     bulkButton.disabled = !productsTableReady || count === 0;
     bulkButton.textContent = count ? "Publish " + count.toLocaleString() + " selected services" : "Publish selected services";
+    if (selectAllButton) {
+      selectAllButton.disabled = services.length === 0;
+      selectAllButton.textContent = services.length ? "Select entire catalogue (" + services.length.toLocaleString() + ")" : "Catalogue unavailable";
+    }
+    if (selectVisible) {
+      selectVisible.disabled = visible.length === 0;
+      selectVisible.checked = visible.length > 0 && selectedVisible === visible.length;
+      selectVisible.indeterminate = selectedVisible > 0 && selectedVisible < visible.length;
+    }
   }
   function renderSelectionList() {
-    const provider = currentSupplier(), services = provider?.services || [];
-    const query = String(searchInput.value || "").trim().toLowerCase();
-    const visible = services.filter(item => !query || [item.name,item.category,item.id,item.type].join(" ").toLowerCase().includes(query));
+    const visible = visibleServices();
     serviceList.innerHTML = visible.length ? visible.map(item =>
       '<label class="smm-service-option"><input type="checkbox" data-smm-service-check="' + esc(item.id) + '"' +
       (selectedServices.has(item.id) ? " checked" : "") + '><span><b>' + esc(item.name) + '</b><small>' +
@@ -139,8 +154,16 @@
   });
   serviceSelect.addEventListener("change", updateServiceInfo);
   $("smm-reset").addEventListener("click", clearForm);
-  $("smm-select-all").addEventListener("click", () => {
-    (currentSupplier()?.services || []).forEach(item => selectedServices.add(item.id));
+  selectAllButton.addEventListener("click", () => {
+    const services = currentSupplier()?.services || [];
+    services.forEach(item => selectedServices.add(item.id));
+    renderSelectionList();
+    message.textContent = "Selected all " + services.length.toLocaleString() + " services in " +
+      (currentSupplier()?.label || "this supplier") + ". Review the list, then publish when ready.";
+  });
+  selectVisible.addEventListener("change", () => {
+    visibleServices().forEach(item => selectVisible.checked
+      ? selectedServices.add(item.id) : selectedServices.delete(item.id));
     renderSelectionList();
   });
   $("smm-clear-selection").addEventListener("click", () => {
