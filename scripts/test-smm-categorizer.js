@@ -7,6 +7,7 @@ const cases = [
   [{ category: "TikTok", name: "Video Views" }, "TikTok", "Views", "high"],
   [{ name: "YouTube Subscribers", description: "Channel growth" }, "YouTube", "Subscribers", "high"],
   [{ name: "Telegram Group Members" }, "Telegram", "Members", "high"],
+  [{ name: "Instagram Story Views" }, "Instagram", "Story Views", "high"],
   [{ name: "Mystery digital service", description: "No platform or action specified" }, "Other", "Other", "needs_review"]
 ];
 for (const [input, platform, subcategory, status] of cases) {
