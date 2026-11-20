@@ -89,13 +89,26 @@ document.body.insertAdjacentHTML("beforeend", `
   }
 
   function renderButtons() {
-    if (!catalogue) return;
+    // Cards carry the exact catalogue row used to render them; checkout must
+    // not depend on a second catalogue request completing successfully.
     const cards = [...grid.querySelectorAll(".catalog-item")];
     cards.forEach(card => {
       if (card.querySelector(".vf-buy-area")) return;
       const category = card.dataset.productCategory || "sms";
       const key = card.dataset.productKey || "";
-      const item = visibleRows(category).find(row => String(row.id??row.productId??row.country??row.title??row.name??row.full_title??"") === key);
+      // Prefer the row embedded in the card that the customer actually sees.
+      // The API seals product tokens with a fresh nonce on each response, so
+      // looking up a card token in a second /api/catalog response can never be
+      // reliable even when both responses contain the same supplier product.
+      let item = null;
+      try {
+        if (card.dataset.productJson) item = JSON.parse(card.dataset.productJson);
+      } catch { item = null; }
+      if (!item) {
+        item = visibleRows(category).find(row =>
+          String(row.id??row.productId??row.country??row.title??row.name??row.full_title??"") === key
+        );
+      }
       if (!item) return;
       const product = productDetails(category, item);
       if (!product) {
