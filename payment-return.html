@@ -31,8 +31,15 @@
    const data=await response.json().catch(()=>({}));
    if(!response.ok||!data.ok)throw new Error(data.error||"We couldn't confirm the payment yet.");
    const state=data.payment.status;
-   status.textContent=state==="paid"?"Payment verified":state==="pending"?"Payment is still pending":state==="amount_mismatch"?"Payment needs manual review":"Payment status: "+state;
-   copy.textContent=state==="paid"?"Monnify confirmed your payment. Your order is being processed and its latest status will appear in your account.":state==="pending"?"Monnify has not confirmed payment yet. Refresh this page in a moment.":"Your payment needs attention. Your account will show the latest order status.";
+   const walletDeposit=reference.startsWith("VFWALLET_");
+   status.textContent=state==="paid"?(walletDeposit?"Wallet funded successfully":"Payment verified"):state==="pending"?"Payment is still pending":state==="amount_mismatch"?"Payment needs manual review":"Payment status: "+state;
+   copy.textContent=state==="paid"
+    ?(walletDeposit?"Monnify confirmed your deposit. Your VerifyFlow wallet has been credited and is ready to use for product purchases.":"Monnify confirmed your payment. Your order is being processed and its latest status will appear in your account.")
+    :state==="pending"?"Monnify has not confirmed payment yet. Refresh this page in a moment.":"Your payment needs attention. Your account will show the latest status.";
+   if(walletDeposit&&state==="paid"){
+    const accountLink=document.querySelector('.payment-result-links a[href="/account.html"]');
+    if(accountLink){accountLink.href="/account.html?panel=wallet";accountLink.textContent="Open my wallet";}
+   }
   }catch(error){status.textContent="Could not verify yet";copy.textContent=error.message||"Please sign in to the same VerifyFlow account and refresh this page."}
  }
  verify();
