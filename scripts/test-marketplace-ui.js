@@ -166,9 +166,11 @@ assert.ok(dashboard.includes("Pay per GB. Choose your data allowance") &&
   dashboard.includes("Keep the same number for a selected period") &&
   dashboard.includes("Order this service for a public profile or post"),
   "Catalogue descriptions must be short and useful instead of tall repeated paragraphs");
-assert.ok(walletDepositApi.includes("009_wallet_smm_schema_repair.sql") &&
-  walletApi.includes("42P10") && fs.readFileSync("lib/launch-readiness.js", "utf8").includes("vf_wallet_topups"),
-  "Wallet funding failures must point to the wallet schema repair migration");
+const squadMigration = fs.readFileSync("db/migrations/011_squad_payment_provider.sql", "utf8");
+assert.ok(walletDepositApi.includes("SQUAD_CONFIG_MISSING") &&
+  walletApi.includes("42P10") && fs.readFileSync("lib/launch-readiness.js", "utf8").includes("vf_wallet_topups") &&
+  squadMigration.includes("provider IN ('monnify','squad')"),
+  "Wallet funding must expose Squad setup errors and migration 011 must preserve legacy Monnify rows while enabling Squad");
 assert.ok(proxyCatalog.includes("Math.min(configuredPercent, 18)") &&
   proxySupplier.includes("Math.min(requestedPercent, 18)"),
   "Proxy quote and catalogue retail margins must both be capped at a competitive 18 percent");
