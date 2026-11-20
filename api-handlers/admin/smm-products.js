@@ -169,7 +169,7 @@ module.exports = async function handler(req, res) {
       const retailRateMinor = toRetailMinor(service);
       if (!retailRateMinor) return null;
       return {
-        serviceId: cleanSupplierText(service.id, 160).trim(), platform: cleanSupplierText(service.category || "Other", 60),
+        serviceId: cleanSupplierText(service.id, 160).trim(), platform: cleanSupplierText(classifySmmService(service).platform, 60),\n        subcategory: cleanSupplierText(classifySmmService(service).subcategory, 60),\n        classificationStatus: classifySmmService(service).classificationStatus,
         productName: cleanSupplierText(service.name || "Supplier service", 140),
         description: cleanSupplierText(service.description || "", 500),
         supplierRate: Number.isFinite(supplierRate) && supplierRate >= 0 ? supplierRate : null,
@@ -222,23 +222,29 @@ module.exports = async function handler(req, res) {
     if (id && !UUID.test(id)) return sendJson(res, 400, { ok: false, error: "The saved product reference is invalid." });
     const service = (supplier.eligibleServices || []).find(item => item.id === serviceId);
     if (!service) return sendJson(res, 409, { ok: false, error: "That supplier service is no longer available. Refresh the service list and choose again." });
-    const autoClassification = classifySmmService(service);\n    const row = serviceMeta({ ...service, category: String(body.platform || autoClassification.platform), name: String(body.productName || service.name), description: String(body.description || service.description || "") });\n    row.platform = cleanSupplierText(body.platform || autoClassification.platform, 60);\n    row.subcategory = cleanSupplierText(body.subcategory || autoClassification.subcategory, 60);\n    row.classificationStatus = body.platform || body.subcategory ? "medium" : autoClassification.classificationStatus;
+    const autoClassification = classifySmmService({ ...service, name: body.productName || service.name, description: body.description || service.description });
+    const row = serviceMeta(service);
     if (!row) return sendJson(res, 400, { ok: false, error: "This service has no usable supplier rate in USD or NGN. A percentage price cannot be calculated." });
-    const productValues = [provider, row.serviceId, row.platform, row.productName, row.description,
+    row.platform = cleanSupplierText(body.platform || autoClassification.platform, 60);
+    row.subcategory = cleanSupplierText(body.subcategory || autoClassification.subcategory, 60);
+    row.classificationStatus = body.platform || body.subcategory ? "medium" : autoClassification.classificationStatus;
+    row.productName = cleanSupplierText(body.productName || service.name, 140);
+    row.description = cleanSupplierText(body.description || service.description || "", 500);
+    const productValues = [provider, row.serviceId, row.platform, row.subcategory, row.classificationStatus, row.productName, row.description,
       row.supplierRate, row.supplierCurrency, row.min, row.max, row.retailRateMinor];
     let saved;
     if (id) {
       saved = await getPool().query(
-        "UPDATE vf_smm_products SET provider=$2, supplier_service_id=$3, platform=$4, product_name=$5, description=$6, " +
-        "supplier_rate=$7, supplier_currency=$8, min_quantity=$9, max_quantity=$10, retail_rate_minor_per_1000=$11, " +
+        "UPDATE vf_smm_products SET provider=$2, supplier_service_id=$3, platform=$4, subcategory=$5, classification_status=$6, product_name=$7, description=$8, " +
+        "supplier_rate=$9, supplier_currency=$10, min_quantity=$11, max_quantity=$12, retail_rate_minor_per_1000=$13, " +
         "is_active=TRUE, updated_at=NOW() WHERE id=$1 RETURNING *",
         [id, ...productValues]
       );
       if (!saved.rowCount) return sendJson(res, 404, { ok: false, error: "The product you are editing no longer exists. Refresh the list and try again." });
     } else {
       saved = await getPool().query(
-        "INSERT INTO vf_smm_products (provider,supplier_service_id,platform,product_name,description,supplier_rate,supplier_currency,min_quantity,max_quantity,retail_rate_minor_per_1000,is_active,updated_at) " +
-        "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,TRUE,NOW()) " +
+        "INSERT INTO vf_smm_products (provider,supplier_service_id,platform,subcategory,classification_status,product_name,description,supplier_rate,supplier_currency,min_quantity,max_quantity,retail_rate_minor_per_1000,is_active,updated_at) " +
+        "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,TRUE,NOW()) " +
         "ON CONFLICT (provider, supplier_service_id) WHERE is_active = TRUE DO UPDATE SET " +
         "platform=EXCLUDED.platform, subcategory=EXCLUDED.subcategory, classification_status=EXCLUDED.classification_status, product_name=EXCLUDED.product_name, description=EXCLUDED.description, " +
         "supplier_rate=EXCLUDED.supplier_rate, supplier_currency=EXCLUDED.supplier_currency, " +
