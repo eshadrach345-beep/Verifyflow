@@ -5,15 +5,36 @@
   const $ = id => document.getElementById(id);
   const message = $("smm-product-message"), supplierSelect = $("smm-provider");
   const serviceSelect = $("smm-service-id"), productsBody = $("smm-products");
-  const saveButton = $("smm-save");
+  const saveButton = $("smm-save"), bulkButton = $("smm-bulk-publish");
+  const serviceList = $("smm-service-list"), searchInput = $("smm-service-search");
   let providers = [], products = [], productsTableReady = true;
+  const selectedServices = new Set();
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   }[c]));
   const dollars = minor => "$" + (Number(minor || 0) / 100).toFixed(2);
   const currentSupplier = () => providers.find(item => item.provider === supplierSelect.value);
   const currentService = () => currentSupplier()?.services?.find(item => item.id === serviceSelect.value);
+  const markupPercent = () => Number($("smm-markup-percent").value);
 
+  function updateSelectionSummary() {
+    const count = selectedServices.size;
+    $("smm-selection-count").textContent = count.toLocaleString() + " service" + (count === 1 ? "" : "s") + " selected";
+    bulkButton.disabled = !productsTableReady || count === 0;
+    bulkButton.textContent = count ? "Publish " + count.toLocaleString() + " selected services" : "Publish selected services";
+  }
+  function renderSelectionList() {
+    const provider = currentSupplier(), services = provider?.services || [];
+    const query = String(searchInput.value || "").trim().toLowerCase();
+    const visible = services.filter(item => !query || [item.name,item.category,item.id,item.type].join(" ").toLowerCase().includes(query));
+    serviceList.innerHTML = visible.length ? visible.map(item =>
+      '<label class="smm-service-option"><input type="checkbox" data-smm-service-check="' + esc(item.id) + '"' +
+      (selectedServices.has(item.id) ? " checked" : "") + '><span><b>' + esc(item.name) + '</b><small>' +
+      esc(item.category) + ' · ID ' + esc(item.id) + ' · ' + esc(item.min) + '–' + esc(item.max) +
+      ' · Supplier rate: ' + esc(item.supplierRateReported ?? "not provided") + ' ' + esc(item.supplierCurrency || "") + '/1K</small></span></label>'
+    ).join("") : '<div class="empty">No matching services in this supplier catalogue.</div>';
+    updateSelectionSummary();
+  }
   function renderServices(selectedId) {
     const provider = currentSupplier();
     const services = provider?.services || [];
@@ -24,6 +45,7 @@
         '</option>').join("");
     if (selectedId) serviceSelect.value = String(selectedId);
     updateServiceInfo();
+    renderSelectionList();
   }
   function updateServiceInfo() {
     const item = currentService(), provider = currentSupplier();
@@ -36,6 +58,7 @@
         " per 1,000 · Refill: " + (item.refill ? "listed" : "not listed") +
         " · Cancel: " + (item.cancel ? "listed" : "not listed");
     if (item && !$("smm-product-name").value.trim()) $("smm-product-name").value = item.name;
+    if (item && !$("smm-platform").value.trim()) $("smm-platform").value = item.category || "Other";
   }
   function renderProducts() {
     if (!products.length) {
@@ -47,7 +70,7 @@
       (item.description ? '<br><span class="muted">' + esc(item.description) + '</span>' : '') + '</td>' +
       '<td>' + esc(item.provider === "peakerr" ? "Peakerr" : "JustAnotherPanel") + '<br><span class="muted">Service ID ' + esc(item.serviceId) + '</span></td>' +
       '<td>' + esc(item.min) + '–' + esc(item.max) + '</td>' +
-      '<td><b>' + dollars(item.retailRateMinorPer1000) + '</b></td>' +
+      '<td><b>' + dollars(item.retailRateMinorPer1000) + '</b><br><span class="muted">' + esc(item.markupPercent ?? "—") + '% markup</span></td>' +
       '<td><span class="status ' + (item.active ? "completed" : "failed") + '">' + (item.active ? "Published" : "Hidden") + '</span></td>' +
       '<td><div class="smm-product-actions"><button class="admin-btn" type="button" data-edit-smm="' + esc(item.id) + '">Edit</button>' +
       (item.active ? '<button class="admin-btn" type="button" data-hide-smm="' + esc(item.id) + '">Hide</button>' : '') +
@@ -66,11 +89,9 @@
       renderServices(serviceSelect.value);
       saveButton.disabled = !productsTableReady;
       renderProducts();
-      const summary = providers.map(p => p.label + ": " + (p.connected ? (p.services.length + " services loaded") : "not connected")).join(" · ");
+      const summary = providers.map(p => p.label + ": " + (p.connected ? (p.services.length.toLocaleString() + " services loaded") : "not connected")).join(" · ");
       message.textContent = "Supplier catalogues loaded · " + summary + " · " + products.length + " saved products.";
-      if (data.productsTableReady === false) {
-        message.textContent += " · " + (data.productsMessage || "Apply the SMM product database migration before saving and publishing.");
-      }
+      if (data.productsTableReady === false) message.textContent += " · " + (data.productsMessage || "Apply the SMM product database migration before saving and publishing.");
     } catch (error) {
       message.textContent = error.message || "Unable to load SMM products.";
       productsBody.innerHTML = '<tr><td colspan="6" class="empty">' + esc(message.textContent) + '</td></tr>';
@@ -81,24 +102,43 @@
     serviceSelect.value = "";
     $("smm-platform").value = "";
     $("smm-product-name").value = "";
-    $("smm-price").value = "";
+    $("smm-markup-percent").value = "50";
     $("smm-description").value = "";
     saveButton.textContent = productsTableReady ? "Save and publish product" : "Database setup required";
     saveButton.disabled = !productsTableReady;
     updateServiceInfo();
   }
-  supplierSelect.addEventListener("change", () => renderServices());
+  supplierSelect.addEventListener("change", () => {
+    selectedServices.clear();
+    searchInput.value = "";
+    renderServices();
+  });
   serviceSelect.addEventListener("change", updateServiceInfo);
   $("smm-reset").addEventListener("click", clearForm);
+  $("smm-select-all").addEventListener("click", () => {
+    (currentSupplier()?.services || []).forEach(item => selectedServices.add(item.id));
+    renderSelectionList();
+  });
+  $("smm-clear-selection").addEventListener("click", () => {
+    selectedServices.clear();
+    renderSelectionList();
+  });
+  searchInput.addEventListener("input", renderSelectionList);
+  serviceList.addEventListener("change", event => {
+    const checkbox = event.target.closest("[data-smm-service-check]");
+    if (!checkbox) return;
+    if (checkbox.checked) selectedServices.add(checkbox.dataset.smmServiceCheck);
+    else selectedServices.delete(checkbox.dataset.smmServiceCheck);
+    updateSelectionSummary();
+  });
+  $("smm-markup-percent").addEventListener("input", updateSelectionSummary);
 
   form.addEventListener("submit", async event => {
     event.preventDefault();
-    const service = currentService();
-    if (!productsTableReady) {
-      message.textContent = "Apply database migration 006_smm_product_manager.sql before publishing products.";
-      return;
-    }
+    const service = currentService(), markup = markupPercent();
+    if (!productsTableReady) { message.textContent = "Apply database migration 006_smm_product_manager.sql before publishing products."; return; }
     if (!service) { message.textContent = "Select a supplier service first."; return; }
+    if (!Number.isFinite(markup) || markup < 0 || markup > 1000) { message.textContent = "Enter a markup percentage between 0 and 1,000."; return; }
     saveButton.disabled = true;
     saveButton.textContent = "Saving product…";
     try {
@@ -106,19 +146,18 @@
         method: "POST", credentials: "same-origin",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
-          id: $("smm-product-id").value || null,
-          provider: supplierSelect.value, serviceId: service.id,
-          platform: $("smm-platform").value, productName: $("smm-product-name").value,
-          description: $("smm-description").value, pricePer1000: $("smm-price").value
+          id: $("smm-product-id").value || null, provider: supplierSelect.value,
+          serviceId: service.id, platform: $("smm-platform").value,
+          productName: $("smm-product-name").value, description: $("smm-description").value,
+          markupPercent: markup
         })
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.ok) throw new Error(data.error || "Product could not be saved.");
       const index = products.findIndex(item => item.id === data.product.id);
       if (index >= 0) products[index] = data.product; else products.unshift(data.product);
-      renderProducts();
-      clearForm();
-      message.textContent = "Saved. " + data.product.productName + " is now published in the storefront catalogue.";
+      renderProducts(); clearForm();
+      message.textContent = "Saved. " + data.product.productName + " is published with " + data.product.markupPercent + "% markup.";
     } catch (error) {
       message.textContent = error.message || "Product save failed.";
     } finally {
@@ -126,6 +165,34 @@
       saveButton.textContent = productsTableReady ? "Save and publish product" : "Database setup required";
     }
   });
+
+  bulkButton.addEventListener("click", async () => {
+    const ids = Array.from(selectedServices), markup = markupPercent();
+    if (!productsTableReady) { message.textContent = "Apply database migration 006_smm_product_manager.sql before publishing products."; return; }
+    if (!ids.length) { message.textContent = "Select at least one supplier service."; return; }
+    if (!Number.isFinite(markup) || markup < 0 || markup > 1000) { message.textContent = "Enter a markup percentage between 0 and 1,000."; return; }
+    bulkButton.disabled = true; bulkButton.textContent = "Publishing selected services…";
+    try {
+      const response = await fetch("/api/admin/smm-products", {
+        method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ action: "bulk", provider: supplierSelect.value, serviceIds: ids, markupPercent: markup })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) throw new Error(data.error || "Selected services could not be published.");
+      const returned = data.products || [];
+      for (const product of returned) {
+        const index = products.findIndex(item => item.id === product.id);
+        if (index >= 0) products[index] = product; else products.unshift(product);
+      }
+      selectedServices.clear(); renderSelectionList(); renderProducts();
+      message.textContent = "Bulk publish complete: " + data.savedCount + " products published or updated; " +
+        data.skippedCount + " skipped (missing/unsupported supplier pricing). Markup: " + markup + "%.";
+    } catch (error) {
+      message.textContent = error.message || "Bulk publishing failed.";
+    } finally { updateSelectionSummary(); }
+  });
+
   productsBody.addEventListener("click", async event => {
     const edit = event.target.closest("[data-edit-smm]");
     const hide = event.target.closest("[data-hide-smm]");
@@ -137,7 +204,7 @@
       renderServices(item.serviceId);
       $("smm-platform").value = item.platform;
       $("smm-product-name").value = item.productName;
-      $("smm-price").value = (item.retailRateMinorPer1000 / 100).toFixed(2);
+      $("smm-markup-percent").value = item.markupPercent ?? 50;
       $("smm-description").value = item.description || "";
       saveButton.textContent = "Update and publish product";
       $("smm-product-form").scrollIntoView({ behavior: "smooth", block: "center" });
@@ -155,8 +222,7 @@
       if (!response.ok || !data.ok) throw new Error(data.error || "Product could not be hidden.");
       const item = products.find(product => product.id === data.id);
       if (item) item.active = false;
-      renderProducts();
-      message.textContent = "Product hidden from the public catalogue.";
+      renderProducts(); message.textContent = "Product hidden from the public catalogue.";
     } catch (error) {
       message.textContent = error.message || "Product could not be hidden.";
       hide.disabled = false;
