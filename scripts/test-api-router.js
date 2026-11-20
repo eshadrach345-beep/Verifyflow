@@ -56,6 +56,13 @@ async function main() {
   assert.equal(support.body.ok, true);
   assert.equal(support.body.guest, true, "Guests can use the instant site-help assistant without signing in");
 
+  const adminPayments = await request("admin/payments");
+  assert.equal(adminPayments.status, 401);
+  assert.equal(adminPayments.body.ok, false);
+
+  const squadWebhook = await request("payments/squad-webhook");
+  assert.equal(squadWebhook.status, 405);
+
   const adminSupport = await request("admin/support");
   assert.equal(adminSupport.status, 401);
   assert.equal(adminSupport.body.ok, false);
