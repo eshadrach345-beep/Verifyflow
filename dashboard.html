@@ -749,35 +749,44 @@
  }
 
  function proxyDurationOption(plan){
-  const price=Number(plan.priceCents||0),dataGb=Number(plan.dataGb||0);
+  const price=Number(plan.priceCents||0),dataGb=Number(plan.dataGb||0),days=Number(plan.durationDays)||0;
   const rate=Number(plan.pricePerGbCents)>0?Number(plan.pricePerGbCents):(dataGb>0&&price>0?Math.ceil(price/dataGb):null);
-  return {id:String(plan.id||""),durationDays:Number(plan.durationDays)||0,period:String(plan.period||""),
-   priceCents:price,pricePerGbCents:rate,available:plan.available!==false,discountPercent:0};
+  return {id:String(plan.id||""),dataGb:dataGb>0?dataGb:null,durationDays:days,period:String(plan.period||""),
+   priceCents:price,pricePerGbCents:rate,
+   pricePerDayCents:!dataGb&&days>0&&price>0?Math.ceil(price/days):null,
+   available:plan.available!==false,discountPercent:0};
  }
  function groupProxyPlanRows(sourceRows){
   const groups=new Map(),separate=[];
   for(const plan of sourceRows){
    const type=String(plan.type||"shared").toLowerCase();
+   const shared=type==="shared";
+   const dedicated=["dedicated_standard","dedicated"].includes(type);
    const dataGb=Number(plan.dataGb),days=Number(plan.durationDays);
-   if(type!=="shared"||plan.available===false||!Number.isFinite(dataGb)||dataGb<=0||!Number.isSafeInteger(days)||days<1){
+   if((!shared&&!dedicated)||plan.available===false||
+      (shared&&(!Number.isFinite(dataGb)||dataGb<=0||!Number.isSafeInteger(days)||days<1))||
+      (dedicated&&(!Number.isSafeInteger(days)||days<1))){
     separate.push(plan);continue;
    }
    const name=String(plan.name||"mobile proxy").toLowerCase()
-    .replace(/\b\d+(?:\.\d+)?\s*(?:days?|d|weeks?|w|months?|mo)\b/g," ")
-    .replace(/\b(?:daily|weekly|monthly)\b/g," ").replace(/\s+/g," ").trim();
-   const family=[name,dataGb,String(plan.country||""),String(plan.carrier||""),String(plan.region||""),type].join("|");
+    .replace(/\\b\\d+(?:\\.\\d+)?\\s*(?:gb|gigabytes?)\\b/g," ")
+    .replace(/\\b\\d+(?:\\.\\d+)?\\s*(?:days?|d|weeks?|w|months?|mo)\\b/g," ")
+    .replace(/\\b(?:daily|weekly|monthly)\\b/g," ").replace(/[()]/g," ").replace(/\\s+/g," ").trim();
+   const family=[name,type==="shared"?"shared":"dedicated",String(plan.country||""),String(plan.carrier||""),String(plan.region||"")].join("|");
    if(!groups.has(family))groups.set(family,[]);
    groups.get(family).push(plan);
   }
   for(const variants of groups.values()){
-   const days=variants.map(plan=>Number(plan.durationDays));
-   const distinctDays=new Set(days);
-   if(variants.length<2||distinctDays.size!==variants.length){separate.push(...variants);continue;}
-   const sorted=[...variants].sort((a,b)=>Number(a.durationDays)-Number(b.durationDays));
-   const baseRate=Number(proxyDurationOption(sorted[0]).pricePerGbCents||0);
+   const shared=String(variants[0].type||"shared").toLowerCase()==="shared";
+   const selector=shared?plan=>Number(plan.dataGb):plan=>Number(plan.durationDays);
+   const values=variants.map(selector);
+   if(variants.length<2||new Set(values).size!==values.length){separate.push(...variants);continue;}
+   const sorted=[...variants].sort((a,b)=>selector(a)-selector(b));
+   const baseOption=proxyDurationOption(sorted[0]);
+   const baseRate=Number(shared?baseOption.pricePerGbCents:baseOption.pricePerDayCents)||0;
    const options=sorted.map(plan=>{
     const option=proxyDurationOption(plan);
-    const rate=Number(option.pricePerGbCents||0);
+    const rate=Number(shared?option.pricePerGbCents:option.pricePerDayCents)||0;
     option.discountPercent=baseRate>0&&rate>0&&rate<baseRate
       ?Math.round((1-rate/baseRate)*100):0;
     return option;
