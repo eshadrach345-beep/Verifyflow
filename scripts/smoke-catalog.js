@@ -77,7 +77,7 @@ async function main() {
     assert.equal(body.sections.proxies.items[0].country, "United Kingdom");
     assert.equal(body.sections.dedicated.items[0].inStock, true);
     for (const category of ["sms", "rentals", "esim", "proxies", "dedicated"]) {
-      assert.match(body.sections[category].items[0].id, /^vf1\\./, category + " IDs must be opaque encrypted selections");
+      assert.match(body.sections[category].items[0].id, /^vf1\./, category + " IDs must be opaque encrypted selections");
     }
     const publicCatalogue = JSON.stringify(body);
     for (const secret of ["voidmob", "herosms", "svc_telegram", "prod_europe", "plan_mobile", "supplierPriceCents", "countryId"]) {
