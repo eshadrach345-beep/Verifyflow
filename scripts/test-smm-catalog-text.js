@@ -1,0 +1,10 @@
+"use strict";
+const assert = require("node:assert/strict");
+const handler = require("../api-handlers/admin/smm-products");
+const clean = handler.cleanSupplierText;
+assert.equal(typeof clean, "function");
+assert.equal(clean("normal 😀 text", 100), "normal 😀 text");
+assert.equal(clean("broken \uD83D name", 100), "broken � name");
+assert.equal(clean("broken \uDE00 name", 100), "broken � name");
+assert.equal(clean("A😀B", 2), "A😀");
+console.log("Supplier catalogue Unicode sanitizing tests passed.");
