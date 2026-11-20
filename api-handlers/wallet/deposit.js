@@ -91,8 +91,8 @@ module.exports = async function handler(req, res) {
   } catch (error) {
     console.error("[wallet/deposit]", error.code || error.message);
     const messages = {
-      "42P01": "Wallet database tables are missing. Apply the latest VerifyFlow database migrations before funding your wallet.",
-      "42P10": "Wallet database indexes are incomplete. Apply the latest VerifyFlow database migrations before funding your wallet.",
+      "42P01": "Wallet database tables are missing. Apply db/migrations/009_wallet_smm_schema_repair.sql (or run npm run db:migrate) before funding your wallet.",
+      "42P10": "Wallet database indexes are incomplete. Apply db/migrations/009_wallet_smm_schema_repair.sql (or run npm run db:migrate) before funding your wallet.",
       CHECKOUT_EXCHANGE_RATE_MISSING: "Local NGN wallet funding is not configured yet. Please contact support.",
       CHECKOUT_EXCHANGE_RATE_INVALID: "The local checkout exchange rate is invalid. Please contact support.",
       MONNIFY_CONFIG_MISSING: "Secure payments are not fully configured yet."
