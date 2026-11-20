@@ -83,6 +83,24 @@
     ).join("");
   }
   async function load() {
+    message.textContent = "Checking for duplicate listings and loading supplier services…";
+    let duplicateNote = "";
+    try {
+      const cleanupResponse = await fetch("/api/admin/smm-products", {
+        method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ action: "deduplicate" })
+      });
+      const cleanup = await cleanupResponse.json().catch(() => ({}));
+      if (cleanupResponse.ok && cleanup.ok && Number(cleanup.removedCount) > 0) {
+        duplicateNote = " Removed " + Number(cleanup.removedCount).toLocaleString() +
+          " duplicate listing(s); kept the highest-priced version in each group.";
+      } else if (!cleanupResponse.ok) {
+        duplicateNote = " Duplicate cleanup could not run: " + (cleanup.error || "Please refresh after signing in.");
+      }
+    } catch {
+      duplicateNote = " Duplicate cleanup could not be completed during this check.";
+    }
     message.textContent = "Loading supplier services and saved products…";
     try {
       const response = await fetch("/api/admin/smm-products", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } });
@@ -97,6 +115,7 @@
       const summary = providers.map(p => p.label + ": " + (p.connected ? (p.services.length.toLocaleString() + " services loaded") : "not connected")).join(" · ");
       message.textContent = "Supplier catalogues loaded · " + summary + " · " + products.length + " saved products.";
       if (data.productsTableReady === false) message.textContent += " · " + (data.productsMessage || "Apply the SMM product database migration before saving and publishing.");
+      message.textContent += duplicateNote;
     } catch (error) {
       message.textContent = error.message || "Unable to load SMM products.";
       productsBody.innerHTML = '<tr><td colspan="6" class="empty">' + esc(message.textContent) + '</td></tr>';
