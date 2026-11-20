@@ -207,6 +207,26 @@
  .auth-terms{font-size:11px}
 }
 </style>
+<style id="verifyflow-wallet-account">
+.wallet-balance-card{background:linear-gradient(125deg,#172638,#1b5262);color:#fff}
+.wallet-balance-card h2{color:#fff;margin-top:8px}
+.wallet-balance-card .account-card-intro{color:#d6e3e7}
+.wallet-balance-amount{font:800 clamp(34px,5vw,48px)/1.1 Inter,Arial,sans-serif;letter-spacing:-1.5px;color:#fff;margin:18px 0 10px}
+.wallet-message{font:600 13px/1.5 Inter,Arial,sans-serif;color:#d6e3e7;margin:0 0 13px}
+.wallet-balance-card .account-text-link{color:#ffe066}
+.wallet-fund-form{grid-template-columns:1fr;gap:13px}
+.wallet-fund-form .profile-actions{grid-column:1}
+.wallet-history-card{margin-top:16px}
+.wallet-transactions{display:grid;gap:9px}
+.wallet-transaction{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px;border:1px solid #e8eded;border-radius:9px}
+.wallet-transaction-copy{min-width:0;display:grid;gap:4px}
+.wallet-transaction-copy strong{font-size:14px;color:#17232b}
+.wallet-transaction-copy small{font-size:11px;color:#77838a}
+.wallet-transaction-amount{font-size:14px;font-weight:800;white-space:nowrap}
+.wallet-transaction-amount.credit{color:#237044}
+.wallet-transaction-amount.debit{color:#a33a2e}
+@media(max-width:600px){.wallet-transaction{align-items:flex-start;flex-direction:column}.wallet-transaction-amount{font-size:15px}}
+</style>
 </head>
 <body>
 <div class="announcement">Your VerifyFlow account <span class="announce-divider">/</span> Profile, orders and activity</div>
@@ -255,6 +275,7 @@
    <button type="button" data-panel="overview" aria-selected="true">Overview</button>
    <button type="button" data-panel="profile" aria-selected="false">Edit profile</button>
    <button type="button" data-panel="orders" aria-selected="false">Orders & activity</button>
+   <button type="button" data-panel="wallet" aria-selected="false">My wallet</button>
   </nav>
 
   <section class="account-panel" id="panel-overview">
@@ -300,6 +321,32 @@
     <article class="account-card"><div class="account-card-heading"><div><h2>Your orders</h2><p class="account-card-intro" style="margin:5px 0 0">A record of the services you have ordered.</p></div><span id="orders-count" class="order-meta">0 orders</span></div><div class="order-list" id="order-list"><div class="orders-empty">Loading your orders…</div></div></article>
     <article class="account-card"><div class="account-card-heading"><h2>Activity history</h2></div><div id="full-activity" class="account-activity-list"><div class="activity-empty">Loading your activity…</div></div></article>
    </div>
+  </section>
+ 
+  <section class="account-panel" id="panel-wallet" hidden>
+   <div class="account-overview-grid">
+    <article class="account-card wallet-balance-card">
+     <span class="catalog-eyebrow">VERIFYFLOW WALLET</span>
+     <h2>Available balance</h2>
+     <p class="account-card-intro">Use your wallet balance to pay for any available VerifyFlow product. Wallet balances are held in USD.</p>
+     <div class="wallet-balance-amount" id="wallet-balance">$0.00</div>
+     <p class="wallet-message" id="wallet-message" role="status" aria-live="polite">Loading your wallet…</p>
+     <button class="account-text-link" id="wallet-refresh" type="button">Refresh balance ↻</button>
+    </article>
+    <article class="account-card">
+     <h2>Fund your wallet</h2>
+     <p class="account-card-intro">Choose how much USD to add. Monnify will collect the converted amount in your enabled payment currency. Your wallet is credited only after the payment is verified.</p>
+     <form id="wallet-fund-form" class="profile-form wallet-fund-form">
+      <div class="profile-field"><label for="wallet-fund-amount">Amount to add (USD)</label><input id="wallet-fund-amount" type="number" min="5" max="1000" step="1" value="10" required><small>Minimum $5 · Maximum $1,000 per deposit</small></div>
+      <div class="profile-actions"><button class="profile-save" id="wallet-fund-submit" type="submit">Fund wallet with Monnify ↗</button></div>
+     </form>
+     <p class="profile-message" id="wallet-fund-message" role="status" aria-live="polite"></p>
+    </article>
+   </div>
+   <article class="account-card wallet-history-card">
+    <div class="account-card-heading"><h2>Wallet transactions</h2><span class="order-meta" id="wallet-transaction-count">Latest activity</span></div>
+    <div id="wallet-transactions" class="wallet-transactions"><div class="activity-empty">Your wallet deposits, purchases and returned funds will appear here.</div></div>
+   </article>
   </section>
  </section>
 </div></main>
@@ -360,6 +407,7 @@
    button.setAttribute("aria-selected",String(selected));
   });
   document.querySelectorAll(".account-panel").forEach(panel=>{panel.hidden=panel.id!=="panel-"+name;});
+  if(name==="wallet")window.VerifyFlowWallet?.load();
  }
  document.querySelectorAll(".account-nav [data-panel]").forEach(button=>button.addEventListener("click",()=>selectPanel(button.dataset.panel)));
  document.querySelectorAll("[data-open-panel]").forEach(button=>button.addEventListener("click",()=>selectPanel(button.dataset.openPanel)));
@@ -501,7 +549,8 @@
  setInterval(autoRefreshActiveOrders,15000);
  async function openPortal(user){
   showPortal();
-  selectPanel("overview");
+  const requestedPanel=new URLSearchParams(window.location.search).get("panel");
+  selectPanel(["overview","profile","orders","wallet"].includes(requestedPanel)?requestedPanel:"overview");
   renderProfile({fullName:user.fullName||"",email:user.email||"",createdAt:user.createdAt||"",preferredCurrency:"USD",timezone:"Africa/Lagos"});
   const results=await Promise.allSettled([loadProfile(user),loadOrders()]);
   const failed=results.find(result=>result.status==="rejected");
@@ -619,6 +668,7 @@
  boot();
 })();
 </script>
+<script src="/wallet-account.js" defer></script>
 <aside id="vf-support-widget" class="vf-support-widget" aria-label="VerifyFlow customer support">
 <button class="vf-support-toggle" type="button" aria-expanded="false" aria-controls="vf-support-panel"><span aria-hidden="true">✦</span> Help & support</button>
 <section class="vf-support-panel" id="vf-support-panel" hidden>
