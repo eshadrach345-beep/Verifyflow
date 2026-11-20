@@ -15,7 +15,7 @@ module.exports = async function handler(req, res) {
               o.metadata->'fulfilment'->'customerDelivery' AS customer_delivery,
               jsonb_strip_nulls(jsonb_build_object(
                 'status', o.metadata->'fulfilment'->>'status',
-                'phone_number', COALESCE(o.metadata#>>'{fulfilment,serviceData,phoneNumber}', o.metadata#>>'{fulfilment,serviceData,phone}', o.metadata#>>'{fulfilment,serviceData,number}'),
+                'phone_number', COALESCE(o.metadata#>>'{fulfilment,customerDelivery,phoneNumber}', o.metadata#>>'{fulfilment,serviceData,phoneNumber}', o.metadata#>>'{fulfilment,serviceData,phone_number}', o.metadata#>>'{fulfilment,serviceData,phone}', o.metadata#>>'{fulfilment,serviceData,number}'),
                 'code', o.metadata#>>'{fulfilment,customerDelivery,code}',
                 'expires_at', COALESCE(o.metadata#>>'{fulfilment,serviceData,expires_at}', o.metadata#>>'{fulfilment,serviceData,activationEndTime}', o.metadata#>>'{fulfilment,serviceData,endDate}'),
                 'activation_code', COALESCE(o.metadata#>>'{fulfilment,serviceData,activation_code}', o.metadata#>>'{fulfilment,serviceData,activationCode}', o.metadata#>>'{fulfilment,serviceData,qr_code}'),
