@@ -5,7 +5,7 @@ const { getPool } = require("../lib/auth");
 function sendJson(res, status, body) {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Cache-Control", "public, s-maxage=30, stale-while-revalidate=120");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.end(JSON.stringify(body));
 }
