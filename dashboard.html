@@ -465,6 +465,11 @@
  .dash-bottom{padding:15px}
 }
 </style>
+<style id="verifyflow-product-image-icons">
+/* Real service logos or category illustrations replace bare text glyphs. */
+.catalog-art-icon{border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important;overflow:visible}
+.catalog-brand-logo{position:relative!important;inset:auto!important;display:block;width:54px;height:54px;padding:3px;object-fit:contain;border-radius:12px;background:transparent!important;z-index:2;filter:drop-shadow(0 3px 8px rgba(20,42,58,.12))}
+</style>
 </head><body><header class="vf-store-header"><div class="vf-topbar">
 <a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
 <a class="vf-location" href="#catalogue"><small>Explore</small><strong>All products</strong></a>
@@ -552,13 +557,33 @@
  const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
  const icons={sms:"✉",rentals:"◉",esim:"⌁",proxies:"◎",dedicated:"▣",marketing:"✦"};
  const appBrands=[
-  ["whatsapp","whatsapp","25D366"],["telegram","telegram","26A5E4"],["google","google","4285F4"],["gmail","gmail","EA4335"],
-  ["instagram","instagram","E4405F"],["facebook","facebook","0866FF"],["tiktok","tiktok","111111"],["discord","discord","5865F2"],
-  ["microsoft","microsoft","5E5E5E"],["outlook","microsoftoutlook","0078D4"],["amazon","amazon","FF9900"],["apple","apple","111111"],
-  ["snapchat","snapchat","FFFC00"],["uber","uber","111111"],["binance","binance","F0B90B"],["paypal","paypal","003087"],
-  ["steam","steam","171A21"],["x.com","x","111111"],["twitter","x","111111"],["yahoo","yahoo","6001D2"],
-  ["twitch","twitch","9146FF"],["reddit","reddit","FF4500"],["linkedin","linkedin","0A66C2"],["openai","openai","412991"]
+  ["whatsapp","whatsapp.com"],["telegram","telegram.org"],["google","google.com"],["gmail","gmail.com"],
+  ["instagram","instagram.com"],["facebook","facebook.com"],["tiktok","tiktok.com"],["discord","discord.com"],
+  ["microsoft","microsoft.com"],["outlook","outlook.live.com"],["amazon","amazon.com"],["apple","apple.com"],
+  ["snapchat","snapchat.com"],["uber","uber.com"],["binance","binance.com"],["paypal","paypal.com"],
+  ["steam","steampowered.com"],["x.com","x.com"],["twitter","x.com"],["yahoo","yahoo.com"],
+  ["twitch","twitch.tv"],["reddit","reddit.com"],["linkedin","linkedin.com"],["openai","openai.com"],
+  ["chatgpt","chatgpt.com"],["netflix","netflix.com"],["spotify","spotify.com"],["airbnb","airbnb.com"],
+  ["ebay","ebay.com"],["aliexpress","aliexpress.com"],["coinbase","coinbase.com"],["wise","wise.com"],
+  ["signal","signal.org"],["viber","viber.com"],["wechat","wechat.com"],["line","line.me"],
+  ["kakao","kakao.com"],["canva","canva.com"],["github","github.com"],["notion","notion.so"],
+  ["zoom","zoom.us"],["slack","slack.com"],["walmart","walmart.com"],["shein","shein.com"],
+  ["temu","temu.com"],["bolt","bolt.eu"],["grab","grab.com"],["doordash","doordash.com"],
+  ["deliveroo","deliveroo.com"],["nike","nike.com"],["adidas","adidas.com"]
  ];
+ const categorySvg={
+  sms:'<rect x="4" y="7" width="16" height="12" rx="2"/><path d="m5 9 7 5 7-5"/>',
+  rentals:'<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M10 17h4"/>',
+  esim:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8v10H8zM10 10h4M10 13h4"/>',
+  proxies:'<circle cx="12" cy="12" r="3"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="m10 10-4-4m8 4 4-4m-8 8-4 4m8-4 4 4"/>',
+  dedicated:'<path d="M7 3h10v18H7zM10 6h4M10 18h4"/>',
+  marketing:'<path d="M4 19V5m0 14h16M8 15l3-4 3 2 5-7"/>'
+ };
+ const categoryLogoFor=category=>{
+  const path=categorySvg[category]||categorySvg.sms;
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#08767c" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+path+'</svg>';
+  return "data:image/svg+xml,"+encodeURIComponent(svg);
+ };
  const countryNames={us:"United States",gb:"United Kingdom",uk:"United Kingdom",ca:"Canada",ng:"Nigeria",de:"Germany",fr:"France",in:"India",au:"Australia",br:"Brazil",mx:"Mexico",jp:"Japan",kr:"South Korea",sg:"Singapore",id:"Indonesia",tr:"Turkey",ru:"Russia",ua:"Ukraine",es:"Spain",it:"Italy",nl:"Netherlands",za:"South Africa",ph:"Philippines",pk:"Pakistan",bd:"Bangladesh",vn:"Vietnam",th:"Thailand",ar:"Argentina",cl:"Chile",co:"Colombia",pl:"Poland",se:"Sweden",ch:"Switzerland",ae:"United Arab Emirates"};
  const flagFor=value=>{
   const raw=String(value||"").trim();if(!raw)return "";
@@ -570,10 +595,14 @@
   else return "";
   return String.fromCodePoint(...[...code.toUpperCase()].map(c=>127397+c.charCodeAt(0)));
  };
- const logoFor=(title)=>{
+ const logoFor=(title,category)=>{
   const name=String(title||"").toLowerCase();
   const match=appBrands.find(([key])=>name.includes(key));
-  return match?{url:"https://cdn.simpleicons.org/"+match[1].replace("x.com","x")+"/"+match[2],name:match[0]}:null;
+  const fallback=categoryLogoFor(category);
+  return {
+   url:match?"https://www.google.com/s2/favicons?domain="+encodeURIComponent(match[1])+"&sz=128":fallback,
+   fallback
+  };
  };
  const money=(cents,currency="USD")=>{
   const amount=Number(cents);
@@ -586,9 +615,10 @@
   return String(item.provider||item.providerLabel||"")+":"+String(base);
  };
  const card=(category,title,meta,detail,priceCents,priceNote,tag="AVAILABLE",currency="USD",country="",key="")=>{
-  const brand=logoFor(title),flag=flagFor(country),logo=brand?'<img class="catalog-brand-logo" src="'+brand.url+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">':'';
+  const brand=logoFor(title,category),flag=flagFor(country);
+  const logo='<img class="catalog-brand-logo" src="'+esc(brand.url)+'" data-fallback="'+esc(brand.fallback)+'" alt="'+esc(title)+' logo" loading="lazy" onerror="if(this.dataset.fallback&&this.src!==this.dataset.fallback){this.src=this.dataset.fallback}else{this.hidden=true}">';
   const label=categoryLabels[category]||"Product";
-  return '<article class="catalog-item catalog-'+category+'" data-product-category="'+esc(category)+'" data-product-key="'+esc(key)+'"><div class="catalog-item-visual"><span class="catalog-art-icon">'+(icons[category]||"✦")+logo+'</span><i class="catalog-art-orbit"></i>'+(flag?'<span class="catalog-country-flag" title="'+esc(countryNames[String(country).toLowerCase()]||country)+'">'+flag+' <b>'+esc(String(countryNames[String(country).toLowerCase()]||country))+'</b></span>':'')+'<small>'+esc(tag)+'</small></div><div class="catalog-item-copy"><span class="catalog-category-label">'+esc(label)+'</span><h3>'+esc(title)+'</h3><p>'+esc(meta)+'</p><div class="catalog-item-detail">'+esc(detail)+'</div><div class="catalog-price-row"><strong>'+esc(money(priceCents,currency))+'</strong><small>'+esc(priceNote)+'</small></div></div></article>';
+  return '<article class="catalog-item catalog-'+category+'" data-product-category="'+esc(category)+'" data-product-key="'+esc(key)+'"><div class="catalog-item-visual"><span class="catalog-art-icon">'+logo+'</span><i class="catalog-art-orbit"></i>'+(flag?'<span class="catalog-country-flag" title="'+esc(countryNames[String(country).toLowerCase()]||country)+'">'+flag+' <b>'+esc(String(countryNames[String(country).toLowerCase()]||country))+'</b></span>':'')+'<small>'+esc(tag)+'</small></div><div class="catalog-item-copy"><span class="catalog-category-label">'+esc(label)+'</span><h3>'+esc(title)+'</h3><p>'+esc(meta)+'</p><div class="catalog-item-detail">'+esc(detail)+'</div><div class="catalog-price-row"><strong>'+esc(money(priceCents,currency))+'</strong><small>'+esc(priceNote)+'</small></div></div></article>';
  };
  function empty(message,hint){
   grid.innerHTML='<div class="catalog-empty"><span>✦</span><strong>'+esc(message)+'</strong><small>'+esc(hint||"Try another category, change the country code or refresh the catalogue.")+'</small></div>';
