@@ -8,6 +8,10 @@
   let catalogue = null;
   let signedIn = false;
   let selected = null;
+  const checkoutReturnParams = new URLSearchParams(window.location.search);
+  const requestedProductKey = checkoutReturnParams.get("selectProduct") || "";
+  const requestedProductCategory = checkoutReturnParams.get("category") || "all";
+  let requestedProductHandled = false;
   const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[char]));
@@ -206,6 +210,39 @@ document.body.insertAdjacentHTML("beforeend", `
         updateRentalPrice();
       }
     });
+    tryOpenRequestedProduct();
+  }
+
+  function clearRequestedProductFromUrl() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("selectProduct");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  }
+
+  function tryOpenRequestedProduct() {
+    if (!requestedProductKey || requestedProductHandled) return;
+    const card = [...grid.querySelectorAll(".catalog-item")].find(item =>
+      item.dataset.productCategory === requestedProductCategory &&
+      item.dataset.productKey === requestedProductKey
+    );
+    if (!card) return;
+    requestedProductHandled = true;
+    clearRequestedProductFromUrl();
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (requestedProductCategory === "marketing") {
+      const target = card.querySelector("[data-smm-link]");
+      if (target) target.focus({ preventScroll: true });
+      const status = document.getElementById("catalog-status");
+      if (status) status.textContent = "Your selected service is ready. Add the public target link and quantity to continue to checkout.";
+      return;
+    }
+    const buyButton = card.querySelector("[data-vf-buy]");
+    if (buyButton && !buyButton.disabled) {
+      buyButton.click();
+    } else {
+      const status = document.getElementById("catalog-status");
+      if (status) status.textContent = "Your selected listing is currently unavailable. Choose another available option.";
+    }
   }
 
   async function loadMarketingCatalogue() {
@@ -307,7 +344,18 @@ document.body.insertAdjacentHTML("beforeend", `
     }
     if (button.disabled) return;
     await sessionReady;
-    if (!signedIn) { window.location.href = "/account.html"; return; }
+    if (!signedIn) {
+      const card = button.closest(".catalog-item");
+      const returnUrl = new URL("/dashboard.html", window.location.origin);
+      returnUrl.searchParams.set("category", card?.dataset.productCategory || "all");
+      if (card?.dataset.productKey) returnUrl.searchParams.set("selectProduct", card.dataset.productKey);
+      if (countryInput?.value) returnUrl.searchParams.set("country", countryInput.value);
+      returnUrl.hash = "catalogue";
+      const accountUrl = new URL("/account.html", window.location.origin);
+      accountUrl.searchParams.set("returnTo", returnUrl.pathname + returnUrl.search + returnUrl.hash);
+      window.location.assign(accountUrl.toString());
+      return;
+    }
     await refreshWalletBalance();
     const card = button.closest(".catalog-item");
     const productType = button.dataset.productType;
