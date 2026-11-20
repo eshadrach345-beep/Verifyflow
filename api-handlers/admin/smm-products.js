@@ -88,6 +88,30 @@ module.exports = async function handler(req, res) {
     try { body = await readJson(req); }
     catch { return sendJson(res, 400, { ok: false, error: "Please submit valid product details." }); }
 
+    if (req.method === "POST" && body.action === "deduplicate") {
+      // Keep the highest-priced active listing for each same platform, product
+      // name and quantity range. Other matching rows are soft-hidden so order
+      // history and existing references remain intact.
+      const result = await getPool().query(
+        "WITH ranked AS (" +
+          "SELECT id, ROW_NUMBER() OVER (" +
+            "PARTITION BY LOWER(REGEXP_REPLACE(TRIM(platform), '\\s+', ' ', 'g')), " +
+              "LOWER(REGEXP_REPLACE(TRIM(product_name), '\\s+', ' ', 'g')), min_quantity, max_quantity " +
+            "ORDER BY retail_rate_minor_per_1000 DESC, updated_at DESC, created_at DESC, id ASC" +
+          ") AS duplicate_rank " +
+          "FROM vf_smm_products WHERE is_active = TRUE" +
+        "), hidden AS (" +
+          "UPDATE vf_smm_products p SET is_active = FALSE, updated_at = NOW() " +
+          "FROM ranked r WHERE p.id = r.id AND r.duplicate_rank > 1 RETURNING p.id" +
+        ") SELECT COUNT(*)::INTEGER AS removed_count FROM hidden"
+      );
+      return sendJson(res, 200, {
+        ok: true,
+        removedCount: Number(result.rows[0]?.removed_count || 0),
+        rule: "Kept the highest-priced listing for each matching platform, product name and quantity range."
+      });
+    }
+
     if (req.method === "DELETE") {
       const id = String(body.id || "");
       if (!UUID.test(id)) return sendJson(res, 400, { ok: false, error: "Select a valid product." });
