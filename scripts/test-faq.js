@@ -1,0 +1,16 @@
+"use strict";
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const faq = fs.readFileSync("faq.html", "utf8");
+const faqClient = fs.readFileSync("faq.js", "utf8");
+const index = fs.readFileSync("index.html", "utf8");
+const dashboard = fs.readFileSync("dashboard.html", "utf8");
+const account = fs.readFileSync("account.html", "utf8");
+assert.ok((faq.match(/<details class="faq-item"/g) || []).length >= 20, "FAQ should contain at least twenty detailed answers");
+for (const topic of ["SMS verification", "Social Media Boosters", "Payments, order status and refunds", "Privacy and customer support"]) assert.ok(faq.includes(topic));
+assert.ok(faqClient.includes('id="faq-search"') === false || faq.includes('id="faq-search"'));
+assert.ok(faqClient.includes("faq-search"));
+assert.ok(index.includes('href="/faq.html"'));
+assert.ok(dashboard.includes('href="/faq.html"'));
+assert.ok(account.includes('href="/faq.html"'));
+console.log("FAQ content, search and navigation tests passed.");
