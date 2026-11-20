@@ -1,5 +1,6 @@
 "use strict";
 const { getPool, getSessionUser, sendJson, readJson, sameOrigin } = require("../lib/auth");
+const { enforceAuthRateLimit, getClientAddress } = require("../lib/rate-limit");
 
 const MAX_MESSAGE = 4000;
 const HANDOFF_RE = /\b(human|real person|live agent|customer support|talk to (a |)person|speak to (a |)person|support agent|representative)\b/i;
@@ -56,7 +57,31 @@ function cleanMessage(value) {
 }
 async function customer(req, res) {
   const user = await getSessionUser(req);
-  if (!user) return sendJson(res, 401, { ok:false, error:"Please sign in to contact VerifyFlow support." });
+  if (!user) {
+    if (req.method === "GET") {
+      return sendJson(res, 200, { ok:true, guest:true, conversation:null, messages:[] });
+    }
+    if (req.method !== "POST") {
+      res.setHeader("Allow", "GET, POST");
+      return sendJson(res, 405, { ok:false, error:"Method not allowed." });
+    }
+    if (!sameOrigin(req)) return sendJson(res,403,{ok:false,error:"Request origin not allowed."});
+    let guestBody;
+    try { guestBody = await readJson(req); }
+    catch { return sendJson(res,400,{ok:false,error:"Please send a valid support message."}); }
+    const guestMessage = cleanMessage(guestBody.message);
+    if (!guestMessage) return sendJson(res,400,{ok:false,error:"Enter a message first."});
+    if (guestBody.handoff === true || HANDOFF_RE.test(guestMessage)) {
+      return sendJson(res,401,{
+        ok:false,
+        error:"Please sign in or create a VerifyFlow account to start a private conversation with a human support agent.",
+        signInUrl:"/account.html"
+      });
+    }
+    const guestIdentity = getClientAddress(req) || "anonymous-support-visitor";
+    if (await enforceAuthRateLimit(req,res,{scope:"support-guest-help",identifier:guestIdentity,ipLimit:30,identityLimit:30,windowSeconds:60})) return;
+    return sendJson(res,200,{ok:true,guest:true,status:"guest",reply:buildAssistantReply(guestMessage)});
+  }
   const db = getPool();
   if (req.method === "GET") {
     const c = await db.query(
