@@ -119,7 +119,7 @@ document.body.insertAdjacentHTML("beforeend", `
       if (category === "proxies") {
         let proxyOptions = [];
         try { proxyOptions = JSON.parse(card.dataset.proxyOptions || "[]"); } catch { proxyOptions = []; }
-        if (proxyOptions.length > 1) {
+        if (proxyOptions.length > 0) {
           const shared = product.planType === "shared";
           const area = document.createElement("div");
           area.className = "vf-buy-area vf-proxy-buy-area";
