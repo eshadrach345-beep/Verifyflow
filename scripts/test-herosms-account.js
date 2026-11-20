@@ -9,6 +9,8 @@ async function main() {
   const oldRetailKey = process.env.HEROSMS_RETAIL_API_KEY;
   try {
     delete process.env.HEROSMS_API_KEY;
+    delete process.env.HEROSMS_ACCOUNT_API_KEY;
+    delete process.env.HEROSMS_RETAIL_API_KEY;
     const missing = await readAccount();
     assert.equal(missing.configured, false);
     process.env.HEROSMS_API_KEY = "legacy-retail-key";
