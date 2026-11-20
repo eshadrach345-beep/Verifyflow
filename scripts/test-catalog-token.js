@@ -12,7 +12,7 @@ const source = {
   country: "gb"
 };
 const token = sealCatalogProductToken(source);
-assert.match(token, /^vf1\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/);
+assert.match(token, /^vf1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
 assert.equal(token.includes(source.productId), false);
 assert.equal(token.toLowerCase().includes(source.provider), false);
 assert.deepEqual(openCatalogProductToken(token), source);
