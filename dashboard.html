@@ -654,7 +654,7 @@
    let identity;
    if(category==="sms") identity=[clean(item.name||item.title),clean(item.countryCode||item.country||catalogue?.country)];
    else if(category==="rentals") identity=[clean(item.name||item.title),clean(item.countryCode||item.country||catalogue?.country)];
-   else if(category==="esim") identity=[clean(item.title||item.name),item.unlimited?"unlimited":Number(item.dataGb)||0,Number(item.validityDays)||0,(item.countries||[]).map(clean).sort().join(",")];
+   else if(category==="esim") identity=[clean(item.title||item.name),item.unlimited?"unlimited":Number(item.dataGb)||0,Number(item.validityDays)||0,(Array.isArray(item.countries)?item.countries:[]).map(clean).sort().join(",")];
    else if(category==="proxies") identity=[clean(item.name),clean(item.type),Number(item.dataGb)||0,Number(item.durationDays)||0,clean(item.period),clean(item.country),clean(item.carrier),clean(item.region)];
    else if(category==="dedicated") identity=[clean(item.countryCode||item.country||item.name),clean(item.billingPeriod||"monthly")];
    else if(category==="marketing") identity=[clean(item.platform),clean(item.name||item.title),Number(item.min)||0,Number(item.max)||0];
