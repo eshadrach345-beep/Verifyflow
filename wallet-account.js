@@ -96,4 +96,5 @@
 
   document.getElementById("wallet-refresh")?.addEventListener("click", load);
   window.VerifyFlowWallet = { load };
+  if (!panel.hidden) load();
 })();
