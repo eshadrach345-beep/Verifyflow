@@ -6,6 +6,7 @@ const { getSquadConfig, initiateSquadPayment } = require("../../lib/squad");
 const { quoteProduct: quoteVoidmobProduct } = require("../../lib/voidmob");
 const { quoteProduct: quoteHeroSmsProduct } = require("../../lib/herosms");
 const { getCheckoutAmount } = require("../../lib/checkout-currency");
+const { applySquadMinimum } = require("../../lib/squad-minimum");
 const { calculateVat } = require("../../lib/vat");
 const { ensureWalletAccount, postWalletTransaction } = require("../../lib/wallet");
 const { enqueuePaidOrder, processFulfilmentForOrder } = require("../../lib/fulfilment");
@@ -280,15 +281,11 @@ module.exports = async function handler(req, res) {
     const tax = calculateVat(quote.salePriceCents);
     const checkoutAmount = getCheckoutAmount(tax.totalUsdMinor, billingCountry);
     const paymentCurrency = checkoutAmount.currency;
-    // Squad's $10 minimum applies only to USD/international checkouts.
-    // Any amount above the verified retail total is returned to the customer's USD wallet.
-    const basePaymentAmountMinor = checkoutAmount.amountMinor;
-    const paymentAmountMinor = paymentCurrency === "USD"
-      ? Math.max(basePaymentAmountMinor, 1000)
-      : basePaymentAmountMinor;
-    const walletSurplusMinor = paymentCurrency === "USD"
-      ? paymentAmountMinor - basePaymentAmountMinor
-      : 0;
+    // Squad's USD minimum is applied only to international USD payments.
+    // Any surplus is credited to the customer's USD wallet after verified payment.
+    const minimumCharge = applySquadMinimum(checkoutAmount.amountMinor, paymentCurrency);
+    const paymentAmountMinor = minimumCharge.amountMinor;
+    const walletSurplusMinor = minimumCharge.walletSurplusMinor;
     const subtotalCheckoutAmount = getCheckoutAmount(quote.salePriceCents, billingCountry);
     const subtotalPaymentMinor = subtotalCheckoutAmount.amountMinor;
     const vatPaymentMinor = paymentAmountMinor - subtotalPaymentMinor - walletSurplusMinor;
