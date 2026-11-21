@@ -130,10 +130,6 @@
       <a class="market-card" href="/dashboard.html?category=proxies#catalogue"><div class="market-card-top"><span>05 · NETWORK ACCESS</span><b>EXPLORE ↗</b></div><div class="market-art market-art-proxy"><div class="market-node n1"></div><div class="market-node n2"></div><div class="market-node n3"></div><div class="market-node n4"></div><div class="market-connect"></div><div class="market-proxy-core">VF</div></div><div class="market-card-copy"><div><h3>Mobile proxies</h3><p>Compare mobile network proxy options and supported plans where available.</p></div><span class="market-arrow">↗</span></div></a>
       <a class="market-card" href="/dashboard.html?category=marketing#catalogue"><div class="market-card-top"><span>06 · CREATIVE & MARKETING</span><b>EXPLORE ↗</b></div><div class="market-art market-art-dashboard"><div class="mini-window"><div class="mini-window-bar"><i></i><i></i><i></i></div><div class="mini-sidebar"></div><div class="mini-content"><b></b><b></b><span></span><span></span><span></span></div></div></div><div class="market-card-copy"><div><h3>Social Media Boosters</h3><p>Browse social media services and choose the option that fits your needs.</p></div><span class="market-arrow">↗</span></div></a>
     </div>
-    <section class="home-smm-section" aria-labelledby="home-smm-title">
-      <div class="home-smm-heading"><div><span>LIVE STOREFRONT PRODUCTS</span><h3 id="home-smm-title">Social Media Boosters</h3><p>Explore published services for supported social platforms. Supplier details stay behind the scenes.</p></div><a href="/dashboard.html?category=marketing#catalogue">Browse all boosters ↗</a></div>
-      <div class="home-smm-grid" id="home-smm-grid" aria-live="polite"><div class="home-smm-empty">Loading published social media products…</div></div>
-    </section>
     <div class="marketplace-assurance"><div><strong>One searchable catalogue</strong><span>Search products, services and country options from one place.</span></div><div><strong>Clear product details</strong><span>Review clear product details before checkout.</span></div><div><strong>Orders in one account</strong><span>Keep account activity and order updates together.</span></div></div>
     <div class="marketplace-foot"><span><i></i> Explore the VerifyFlow catalogue</span><span>Listings, supplier coverage and checkout eligibility vary by product and country.</span></div>
   </div>
@@ -212,55 +208,7 @@
  }catch(error){/* Keep the normal sign-in link if session status cannot be checked. */}
 })();
 </script>
-<script>
-/* Load only public SMM storefront fields; supplier identities and internal IDs never reach this page. */
-(() => {
-  const grid = document.getElementById("home-smm-grid");
-  if (!grid) return;
-  const destination = "/dashboard.html?category=marketing#catalogue";
-  const formatPrice = value => {
-    const amount = Number(value);
-    if (!Number.isSafeInteger(amount) || amount <= 0) return "Price shown at checkout";
-    return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount / 100) + " / 1,000";
-  };
-  const showMessage = message => {
-    const node = document.createElement("p");
-    node.className = "home-smm-empty";
-    node.textContent = message;
-    grid.replaceChildren(node);
-  };
-  const makeCard = item => {
-    const link = document.createElement("a");
-    link.className = "home-smm-card";
-    link.href = destination;
-    const platform = document.createElement("span");
-    platform.className = "home-smm-platform";
-    platform.textContent = String(item.platform || "Social media");
-    const title = document.createElement("strong");
-    title.textContent = String(item.name || "Social media service");
-    const description = document.createElement("p");
-    description.textContent = String(item.description || "Social Media Boosters");
-    const limits = document.createElement("small");
-    limits.textContent = "Quantity " + Number(item.min || 0).toLocaleString() + "–" + Number(item.max || 0).toLocaleString();
-    const price = document.createElement("b");
-    price.className = "home-smm-price";
-    price.textContent = formatPrice(item.pricePer1000Minor);
-    link.append(platform, title, description, limits, price);
-    return link;
-  };
-  fetch("/api/marketing-catalog", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } })
-    .then(async response => {
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.ok || !Array.isArray(data.items)) throw new Error(data.message || "Catalogue unavailable");
-      if (!data.items.length) {
-        showMessage("No Social Media Boosters have been published yet. Published products will appear here.");
-        return;
-      }
-      grid.replaceChildren(...data.items.map(makeCard));
-    })
-    .catch(() => showMessage("Social Media Boosters are temporarily unavailable right now. Open the marketplace to try again."));
-})();
-</script>
+
 <script>
 /* Accessible All services off-canvas drawer. */
 (() => {
