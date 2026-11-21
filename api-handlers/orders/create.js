@@ -147,8 +147,15 @@ module.exports = async function handler(req, res) {
     return sendJson(res, 400, { ok: false, error: "Refresh the product and try checkout again." });
   }
 
+  const traceStartedAt = Date.now();
+  const traceCheckout = stage => console.info("[checkout-trace]", JSON.stringify({
+    stage, elapsedMs: Date.now() - traceStartedAt
+  }));
+
   try {
+    traceCheckout("request_received");
     const user = await getSessionUser(req);
+    traceCheckout("session_verified");
     if (!user) return sendJson(res, 401, { ok: false, error: "Please sign in before placing an order." });
 
     // Squad is the only hosted payment gateway. Wallet purchases remain internal.
@@ -231,6 +238,7 @@ module.exports = async function handler(req, res) {
         ? await quoteHeroSmsProduct(productType, input)
         : await quoteVoidmobProduct(productType, input);
     }
+    traceCheckout("supplier_quote_ready");
 
     const fulfilmentSwitches = {
       voidmob: process.env.VOIDMOB_FULFILMENT_ENABLED === "true" && process.env.VOIDMOB_AUTOBUY_CONFIRMED === "true",
@@ -345,6 +353,7 @@ module.exports = async function handler(req, res) {
         [orderId, paymentReference, paymentCurrency, paymentAmountMinor, paymentMethod]
       );
       await client.query("COMMIT");
+      traceCheckout("order_and_payment_rows_committed");
     } catch (error) {
       await client.query("ROLLBACK").catch(() => {});
       if (error.code === "23505") {
@@ -368,6 +377,7 @@ module.exports = async function handler(req, res) {
             "/payment-return.html?paymentReference=" + encodeURIComponent(paymentReference),
           metadata: { type: "product_order", orderId, orderNumber, userId: user.id }
         });
+        traceCheckout("squad_session_ready");
         checkoutUrl = initialized.checkoutUrl;
         providerResponse = initialized.raw;
       }
@@ -379,6 +389,7 @@ module.exports = async function handler(req, res) {
         "INSERT INTO vf_order_events (order_id, event_type, message, details) VALUES ($1, 'checkout_created', $2, $3::jsonb)",
         [orderId, "Secure " + paymentCurrency + " Squad checkout was created.", JSON.stringify({ paymentReference, amountMinor: paymentAmountMinor, subtotalMinor: subtotalPaymentMinor, vatMinor: vatPaymentMinor, vatRate: tax.rate, currency: paymentCurrency, retailUsdMinor: quote.salePriceCents, retailUsdTotalMinor: tax.totalUsdMinor, vatUsdMinor: tax.vatMinor, usdNgnRate: checkoutAmount.usdNgnRate })]
       );
+      traceCheckout("checkout_response_ready");
       return sendJson(res, 200, {
         ok: true, checkoutUrl, paymentReference,
         orderNumber, productName: quote.productName, amountMinor: paymentAmountMinor, currency: paymentCurrency,
