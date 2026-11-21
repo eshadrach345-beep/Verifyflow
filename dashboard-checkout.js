@@ -33,7 +33,7 @@ document.body.insertAdjacentHTML("beforeend", `
       <form id="vf-checkout-form">
         <div class="vf-checkout-head"><div><span class="catalog-eyebrow">SECURE CHECKOUT</span><h2 id="vf-checkout-title">Review your order</h2></div><button type="button" id="vf-checkout-close" aria-label="Close checkout">×</button></div>
         <p id="vf-checkout-product" class="vf-checkout-product"></p>
-        <label class="catalog-duration vf-billing-country" for="vf-billing-country">Billing country<select id="vf-billing-country" name="billingCountry" autocomplete="country-name" required><option value="" selected disabled>Choose your billing country</option>' + billingCountryOptions + '</select></label>
+        <label class="catalog-duration vf-billing-country" for="vf-billing-country">Billing country<select id="vf-billing-country" name="billingCountry" autocomplete="country-name" required><option value="" selected disabled>Choose your billing country</option>${billingCountryOptions}</select></label>
         <div class="vf-checkout-price"><span>Estimated total</span><strong id="vf-checkout-price">—</strong></div>
         <fieldset class="vf-payment-choice">
           <legend>How would you like to pay?</legend>
