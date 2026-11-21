@@ -1,6 +1,5 @@
 "use strict";
 const { getPool,getSessionUser,sendJson,readJson,sameOrigin }=require("../../lib/auth");
-const { verifyAndApplyPayment,verifyAndApplyWalletDeposit }=require("../../lib/payment-service");
 const { verifyAndApplySquadPayment }=require("../../lib/squad-payment-service");
 
 module.exports=async function handler(req,res){
@@ -8,7 +7,7 @@ module.exports=async function handler(req,res){
  if(!sameOrigin(req)) return sendJson(res,403,{ok:false,error:"Request could not be verified."});
  let body;try{body=await readJson(req);}catch{return sendJson(res,400,{ok:false,error:"Please submit a valid request."});}
  const ref=String(body.paymentReference||"").trim();
- if(!/^(?:VFTEST_[A-F0-9]{20}|VF_[A-F0-9]{24}|VFWALLET_[A-F0-9]{24})$/.test(ref))
+ if(!/^(?:VF_[A-F0-9]{24}|VFWALLET_[A-F0-9]{24})$/.test(ref))
   return sendJson(res,400,{ok:false,error:"The payment reference is invalid."});
  try{
   const user=await getSessionUser(req);
@@ -16,13 +15,15 @@ module.exports=async function handler(req,res){
   if(ref.startsWith("VFWALLET_")){
    const found=await getPool().query("SELECT payment_reference,provider FROM vf_wallet_topups WHERE payment_reference=$1 AND user_id=$2 LIMIT 1",[ref,user.id]);
    if(!found.rowCount)return sendJson(res,404,{ok:false,error:"This wallet deposit could not be found in your account."});
-   const result=found.rows[0].provider==="squad"?await verifyAndApplySquadPayment(ref):await verifyAndApplyWalletDeposit(ref);
+   if(found.rows[0].provider!=="squad")return sendJson(res,409,{ok:false,error:"This legacy payment cannot be verified through the active checkout gateway."});
+   const result=await verifyAndApplySquadPayment(ref);
    return sendJson(res,200,{ok:true,payment:result,wallet:result.walletBalanceMinor==null?undefined:{balanceMinor:result.walletBalanceMinor,currency:"USD"}});
   }
   const owned=await getPool().query(
    "SELECT p.payment_reference,p.provider FROM vf_payments p JOIN vf_orders o ON o.id=p.order_id WHERE p.payment_reference=$1 AND o.user_id=$2 LIMIT 1",[ref,user.id]);
   if(!owned.rowCount)return sendJson(res,404,{ok:false,error:"This payment could not be found in your account."});
-  const result=owned.rows[0].provider==="squad"?await verifyAndApplySquadPayment(ref):await verifyAndApplyPayment(ref);
+  if(owned.rows[0].provider!=="squad")return sendJson(res,409,{ok:false,error:"This legacy payment cannot be verified through the active checkout gateway."});
+  const result=await verifyAndApplySquadPayment(ref);
   return sendJson(res,200,{ok:true,payment:result});
  }catch(error){
   console.error("[payments/verify]",error.code||error.message);

@@ -2,7 +2,6 @@
 
 const { randomBytes, randomUUID } = require("node:crypto");
 const { getPool, getSessionUser, sendJson, readJson, sameOrigin } = require("../../lib/auth");
-const { getMonnifyConfig, initializeTransaction } = require("../../lib/monnify");
 const { getSquadConfig, initiateSquadPayment } = require("../../lib/squad");
 const { quoteProduct: quoteVoidmobProduct } = require("../../lib/voidmob");
 const { quoteProduct: quoteHeroSmsProduct } = require("../../lib/herosms");
@@ -14,16 +13,6 @@ const { openCatalogProductToken } = require("../../lib/catalog-token");
 function validCheckoutKey(value) {
   return typeof value === "string" && /^[A-Za-z0-9_-]{20,80}$/.test(value);
 }
-
-function checkoutUrlIsSafe(value) {
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" && /(^|\.)monnify\.com$/i.test(url.hostname);
-  } catch {
-    return false;
-  }
-}
-
 
 async function createWalletOrder({ user, checkoutKey, productType, selectedProvider, quote, sandboxMode }) {
   const pool = getPool();
@@ -146,15 +135,14 @@ module.exports = async function handler(req, res) {
     const user = await getSessionUser(req);
     if (!user) return sendJson(res, 401, { ok: false, error: "Please sign in before placing an order." });
 
-    // Use USD only after international collection is activated on the Monnify contract.
-    // Otherwise collect locally in NGN at the merchant-configured USD/NGN checkout rate.
+    // Squad is the only hosted payment gateway. Wallet purchases remain internal.
     const paymentMethod = String(body.paymentMethod || "squad").toLowerCase();
-    if (!["wallet", "monnify", "squad"].includes(paymentMethod)) {
-      return sendJson(res, 400, { ok: false, error: "Choose Wallet, Squad or Monnify as your payment method." });
+    if (!["wallet", "squad"].includes(paymentMethod)) {
+      return sendJson(res, 400, { ok: false, error: "Choose Wallet or Squad as your payment method." });
     }
-    const config = paymentMethod === "monnify" ? getMonnifyConfig()
-      : paymentMethod === "squad" ? (() => { const c = getSquadConfig(); return { environment: c.environment.toUpperCase() }; })()
-      : { environment: String(process.env.MONNIFY_ENVIRONMENT || "SANDBOX").toUpperCase() };
+    const config = paymentMethod === "squad"
+      ? (() => { const c = getSquadConfig(); return { environment: c.environment.toUpperCase() }; })()
+      : { environment: String(process.env.SQUAD_ENVIRONMENT || "SANDBOX").toUpperCase() };
     const productType = String(body.productType || "");
     let selectedProvider = String(body.provider || "voidmob").toLowerCase();
     let quote;
@@ -296,9 +284,6 @@ module.exports = async function handler(req, res) {
     const orderNumber = "VF-" + orderSuffix;
     const paymentReference = "VF_" + randomBytes(12).toString("hex").toUpperCase();
     const orderIdempotencyKey = "vf-order-" + orderId.replace(/-/g, "");
-    const redirectUrl = (process.env.PUBLIC_APP_URL || "https://verifyflow.us.ci").replace(/\/+$/, "") +
-      "/payment-return.html?paymentReference=" + encodeURIComponent(paymentReference);
-
     // Sandbox orders exercise the payment flow but can never create a live supplier job.
     const sandboxMode = String(config.environment || "").toUpperCase() !== "LIVE";
     const metadata = {
@@ -357,26 +342,6 @@ module.exports = async function handler(req, res) {
         });
         checkoutUrl = initialized.checkoutUrl;
         providerResponse = initialized.raw;
-      } else {
-        const initialized = await initializeTransaction({
-          amount: paymentAmountMinor / 100,
-          customerName: user.full_name,
-          customerEmail: user.email,
-          paymentReference,
-          paymentDescription: ("VerifyFlow " + quote.productName).slice(0, 120),
-          currencyCode: paymentCurrency,
-          contractCode: config.contractCode,
-          redirectUrl
-        });
-        const provider = initialized.responseBody || {};
-        if (!checkoutUrlIsSafe(provider.checkoutUrl)) {
-          const error = new Error("Monnify did not return a valid checkout URL.");
-          error.code = "MONNIFY_CHECKOUT_URL_INVALID";
-          throw error;
-        }
-        checkoutUrl = provider.checkoutUrl;
-        transactionReference = provider.transactionReference || null;
-        providerResponse = { transactionReference, enabledPaymentMethod: provider.enabledPaymentMethod || [] };
       }
       await pool.query(
         "UPDATE vf_payments SET checkout_url = $2, transaction_reference = $3, status = 'pending', provider_response = $4::jsonb, updated_at = NOW() WHERE payment_reference = $1",
@@ -384,7 +349,7 @@ module.exports = async function handler(req, res) {
       );
       await pool.query(
         "INSERT INTO vf_order_events (order_id, event_type, message, details) VALUES ($1, 'checkout_created', $2, $3::jsonb)",
-        [orderId, "Secure " + paymentCurrency + " " + (paymentMethod === "squad" ? "Squad" : "Monnify") + " checkout was created.", JSON.stringify({ paymentReference, amountMinor: paymentAmountMinor, currency: paymentCurrency, retailUsdMinor: quote.salePriceCents, usdNgnRate: checkoutAmount.usdNgnRate })]
+        [orderId, "Secure " + paymentCurrency + " Squad checkout was created.", JSON.stringify({ paymentReference, amountMinor: paymentAmountMinor, currency: paymentCurrency, retailUsdMinor: quote.salePriceCents, usdNgnRate: checkoutAmount.usdNgnRate })]
       );
       return sendJson(res, 200, {
         ok: true, checkoutUrl, paymentReference,
@@ -426,8 +391,6 @@ module.exports = async function handler(req, res) {
       PRODUCT_UNAVAILABLE: "That product is currently unavailable. Please refresh the catalogue.",
       PRODUCT_NOT_FOUND: "That product could not be found. Please refresh the catalogue.",
       INVALID_DURATION: "Choose one of the available rental periods.",
-      MONNIFY_LIVE_LOCKED: "Live payments are not enabled for this VerifyFlow account.",
-      MONNIFY_CONFIG_MISSING: "Monnify checkout is not fully configured yet.",
       SQUAD_CONFIG_MISSING: "Squad checkout is not fully configured yet.",
       CHECKOUT_EXCHANGE_RATE_MISSING: "Local NGN checkout is not configured yet. Please contact support.",
       CHECKOUT_EXCHANGE_RATE_INVALID: "The local checkout exchange rate is invalid. Please contact support.",

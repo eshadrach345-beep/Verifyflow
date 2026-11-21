@@ -32,9 +32,7 @@ const routes = {
   "support/chat": require("../api-handlers/support-chat"),
   "wallet": require("../api-handlers/wallet/index"),
   "wallet/deposit": require("../api-handlers/wallet/deposit"),
-  "payments/create-test": require("../api-handlers/payments/create-test"),
   "payments/verify": require("../api-handlers/payments/verify"),
-  "payments/webhook": require("../api-handlers/payments/webhook"),
   "payments/squad-webhook": require("../api-handlers/payments/squad-webhook")
 };
 

@@ -62,6 +62,10 @@ async function main() {
 
   const squadWebhook = await request("payments/squad-webhook");
   assert.equal(squadWebhook.status, 405);
+  const removedMonnifyWebhook = await request("payments/webhook");
+  assert.equal(removedMonnifyWebhook.status, 404);
+  const removedMonnifyTest = await request("payments/create-test", "POST");
+  assert.equal(removedMonnifyTest.status, 404);
 
   const adminSupport = await request("admin/support");
   assert.equal(adminSupport.status, 401);

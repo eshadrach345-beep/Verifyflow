@@ -30,7 +30,6 @@ document.body.insertAdjacentHTML("beforeend", `
           <legend>How would you like to pay?</legend>
           <label><input type="radio" name="vf-payment-method" value="wallet"> <span>Pay from my VerifyFlow wallet <small id="vf-wallet-balance" class="vf-wallet-balance">Checking wallet balance…</small></span></label>
           <label><input type="radio" name="vf-payment-method" value="squad" checked> <span>Pay with Squad <small>Card, bank, USSD or bank transfer</small></span></label>
-          <label><input type="radio" name="vf-payment-method" value="monnify"> <span>Pay with Monnify <small>Existing payment option</small></span></label>
           <a href="/account.html?panel=wallet" class="account-text-link">Fund your wallet ↗</a>
         </fieldset>
         <p class="vf-checkout-note">The final price is confirmed using a fresh supplier quote before payment.</p>

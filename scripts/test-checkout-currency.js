@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const { getCheckoutAmount } = require("../lib/checkout-currency");
 
 assert.deepEqual(
-  getCheckoutAmount(100, { MONNIFY_INTERNATIONAL_ENABLED: "false", VERIFYFLOW_USD_NGN_RATE: "1400" }),
+  getCheckoutAmount(100, { SQUAD_INTERNATIONAL_ENABLED: "false", VERIFYFLOW_USD_NGN_RATE: "1400" }),
   { currency: "NGN", amountMinor: 140000, usdAmountMinor: 100, usdNgnRate: 1400 }
 );
 assert.equal(

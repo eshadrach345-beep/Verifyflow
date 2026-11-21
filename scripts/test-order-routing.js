@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const read = path => fs.readFileSync(path, "utf8");
 
-const payment = read("lib/payment-service.js");
+const payment = read("lib/squad-payment-service.js");
 const orderCreate = read("api-handlers/orders/create.js");
 const fulfilment = read("lib/fulfilment.js");
 const voidmob = read("lib/voidmob.js");
@@ -13,9 +13,9 @@ const catalog = read("api-handlers/catalog.js");
 const checkout = read("dashboard-checkout.js");
 const refresh = read("api-handlers/orders/refresh.js");
 
-assert.ok(payment.includes("verifyAndApplyPayment"));
+assert.ok(payment.includes("verifyAndApplySquadPayment"));
 assert.ok(payment.includes("enqueuePaidOrder"));
-assert.ok(payment.includes("processFulfilmentForOrder"), "Verified Monnify payments enter fulfilment");
+assert.ok(payment.includes("processFulfilmentForOrder"), "Verified Squad payments enter fulfilment");
 assert.ok(orderCreate.includes("FROM vf_smm_products"), "SMM routing uses the saved admin-selected product");
 assert.ok(orderCreate.includes("selectedProvider = String(product.provider)"), "Customer cannot override saved SMM supplier selection");
 assert.ok(orderCreate.includes("supplierInput"));
@@ -43,7 +43,7 @@ assert.ok(!checkout.includes("data-provider=") && !checkout.includes("data-count
 assert.ok(!checkout.includes('if (category === "rentals" && item.provider === "herosms") return null;'));
 assert.ok(checkout.includes('fetch("/api/orders/create"'));
 assert.ok(orderCreate.includes("getCheckoutAmount(quote.salePriceCents)"), "Checkout must convert USD catalogue prices to the account-enabled payment currency");
-assert.ok(orderCreate.includes("paymentAmountMinor") && orderCreate.includes("paymentCurrency"), "Monnify request and stored payment must use the same actual currency amount");
+assert.ok(orderCreate.includes("paymentAmountMinor") && orderCreate.includes("paymentCurrency"), "Squad request and stored payment must use the same actual currency amount");
 assert.ok(refresh.includes("refreshOrderFromSupplier"));
-assert.ok(fulfilment.includes('env.MONNIFY_ENVIRONMENT || "").toUpperCase() !== "LIVE"'));
+assert.ok(fulfilment.includes('env.SQUAD_ENVIRONMENT || "").toUpperCase() !== "LIVE"'));
 console.log("Order routing audit passed (payment verification, all supplier adapters, SMM submit/status and launch locks).");

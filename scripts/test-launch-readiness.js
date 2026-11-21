@@ -7,18 +7,11 @@ function makeEnv(overrides = {}) {
     SQUAD_SECRET_KEY: "squad-secret-present",
     SQUAD_API_BASE_URL: "https://sandbox-api-d.squadco.com",
     SQUAD_WEBHOOK_URL: "https://verifyflow.us.ci/api/payments/squad-webhook",
-    MONNIFY_API_KEY: "key-present",
-    MONNIFY_SECRET_KEY: "secret-present",
-    MONNIFY_CONTRACT_CODE: "contract-present",
-    MONNIFY_INTERNATIONAL_ENABLED: "true",
-    MONNIFY_ENVIRONMENT: "LIVE",
-    MONNIFY_LIVE_ENABLED: "true",
-    MONNIFY_PRODUCT_APPROVAL_CONFIRMED: "true",
     VERIFYFLOW_LIVE_ORDERS_ENABLED: "true",
     VOIDMOB_API_KEY: "voidmob-key-present",
     VOIDMOB_FULFILMENT_ENABLED: "true",
     VOIDMOB_AUTOBUY_CONFIRMED: "true",
-    VERIFYFLOW_MONNIFY_WEBHOOK_CONFIRMED: "true",
+    VERIFYFLOW_SQUAD_WEBHOOK_CONFIRMED: "true",
     VERIFYFLOW_LEGAL_BUSINESS_NAME: "Example Trading Ltd",
     VERIFYFLOW_BUSINESS_ADDRESS: "Business address supplied by owner",
     VERIFYFLOW_SUPPORT_EMAIL: "support@example.com",
@@ -58,7 +51,7 @@ assert.equal(get(complete, "justanotherpanel_autobuy").status, "optional");
 const incomplete = buildLaunchChecks({}, { connected: false, tables: [], migrations: [] });
 assert.equal(get(incomplete, "database").status, "needs_action");
 assert.equal(get(incomplete, "schema").status, "needs_action");
-assert.equal(get(incomplete, "monnify_credentials").status, "needs_action");
+assert.equal(get(incomplete, "squad_credentials").status, "needs_action");
 assert.equal(get(incomplete, "squad_credentials").status, "needs_action");
 assert.equal(get(incomplete, "voidmob_autobuy").status, "needs_action");
 assert.equal(get(incomplete, "peakerr_autobuy").status, "optional");
