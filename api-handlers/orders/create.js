@@ -88,7 +88,7 @@ async function createWalletOrder({ user, checkoutKey, productType, selectedProvi
     );
     await client.query(
       "INSERT INTO vf_payments (order_id, payment_reference, currency, amount_minor, status) " +
-      "VALUES ($1, $2, 'USD', $3, 'paid', 'squad')",
+      "VALUES ($1, $2, 'USD', $3, 'paid')",
       [orderId, walletReference, tax.totalUsdMinor]
     );
     await postWalletTransaction(client, {
