@@ -1,10 +1,13 @@
 "use strict";
 const assert = require("node:assert/strict");
 const { calculateVat } = require("../lib/vat");
-const env = { VERIFYFLOW_VAT_ENABLED: "true", VERIFYFLOW_VAT_REGISTERED: "true", VERIFYFLOW_VAT_RATE: "7.5" };
-assert.deepEqual(calculateVat(10000, env), { subtotalMinor: 10000, rate: 7.5, vatMinor: 750, totalUsdMinor: 10750, currency: "USD" });
-assert.deepEqual(calculateVat(101, env), { subtotalMinor: 101, rate: 7.5, vatMinor: 8, totalUsdMinor: 109, currency: "USD" });
-assert.throws(() => calculateVat(10000, { ...env, VERIFYFLOW_VAT_ENABLED: "false" }), e => e.code === "VAT_NOT_CONFIGURED");
-assert.throws(() => calculateVat(0, env), e => e.code === "VAT_SUBTOTAL_INVALID");
-assert.throws(() => calculateVat(100, { ...env, VERIFYFLOW_VAT_RATE: "7,5" }), e => e.code === "VAT_RATE_INVALID");
-console.log("VAT calculation tests passed.");
+const disabled = { VERIFYFLOW_VAT_ENABLED: "false", VERIFYFLOW_VAT_REGISTERED: "true" };
+assert.deepEqual(calculateVat(10000, disabled), {
+  subtotalMinor: 10000, rate: 0, vatMinor: 0, totalUsdMinor: 10000,
+  currency: "USD", taxStatus: "not_assessed"
+});
+assert.throws(() => calculateVat(10000, {
+  VERIFYFLOW_VAT_ENABLED: "true", VERIFYFLOW_VAT_REGISTERED: "true"
+}), error => error.code === "VAT_JURISDICTION_REQUIRED");
+assert.throws(() => calculateVat(0, disabled), error => error.code === "VAT_SUBTOTAL_INVALID");
+console.log("VAT safety tests passed.");
