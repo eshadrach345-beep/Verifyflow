@@ -32,7 +32,7 @@ async function main() {
       if (String(input).includes("partners-api.hero-sms.com")) {
         return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
       }
-      assert.match(String(input), /hero-sms\\.com\\/stubs\\/handler_api\\.php/);
+      assert.match(String(input), /hero-sms\.com\\/stubs\\/handler_api\.php/);
       assert.match(String(input), /action=getBalance/);
       assert.match(String(input), /api_key=retail-test-key/);
       return new Response("ACCESS_BALANCE:8.42", { status: 200 });
