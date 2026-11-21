@@ -283,3 +283,10 @@ assert.ok(dashboard.includes('["airalo","airalo.com"]') && dashboard.includes('[
 assert.ok(dashboard.includes(".catalog-item.catalog-compact") && dashboard.includes(".catalog-platform-group>summary"), "Storefront must use compact icon-first styling and clear platform dropdown rows");
 
 console.log("VerifyFlow marketplace, SMM product manager, supplier order wiring and SEO checks passed.");
+
+assert.ok(dashboard.includes('active==="marketing"?results:results.slice(0,renderedCount)') && dashboard.includes('loadMore.hidden=active==="marketing"'), "All SMM platforms and services must render together without pagination.");
+assert.ok(dashboard.includes("all platforms shown") && dashboard.includes("renderMarketingHierarchy(visible)"), "All social platforms must be listed with expandable service groups.");
+assert.ok(checkout.includes('class="vf-smm-live-total"') && checkout.includes('Math.ceil(Number(product.price) * quantity / 1000)'), "SMM quantity changes must show the calculated total before checkout.");
+assert.ok(checkout.includes('if (category === "esim") return { type: "esim"') && checkout.includes('if (category === "dedicated") return { type: "dedicated_number"') && checkout.includes('window.location.assign(data.checkoutUrl)'), "eSIM and dedicated-number cards must use the shared secure checkout redirect.");
+assert.ok(orderCreate.includes('checkoutUrl, paymentReference') && !orderCreate.includes('checkoutUrl: provider.checkoutUrl, paymentReference'), "The shared checkout response must use the initialized URL for Squad and Monnify.");
+assert.ok(orderCreate.includes("providerMessage") && orderCreate.includes("providerStatus"), "Payment failures must preserve safe provider diagnostics.");

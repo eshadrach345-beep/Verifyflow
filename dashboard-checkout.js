@@ -186,15 +186,16 @@ document.body.insertAdjacentHTML("beforeend", `
         area.className = "vf-buy-area vf-smm-buy-area";
         area.innerHTML = '<label>Target profile or post URL<input type="url" data-smm-link required placeholder="https://www.tiktok.com/@name/video/..."></label>' +
           '<label>Quantity (min ' + esc(min) + ' · max ' + esc(max) + ')<input type="number" data-smm-quantity min="' + esc(min) + '" max="' + esc(max) + '" step="1" value="' + esc(min) + '" required></label>' +
-          '<small data-smm-total>Estimated price: ' + esc(money(Math.ceil(Number(product.price) * min / 1000))) + '</small>' +
+          '<div class="vf-smm-live-total" aria-live="polite"><span>Estimated total</span><strong data-smm-total>' + esc(money(Math.ceil(Number(product.price) * min / 1000))) + '</strong></div>' +
           '<button class="vf-buy-button" type="button" data-vf-buy="true" data-product-type="smm_service" data-product-id="' + esc(product.id) + '" data-product-name="' + esc(item.name || "Social media service") + '" data-product-price="' + esc(product.price) + '" data-min="' + esc(min) + '" data-max="' + esc(max) + '">Continue to checkout →</button>';
         card.querySelector(".catalog-item-copy")?.appendChild(area);
         const quantityInput = area.querySelector("[data-smm-quantity]");
         quantityInput.addEventListener("input", () => {
           const quantity = Number(quantityInput.value);
           const valid = Number.isSafeInteger(quantity) && quantity >= min && quantity <= max;
-          area.querySelector("[data-smm-total]").textContent = valid
-            ? "Estimated price: " + money(Math.ceil(Number(product.price) * quantity / 1000))
+          const totalLabel=area.querySelector("[data-smm-total]");
+          totalLabel.textContent = valid
+            ? money(Math.ceil(Number(product.price) * quantity / 1000))
             : "Enter a quantity between " + min + " and " + max + ".";
         });
         return;

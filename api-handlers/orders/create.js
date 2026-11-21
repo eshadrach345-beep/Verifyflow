@@ -387,7 +387,7 @@ module.exports = async function handler(req, res) {
         [orderId, "Secure " + paymentCurrency + " " + (paymentMethod === "squad" ? "Squad" : "Monnify") + " checkout was created.", JSON.stringify({ paymentReference, amountMinor: paymentAmountMinor, currency: paymentCurrency, retailUsdMinor: quote.salePriceCents, usdNgnRate: checkoutAmount.usdNgnRate })]
       );
       return sendJson(res, 200, {
-        ok: true, checkoutUrl: provider.checkoutUrl, paymentReference,
+        ok: true, checkoutUrl, paymentReference,
         orderNumber, productName: quote.productName, amountMinor: paymentAmountMinor, currency: paymentCurrency,
         usdAmountMinor: quote.salePriceCents, usdNgnRate: checkoutAmount.usdNgnRate,
         provider: paymentMethod,
@@ -403,10 +403,17 @@ module.exports = async function handler(req, res) {
         [orderId]
       ).catch(() => {});
       await pool.query(
-        "INSERT INTO vf_order_events (order_id, event_type, message, details) VALUES ($1, 'checkout_failed', 'Monnify could not initialize the checkout session.', $2::jsonb)",
-        [orderId, JSON.stringify({ code: error.code || "MONNIFY_INITIALIZATION_FAILED" })]
+        "INSERT INTO vf_order_events (order_id, event_type, message, details) VALUES ($1, 'checkout_failed', 'The selected payment gateway could not initialize the checkout session.', $2::jsonb)",
+        [orderId, JSON.stringify({ paymentMethod, code: error.code || "PAYMENT_INITIALIZATION_FAILED", providerCode: error.providerCode || null, providerStatus: error.status || error.httpStatus || null, providerMessage: error.providerMessage || null })]
       ).catch(() => {});
-      console.error("[orders/create/" + paymentMethod + "]", error.code || error.message);
+      console.error("[orders/create/" + paymentMethod + "]", JSON.stringify({
+        code: error.code || "PAYMENT_INITIALIZATION_FAILED",
+        providerCode: error.providerCode || null,
+        providerStatus: error.status || error.httpStatus || null,
+        providerMessage: String(error.providerMessage || error.message || "No provider message").slice(0, 240),
+        amountMinor: paymentAmountMinor,
+        currency: paymentCurrency
+      }));
       return sendJson(res, 502, { ok: false, error: "Secure checkout could not be started. No supplier order was placed." });
     }
   } catch (error) {

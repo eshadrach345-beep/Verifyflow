@@ -37,3 +37,8 @@ async function main(){
  console.log("Squad helper tests passed (checkout payload, verification mapping and webhook HMAC).");
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
+
+global.fetch=async()=>new Response(JSON.stringify({success:false,message:"Invalid sandbox key",code:"AUTH_INVALID"}),{status:403,headers:{"Content-Type":"application/json"}});
+initiateSquadPayment({email:"test@example.com",customerName:"Test User",amountMinor:12500,currency:"NGN",reference:"VF_FAIL",callbackUrl:"https://verifyflow.us.ci/payment-return.html?paymentReference=VF_FAIL"})
+ .then(()=>{throw new Error("Expected a provider error");})
+ .catch(error=>{assert.equal(error.code,"SQUAD_API_ERROR");assert.equal(error.status,403);assert.equal(error.providerMessage,"Invalid sandbox key");assert.equal(error.providerCode,"AUTH_INVALID");});

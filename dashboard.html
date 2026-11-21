@@ -1042,16 +1042,21 @@
   status.textContent=query
    ? results.length+" matching product"+(results.length===1?"":"s")+" across all categories"
    : results.length+" product"+(results.length===1?"":"s")+" in "+(active==="all"?"all available categories":categoryLabels[active]);
-  const visible=results.slice(0,renderedCount);
+  const visible=active==="marketing"?results:results.slice(0,renderedCount);
   if(active==="marketing"){
    grid.innerHTML=renderMarketingHierarchy(visible);
   }else{
    grid.innerHTML=visible.map(({category,item})=>compactProductCard(category,item)).join("");
   }
-  if(loadMore){loadMore.hidden=visible.length>=results.length;loadMore.textContent="Load more products ("+Math.min(PAGE_SIZE,results.length-visible.length)+" more)";}
-  status.textContent=query
-   ? results.length+" matching product"+(results.length===1?"":"s")+" · showing "+visible.length
-   : results.length+" product"+(results.length===1?"":"s")+" · showing "+visible.length+" in "+(active==="all"?"all available categories":categoryLabels[active]);
+  if(loadMore){loadMore.hidden=active==="marketing"||visible.length>=results.length;loadMore.textContent="Load more products ("+Math.min(PAGE_SIZE,results.length-visible.length)+" more)";}
+  if(active==="marketing"){
+   const platformCount=new Set(results.map(({item})=>String(item.platform||"Other").trim()||"Other")).size;
+   status.textContent=results.length+" social media services across "+platformCount+" platforms · all platforms shown";
+  }else{
+   status.textContent=query
+    ? results.length+" matching product"+(results.length===1?"":"s")+" · showing "+visible.length
+    : results.length+" product"+(results.length===1?"":"s")+" · showing "+visible.length+" in "+(active==="all"?"all available categories":categoryLabels[active]);
+  }
  }
  const CATALOG_CACHE_PREFIX="verifyflow.catalog.v1:";
  const CATALOG_CACHE_TTL=12*60*60*1000;
