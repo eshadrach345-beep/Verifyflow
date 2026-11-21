@@ -177,7 +177,7 @@ const squadMigration = fs.readFileSync("db/migrations/011_squad_payment_provider
 assert.ok(walletDepositApi.includes("SQUAD_CONFIG_MISSING") &&
   walletApi.includes("42P10") && fs.readFileSync("lib/launch-readiness.js", "utf8").includes("vf_wallet_topups") &&
   squadMigration.includes("provider IN ('monnify','squad')"),
-  "Wallet funding must expose Squad setup errors and migration 011 must preserve legacy Monnify rows while enabling Squad");
+  "Wallet funding must expose Squad setup errors and migration 011 must retain historical payment-provider attribution");
 assert.ok(proxyCatalog.includes("Math.min(configuredPercent, 18)") &&
   proxySupplier.includes("Math.min(requestedPercent, 18)"),
   "Proxy quote and catalogue retail margins must both be capped at a competitive 18 percent");
@@ -289,5 +289,5 @@ assert.ok(dashboard.includes('active==="marketing"?results:results.slice(0,rende
 assert.ok(dashboard.includes("all platforms shown") && dashboard.includes("renderMarketingHierarchy(visible)"), "All social platforms must be listed with expandable service groups.");
 assert.ok(checkout.includes('class="vf-smm-live-total"') && checkout.includes('Math.ceil(Number(product.price) * quantity / 1000)'), "SMM quantity changes must show the calculated total before checkout.");
 assert.ok(checkout.includes('if (category === "esim") return { type: "esim"') && checkout.includes('if (category === "dedicated") return { type: "dedicated_number"') && checkout.includes('window.location.assign(data.checkoutUrl)'), "eSIM and dedicated-number cards must use the shared secure checkout redirect.");
-assert.ok(orderCreate.includes('checkoutUrl, paymentReference') && !orderCreate.includes('checkoutUrl: provider.checkoutUrl, paymentReference'), "The shared checkout response must use the initialized URL for Squad and Monnify.");
+assert.ok(orderCreate.includes('checkoutUrl, paymentReference') && !orderCreate.includes('checkoutUrl: provider.checkoutUrl, paymentReference'), "The shared checkout response must use the initialized URL for Squad checkout.");
 assert.ok(orderCreate.includes("providerMessage") && orderCreate.includes("providerStatus"), "Payment failures must preserve safe provider diagnostics.");
