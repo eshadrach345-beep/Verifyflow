@@ -516,7 +516,7 @@ document.body.insertAdjacentHTML("beforeend", `
     message.textContent = "";
     const billingCountryInput = document.getElementById("vf-billing-country");
     const billingCountry = String(billingCountryInput?.value || "").trim();
-    if (!billingCountry || !/^[A-Za-z][A-Za-z .\'()-]{1,78}$/.test(billingCountry)) {
+    if (!billingCountry || !/^[\p{L}][\p{L} .’'()-]{1,78}$/u.test(billingCountry)) {
       billingCountryInput?.setCustomValidity("Enter the country for your billing address.");
       billingCountryInput?.reportValidity();
       submit.disabled = false;
@@ -526,7 +526,7 @@ document.body.insertAdjacentHTML("beforeend", `
     billingCountryInput.setCustomValidity("");
     const paymentMethod = form.querySelector('input[name="vf-payment-method"]:checked')?.value || "squad";
     if (paymentMethod === "wallet" && walletBalanceMinor != null && walletBalanceMinor < renderEstimate(selected.estimate).total) {
-      message.textContent = "Your wallet balance is too low to cover the product price plus VAT. Fund your wallet or choose Squad.";
+      message.textContent = "Your wallet balance is too low to cover this order. Fund your wallet or choose Squad.";
       submit.disabled = false;
       submit.textContent = "Continue to payment ↗";
       return;
