@@ -311,6 +311,7 @@ module.exports = async function handler(req, res) {
       platform: quote.productSnapshot?.platform || productType,
       ...(sandboxMode ? { sandboxTest: true, noFulfilment: true } : {}),
       checkout: {
+        billingCountry,
         productSnapshot: quote.productSnapshot,
         supplierInput: quote.supplierInput,
         supplierPriceCents: quote.supplierPriceCents,
