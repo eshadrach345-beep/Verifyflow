@@ -23,8 +23,8 @@ const walletLibrary = fs.readFileSync("lib/wallet.js", "utf8");
 const walletApi = fs.readFileSync("api-handlers/wallet/index.js", "utf8");
 const walletDepositApi = fs.readFileSync("api-handlers/wallet/deposit.js", "utf8");
 const walletAccount = fs.readFileSync("wallet-account.js", "utf8");
-const paymentService = fs.readFileSync("lib/payment-service.js", "utf8");
-const paymentWebhook = fs.readFileSync("api-handlers/payments/webhook.js", "utf8");
+const paymentService = fs.readFileSync("lib/squad-payment-service.js", "utf8");
+const paymentWebhook = fs.readFileSync("api-handlers/payments/squad-webhook.js", "utf8");
 const fulfilment = fs.readFileSync("lib/fulfilment.js", "utf8");
 const proxyCatalog = fs.readFileSync("api-handlers/catalog.js", "utf8");
 const proxySupplier = fs.readFileSync("lib/voidmob.js", "utf8");
@@ -159,7 +159,7 @@ assert.ok(checkout.includes("activateServiceCard"), "Full service-card clicks mu
 assert.ok(checkout.includes("selectProduct") && checkout.includes("returnUrl.searchParams.set(\"selectProduct\""), "Signed-out product selection must be preserved through login");
 assert.ok(checkout.includes("tryOpenRequestedProduct") && accountPage.includes("accountReturnTo") && accountPage.includes("window.location.replace(accountReturnTo)"), "Successful sign-in must return to the selected product and reopen checkout");
 assert.ok(dashboard.includes("Pay per GB. Choose your data allowance") && dashboard.includes("Keep the same number for a selected period") && dashboard.includes("Order this service for a public profile or post"), "Storefront product descriptions must be concise");
-assert.ok(checkout.includes("window.location.assign(data.checkoutUrl)"), "Successful Monnify checkout preparation must redirect to the hosted payment page");
+assert.ok(checkout.includes("window.location.assign(data.checkoutUrl)"), "Successful Squad checkout preparation must redirect to the hosted payment page");
 
 assert.ok(checkout.includes("selectProduct") && checkout.includes("returnUrl.searchParams.set(\"selectProduct\""),
   "A signed-out customer must return to the exact product they selected after sign-in");
@@ -184,7 +184,7 @@ assert.ok(proxyCatalog.includes("Math.min(configuredPercent, 18)") &&
 assert.ok(walletMigration.includes("CREATE TABLE IF NOT EXISTS vf_wallet_accounts") &&
   walletMigration.includes("CREATE TABLE IF NOT EXISTS vf_wallet_transactions") &&
   walletMigration.includes("CREATE TABLE IF NOT EXISTS vf_wallet_topups"),
-  "Wallet migration must create balance, immutable ledger and Monnify deposit records");
+  "Wallet migration must create balance, immutable ledger and historical top-up records");
 assert.ok(walletLibrary.includes("ON CONFLICT (user_id, reference_type, reference_id) DO NOTHING") &&
   walletLibrary.includes("refundFailedOrder"),
   "Wallet ledger must be idempotent and expose failed-order refunds");
@@ -197,15 +197,16 @@ assert.ok(walletAccount.includes("/api/wallet/deposit") && walletAccount.include
 assert.ok(accountPage.includes('id="panel-wallet"') && accountPage.includes('data-panel="wallet"'),
   "Customer account must expose a wallet panel");
 assert.ok(accountPage.includes('id="account-welcome-toast"') && accountPage.includes('showWelcomeToast(user)') && accountPage.includes('5000);'), "Account welcome message must appear as a five-second popup");
-assert.ok(paymentService.includes("verifyAndApplyWalletDeposit") &&
+assert.ok(paymentService.includes("verifyAndApplySquadPayment") &&
   paymentService.includes("postWalletTransaction") &&
-  paymentWebhook.includes("verifyAndApplyWalletDeposit"),
-  "Wallet top-ups must be credited only after server-side Monnify verification");
+  paymentWebhook.includes("verifyAndApplySquadPayment"),
+  "Wallet top-ups and product orders must be credited only after server-side Squad verification");
 assert.ok(orderCreate.includes('paymentMethod === "wallet"') &&
   orderCreate.includes("createWalletOrder") &&
   checkout.includes('value="wallet"') &&
-  checkout.includes('value="monnify"'),
-  "Checkout must support either wallet balance or Monnify");
+  checkout.includes('value="squad"') &&
+  !checkout.includes("monnify"),
+  "Checkout must support wallet balance or Squad only, with no Monnify option");
 assert.ok(fulfilment.includes("refundFailedOrder") &&
   fulfilment.includes("wallet_refund_credited") &&
   fulfilment.includes('failedStatuses.includes(status)'),
