@@ -25,6 +25,7 @@ document.body.insertAdjacentHTML("beforeend", `
       <form id="vf-checkout-form">
         <div class="vf-checkout-head"><div><span class="catalog-eyebrow">SECURE CHECKOUT</span><h2 id="vf-checkout-title">Review your order</h2></div><button type="button" id="vf-checkout-close" aria-label="Close checkout">×</button></div>
         <p id="vf-checkout-product" class="vf-checkout-product"></p>
+        <label class="catalog-duration vf-billing-country">Billing country<input id="vf-billing-country" name="billingCountry" type="text" autocomplete="country-name" list="vf-billing-country-options" maxlength="80" required placeholder="Enter your billing country"><datalist id="vf-billing-country-options"><option value="Nigeria"></option><option value="United States"></option><option value="United Kingdom"></option><option value="Canada"></option><option value="Ghana"></option><option value="South Africa"></option><option value="Kenya"></option><option value="India"></option><option value="Australia"></option><option value="Germany"></option><option value="France"></option><option value="United Arab Emirates"></option></datalist></label>
         <div class="vf-checkout-price"><span>Estimated total</span><strong id="vf-checkout-price">—</strong></div>
         <fieldset class="vf-payment-choice">
           <legend>How would you like to pay?</legend>
@@ -35,7 +36,7 @@ document.body.insertAdjacentHTML("beforeend", `
         <p class="vf-checkout-note">The final price is confirmed using a fresh supplier quote before payment.</p>
         <label id="vf-duration-wrap" class="catalog-duration" hidden>Rental period<select id="vf-duration-select"></select></label>
         <label id="vf-herosms-method-wrap" class="catalog-duration" hidden>Verification method<select id="vf-herosms-method-select"><option value="sms">SMS</option></select></label>
-        <p class="vf-checkout-note">Catalogue prices are shown in USD. Squad checkout supports card, bank, USSD and transfer. Local Squad payments are converted to NGN using the configured rate. Any applicable tax will be calculated once your billing location and product tax treatment are confirmed.</p>
+        <p class="vf-checkout-note">Catalogue prices are shown in USD. Squad checkout supports card, bank, USSD and transfer. Local Squad payments are converted to NGN using the configured rate. Enter the country associated with your billing address. VerifyFlow currently collects no VAT until the applicable tax treatment is confirmed.</p>
         <p id="vf-checkout-message" class="vf-checkout-message" role="status" aria-live="polite"></p>
         <button id="vf-checkout-submit" class="vf-buy-button" type="submit">Continue to secure payment ↗</button>
       </form>
@@ -513,6 +514,16 @@ document.body.insertAdjacentHTML("beforeend", `
     submit.disabled = true;
     submit.textContent = "Preparing secure checkout…";
     message.textContent = "";
+    const billingCountryInput = document.getElementById("vf-billing-country");
+    const billingCountry = String(billingCountryInput?.value || "").trim();
+    if (!billingCountry || !/^[A-Za-z][A-Za-z .\'()-]{1,78}$/.test(billingCountry)) {
+      billingCountryInput?.setCustomValidity("Enter the country for your billing address.");
+      billingCountryInput?.reportValidity();
+      submit.disabled = false;
+      submit.textContent = "Continue to payment ↗";
+      return;
+    }
+    billingCountryInput.setCustomValidity("");
     const paymentMethod = form.querySelector('input[name="vf-payment-method"]:checked')?.value || "squad";
     if (paymentMethod === "wallet" && walletBalanceMinor != null && walletBalanceMinor < renderEstimate(selected.estimate).total) {
       message.textContent = "Your wallet balance is too low to cover the product price plus VAT. Fund your wallet or choose Squad.";
@@ -525,6 +536,7 @@ document.body.insertAdjacentHTML("beforeend", `
       productType: selected.productType,
       productId: selected.productId,
       paymentMethod,
+      billingCountry,
       ...(selected.supportsVerificationMethods ? { verificationType: selected.verificationType || "sms" } : {})
     };
     if (selected.productType === "long_term_number") payload.durationDays = Number(document.getElementById("vf-duration-select").value);
