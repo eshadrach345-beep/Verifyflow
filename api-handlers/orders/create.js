@@ -280,10 +280,18 @@ module.exports = async function handler(req, res) {
     const tax = calculateVat(quote.salePriceCents);
     const checkoutAmount = getCheckoutAmount(tax.totalUsdMinor, billingCountry);
     const paymentCurrency = checkoutAmount.currency;
-    const paymentAmountMinor = checkoutAmount.amountMinor;
+    // Squad's $10 minimum applies only to USD/international checkouts.
+    // Any amount above the verified retail total is returned to the customer's USD wallet.
+    const basePaymentAmountMinor = checkoutAmount.amountMinor;
+    const paymentAmountMinor = paymentCurrency === "USD"
+      ? Math.max(basePaymentAmountMinor, 1000)
+      : basePaymentAmountMinor;
+    const walletSurplusMinor = paymentCurrency === "USD"
+      ? paymentAmountMinor - basePaymentAmountMinor
+      : 0;
     const subtotalCheckoutAmount = getCheckoutAmount(quote.salePriceCents, billingCountry);
     const subtotalPaymentMinor = subtotalCheckoutAmount.amountMinor;
-    const vatPaymentMinor = paymentAmountMinor - subtotalPaymentMinor;
+    const vatPaymentMinor = paymentAmountMinor - subtotalPaymentMinor - walletSurplusMinor;
 
     const pool = getPool();
     const existing = await pool.query(
@@ -332,6 +340,7 @@ module.exports = async function handler(req, res) {
         subtotalPaymentMinor,
         retailCurrency: "USD",
         paymentAmountMinor,
+        walletSurplusMinor,
         currency: paymentCurrency,
         usdNgnRate: checkoutAmount.usdNgnRate,
         checkoutCreatedAt: new Date().toISOString()
@@ -387,13 +396,13 @@ module.exports = async function handler(req, res) {
       );
       await pool.query(
         "INSERT INTO vf_order_events (order_id, event_type, message, details) VALUES ($1, 'checkout_created', $2, $3::jsonb)",
-        [orderId, "Secure " + paymentCurrency + " Squad checkout was created.", JSON.stringify({ paymentReference, amountMinor: paymentAmountMinor, subtotalMinor: subtotalPaymentMinor, vatMinor: vatPaymentMinor, vatRate: tax.rate, currency: paymentCurrency, retailUsdMinor: quote.salePriceCents, retailUsdTotalMinor: tax.totalUsdMinor, vatUsdMinor: tax.vatMinor, usdNgnRate: checkoutAmount.usdNgnRate })]
+        [orderId, "Secure " + paymentCurrency + " Squad checkout was created.", JSON.stringify({ paymentReference, amountMinor: paymentAmountMinor, subtotalMinor: subtotalPaymentMinor, vatMinor: vatPaymentMinor, walletSurplusMinor, vatRate: tax.rate, currency: paymentCurrency, retailUsdMinor: quote.salePriceCents, retailUsdTotalMinor: tax.totalUsdMinor, vatUsdMinor: tax.vatMinor, usdNgnRate: checkoutAmount.usdNgnRate })]
       );
       traceCheckout("checkout_response_ready");
       return sendJson(res, 200, {
         ok: true, checkoutUrl, paymentReference,
         orderNumber, productName: quote.productName, amountMinor: paymentAmountMinor, currency: paymentCurrency,
-        usdAmountMinor: quote.salePriceCents, vatRate: tax.rate, vatAmountUsdMinor: tax.vatMinor, totalUsdAmountMinor: tax.totalUsdMinor, subtotalAmountMinor: subtotalPaymentMinor, vatAmountMinor: vatPaymentMinor, usdNgnRate: checkoutAmount.usdNgnRate,
+        usdAmountMinor: quote.salePriceCents, vatRate: tax.rate, vatAmountUsdMinor: tax.vatMinor, totalUsdAmountMinor: tax.totalUsdMinor, subtotalAmountMinor: subtotalPaymentMinor, vatAmountMinor: vatPaymentMinor, walletCreditMinor: walletSurplusMinor, usdNgnRate: checkoutAmount.usdNgnRate,
         provider: paymentMethod,
         note: "Payment is verified against the amount and currency received from the selected gateway before supplier fulfilment begins."
       });
