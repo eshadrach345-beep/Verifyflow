@@ -15,7 +15,7 @@
   };
   const supplierBalanceMinor = snapshot => {
     if (!snapshot) return null;
-    if (Number.isSafeInteger(Number(snapshot.balanceCents))) return Number(snapshot.balanceCents);
+    if (snapshot.balanceCents != null && Number.isSafeInteger(Number(snapshot.balanceCents))) return Number(snapshot.balanceCents);
     if (snapshot.balance == null || !Number.isFinite(Number(snapshot.balance))) return null;
     return Math.round(Number(snapshot.balance) * 100);
   };
