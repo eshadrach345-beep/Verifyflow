@@ -4,6 +4,9 @@ const { REQUIRED_MIGRATIONS, REQUIRED_TABLES, buildLaunchChecks } = require("../
 function makeEnv(overrides = {}) {
   return {
     VERIFYFLOW_ADMIN_EMAILS: "owner@example.com",
+    SQUAD_SECRET_KEY: "squad-secret-present",
+    SQUAD_API_BASE_URL: "https://sandbox-api-d.squadco.com",
+    SQUAD_WEBHOOK_URL: "https://verifyflow.us.ci/api/payments/squad-webhook",
     MONNIFY_API_KEY: "key-present",
     MONNIFY_SECRET_KEY: "secret-present",
     MONNIFY_CONTRACT_CODE: "contract-present",
@@ -41,7 +44,11 @@ function get(checks, id) {
 const complete = buildLaunchChecks(makeEnv(), readyDatabase());
 assert.equal(complete.some(item => item.required && item.status === "needs_action"), true);
 assert.equal(get(complete, "database").status, "ready");
+assert.equal(get(complete, "squad_credentials").status, "review");
+assert.equal(get(complete, "squad_webhook").status, "review");
 assert.equal(get(complete, "schema").status, "ready");
+assert.ok(REQUIRED_MIGRATIONS.includes("010_smm_categories"), "Launch readiness must require the SMM category migration");
+assert.ok(REQUIRED_MIGRATIONS.includes("011_squad_payment_provider"), "Launch readiness must require the Squad payment migration");
 assert.equal(get(complete, "email_security").status, "needs_action");
 assert.equal(get(complete, "peakerr").required, false);
 assert.equal(get(complete, "justanotherpanel").required, false);
@@ -52,6 +59,7 @@ const incomplete = buildLaunchChecks({}, { connected: false, tables: [], migrati
 assert.equal(get(incomplete, "database").status, "needs_action");
 assert.equal(get(incomplete, "schema").status, "needs_action");
 assert.equal(get(incomplete, "monnify_credentials").status, "needs_action");
+assert.equal(get(incomplete, "squad_credentials").status, "needs_action");
 assert.equal(get(incomplete, "voidmob_autobuy").status, "needs_action");
 assert.equal(get(incomplete, "peakerr_autobuy").status, "optional");
 assert.equal(get(incomplete, "justanotherpanel_autobuy").status, "optional");
@@ -75,6 +83,7 @@ assert.equal(get(smmApproved, "justanotherpanel_autobuy").status, "review");
 
 const noSecretsReturned = JSON.stringify(complete);
 assert.equal(noSecretsReturned.includes("key-present"), false);
+assert.equal(noSecretsReturned.includes("squad-secret-present"), false);
 assert.equal(noSecretsReturned.includes("secret-present"), false);
 assert.equal(noSecretsReturned.includes("voidmob-key-present"), false);
 

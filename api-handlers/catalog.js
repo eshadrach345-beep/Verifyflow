@@ -10,10 +10,10 @@ const PRICE_RULES = {
   dedicated: { percent: 35, minimumMarkupCents: 200 }
 };
 
-function json(res, status, body) {
+function json(res, status, body, cacheControl = "private, no-store") {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Cache-Control", "private, no-store");
+  res.setHeader("Cache-Control", cacheControl);
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.end(JSON.stringify(body));
 }
@@ -161,7 +161,7 @@ module.exports = async function handler(req, res) {
       data => data
     ),
     safeRead(
-      () => supplierList("/proxy_plans?type=all", "plans", headers, 200),
+      () => supplierList("/proxy_plans?type=all&available=true", "plans", headers, 200),
       data => data
     ),
     safeRead(
@@ -331,5 +331,5 @@ module.exports = async function handler(req, res) {
       proxies: proxyItems.length,
       dedicated: dedicatedItems.length
     }
-  });
+  }, "public, s-maxage=300, stale-while-revalidate=3600");
 };

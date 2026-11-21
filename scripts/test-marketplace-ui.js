@@ -103,6 +103,13 @@ assert.ok(checkout.includes('visibleRows(category)'), "Checkout must search with
 
 assert.ok(dashboard.includes('id="catalog-country"') && dashboard.includes("populateCountryOptions(data.countries)"),
   "Country selector must be populated from the supported country catalogue");
+assert.ok(dashboard.includes('id="catalog-service-filter"') && dashboard.includes("updateCategoryFilters()"),
+  "Each connectivity category must expose a category-specific service dropdown");
+assert.ok(dashboard.includes('id="catalog-country-filter"') && dashboard.includes("countryMatches"),
+  "eSIM, proxy and dedicated-number categories must expose country/coverage filtering");
+assert.ok(dashboard.includes('catalog-icon-no-tile') && dashboard.includes("background:transparent!important") &&
+  dashboard.includes(".catalog-compact .catalog-art-icon"),
+  "Service logos must render without a white tile, frame, padding or shadow");
 assert.ok(dashboard.includes('"whatsapp","telegram","gmail"') && dashboard.includes('["sms","rentals"].includes(category)'),
   "Long-term rentals and SMS products must sort with popular services first");
 assert.ok(checkout.includes("data-rental-selected-price") && dashboard.includes("Choose your rental period"), "Rental product cards must explain period selection");
@@ -115,6 +122,7 @@ assert.ok(dashboard.includes("Receive an SMS code on a temporary number") &&
   dashboard.includes("Keep the same number for a selected period") &&
   dashboard.includes("Order this service for a public profile or post"),
   "All catalogue product families must have concise, useful customer-facing descriptions");
+assert.ok(proxyCatalog.includes('/proxy_plans?type=all&available=true'), "Proxy catalogue must request only currently purchasable plans");
 assert.ok(proxyCatalog.includes("pricePerGbCents") && proxyCatalog.includes("Number(plan.data_gb)"),
   "Shared mobile proxy catalogue must expose a derived per-GB price");
 assert.ok(dashboard.includes("Unlimited traffic") && dashboard.includes('"Unlimited traffic · "') &&
@@ -128,6 +136,12 @@ assert.ok(dashboard.includes('"per GB · "') && dashboard.includes('data-proxy-m
 assert.ok(dashboard.includes('replace(/\\b\\d+(?:\\.\\d+)?\\s*(?:gb|gigabytes?)\\b/g," ")') &&
   dashboard.includes("pricePerDayCents") && dashboard.includes('discountUnit=shared?"per GB":"per day"'),
   "Shared volume tiers and dedicated daily/weekly/monthly plans must group separately with accurate discount units");
+assert.ok(dashboard.includes('if(new Set(values).size!==values.length)') && !dashboard.includes('if(variants.length<2||new Set(values).size!==values.length)'), "Single-plan proxy groups must still expose their GB/validity selector");
+assert.ok(checkout.includes("proxyOptions.length > 0"), "Proxy package and validity selector must remain visible even when only one supplier plan exists");
+assert.ok(dashboard.includes(".catalog-compact.catalog-proxies .catalog-art-icon") && dashboard.includes(".catalog-compact.catalog-proxies .catalog-brand-logo"), "Mobile proxy logo must stay compact in the icon-first storefront");
+assert.ok(fs.readFileSync("api-handlers/herosms/offers.js", "utf8").includes("Text + Voice (All-in-One)") &&
+  fs.readFileSync("api-handlers/herosms/offers.js", "utf8").includes('"Voice call"') &&
+  checkout.includes('vf-herosms-method-wrap'), "HeroSMS checkout must clearly label Text, Voice call and Text + Voice choices");
 assert.ok(checkout.includes("data-proxy-duration") && checkout.includes("Choose rental period") &&
   checkout.includes("Save " + "' + esc(option.discountPercent) + (shared ? '% per GB' : '% per day')") &&
   checkout.includes("pricePerDayCents"),
@@ -159,9 +173,11 @@ assert.ok(dashboard.includes("Pay per GB. Choose your data allowance") &&
   dashboard.includes("Keep the same number for a selected period") &&
   dashboard.includes("Order this service for a public profile or post"),
   "Catalogue descriptions must be short and useful instead of tall repeated paragraphs");
-assert.ok(walletDepositApi.includes("009_wallet_smm_schema_repair.sql") &&
-  walletApi.includes("42P10") && fs.readFileSync("lib/launch-readiness.js", "utf8").includes("vf_wallet_topups"),
-  "Wallet funding failures must point to the wallet schema repair migration");
+const squadMigration = fs.readFileSync("db/migrations/011_squad_payment_provider.sql", "utf8");
+assert.ok(walletDepositApi.includes("SQUAD_CONFIG_MISSING") &&
+  walletApi.includes("42P10") && fs.readFileSync("lib/launch-readiness.js", "utf8").includes("vf_wallet_topups") &&
+  squadMigration.includes("provider IN ('monnify','squad')"),
+  "Wallet funding must expose Squad setup errors and migration 011 must preserve legacy Monnify rows while enabling Squad");
 assert.ok(proxyCatalog.includes("Math.min(configuredPercent, 18)") &&
   proxySupplier.includes("Math.min(requestedPercent, 18)"),
   "Proxy quote and catalogue retail margins must both be capped at a competitive 18 percent");
@@ -174,8 +190,8 @@ assert.ok(walletLibrary.includes("ON CONFLICT (user_id, reference_type, referenc
   "Wallet ledger must be idempotent and expose failed-order refunds");
 assert.ok(walletApi.includes("getSessionUser") && walletApi.includes("vf_wallet_transactions"),
   "Wallet balance and history must be restricted to the signed-in customer");
-assert.ok(walletDepositApi.includes("getCheckoutAmount") && walletDepositApi.includes("initializeTransaction"),
-  "Wallet deposits must use configured currency conversion and Monnify hosted checkout");
+assert.ok(walletDepositApi.includes("getCheckoutAmount") && walletDepositApi.includes("initiateSquadPayment"),
+  "Wallet deposits must use configured currency conversion and Squad hosted checkout");
 assert.ok(walletAccount.includes("/api/wallet/deposit") && walletAccount.includes("amountUsdCents"),
   "Account wallet panel must fund the wallet through the protected deposit API");
 assert.ok(accountPage.includes('id="panel-wallet"') && accountPage.includes('data-panel="wallet"'),
@@ -258,5 +274,12 @@ assert.match(dashboard, /@media\(max-width:600px\)[\s\S]*?\.catalog-grid\{grid-t
 assert.ok(robots.includes("Sitemap: https://verifyflow.us.ci/sitemap.xml"));
 assert.ok(sitemap.includes("<loc>https://verifyflow.us.ci/</loc>"));
 assert.ok(sitemap.includes("<loc>https://verifyflow.us.ci/dashboard.html</loc>"));
+
+assert.ok(dashboard.includes("function compactProductCard(category,item)"), "Customer catalogue must render compact icon-led product rows");
+assert.ok(dashboard.includes("function renderMarketingHierarchy(rows)"), "SMM catalogue must group services by platform and subcategory");
+assert.ok(dashboard.includes('class="catalog-platform-group"') && dashboard.includes('class="catalog-service-group"'), "SMM platform and service groups must be expandable dropdowns");
+assert.ok(dashboard.includes('x.description||""'), "SMM services must display their actual supplier description when available");
+assert.ok(dashboard.includes('["airalo","airalo.com"]') && dashboard.includes('["holafly","holafly.com"]'), "eSIM provider logos must be mapped to provider brands");
+assert.ok(dashboard.includes(".catalog-item.catalog-compact") && dashboard.includes(".catalog-platform-group>summary"), "Storefront must use compact icon-first styling and clear platform dropdown rows");
 
 console.log("VerifyFlow marketplace, SMM product manager, supplier order wiring and SEO checks passed.");

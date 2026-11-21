@@ -7,6 +7,7 @@ const routes = {
   "admin/access": require("../api-handlers/admin/access"),
   "admin/fulfilment": require("../api-handlers/admin/fulfilment"),
   "admin/orders": require("../api-handlers/admin/orders"),
+  "admin/payments": require("../api-handlers/admin/payments"),
   "admin/readiness": require("../api-handlers/admin/readiness"),
   "admin/suppliers": require("../api-handlers/admin/suppliers"),
   "admin/smm-products": require("../api-handlers/admin/smm-products"),
@@ -33,7 +34,8 @@ const routes = {
   "wallet/deposit": require("../api-handlers/wallet/deposit"),
   "payments/create-test": require("../api-handlers/payments/create-test"),
   "payments/verify": require("../api-handlers/payments/verify"),
-  "payments/webhook": require("../api-handlers/payments/webhook")
+  "payments/webhook": require("../api-handlers/payments/webhook"),
+  "payments/squad-webhook": require("../api-handlers/payments/squad-webhook")
 };
 
 module.exports = async function handler(req, res) {
@@ -60,3 +62,6 @@ module.exports = async function handler(req, res) {
   }
   return target(req, res);
 };
+
+// Preserve raw request bodies for signed provider webhooks; readJson handles ordinary API payloads.
+module.exports.config = { api: { bodyParser: false } };

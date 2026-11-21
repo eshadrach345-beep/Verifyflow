@@ -29,13 +29,14 @@ document.body.insertAdjacentHTML("beforeend", `
         <fieldset class="vf-payment-choice">
           <legend>How would you like to pay?</legend>
           <label><input type="radio" name="vf-payment-method" value="wallet"> <span>Pay from my VerifyFlow wallet <small id="vf-wallet-balance" class="vf-wallet-balance">Checking wallet balance…</small></span></label>
-          <label><input type="radio" name="vf-payment-method" value="monnify" checked> <span>Pay with Monnify <small>Secure payment using the methods enabled on your Monnify account</small></span></label>
+          <label><input type="radio" name="vf-payment-method" value="squad" checked> <span>Pay with Squad <small>Card, bank, USSD or bank transfer</small></span></label>
+          <label><input type="radio" name="vf-payment-method" value="monnify"> <span>Pay with Monnify <small>Existing payment option</small></span></label>
           <a href="/account.html?panel=wallet" class="account-text-link">Fund your wallet ↗</a>
         </fieldset>
         <p class="vf-checkout-note">The final price is confirmed using a fresh supplier quote before payment.</p>
         <label id="vf-duration-wrap" class="catalog-duration" hidden>Rental period<select id="vf-duration-select"></select></label>
         <label id="vf-herosms-method-wrap" class="catalog-duration" hidden>Verification method<select id="vf-herosms-method-select"><option value="sms">SMS</option></select></label>
-        <p class="vf-checkout-note">Catalogue prices are shown in USD. Monnify collects USD only when international collection is enabled on the account; otherwise checkout is converted to NGN using VerifyFlow’s configured rate and the payment methods enabled on the account. Taxes are not included.</p>
+        <p class="vf-checkout-note">Catalogue prices are shown in USD. Squad checkout supports card, bank, USSD and transfer. VerifyFlow converts USD prices to NGN using its configured rate for local payments. Taxes are not included.</p>
         <p id="vf-checkout-message" class="vf-checkout-message" role="status" aria-live="polite"></p>
         <button id="vf-checkout-submit" class="vf-buy-button" type="submit">Continue to secure payment ↗</button>
       </form>
@@ -61,7 +62,7 @@ document.body.insertAdjacentHTML("beforeend", `
       walletBalanceLabel.textContent = "Available: " + money(walletBalanceMinor);
     } catch {
       walletBalanceMinor = null;
-      walletBalanceLabel.textContent = "Wallet balance could not be loaded. Monnify is still available.";
+      walletBalanceLabel.textContent = "Wallet balance could not be loaded. Squad checkout is available.";
     }
   }
 
@@ -119,7 +120,7 @@ document.body.insertAdjacentHTML("beforeend", `
       if (category === "proxies") {
         let proxyOptions = [];
         try { proxyOptions = JSON.parse(card.dataset.proxyOptions || "[]"); } catch { proxyOptions = []; }
-        if (proxyOptions.length > 1) {
+        if (proxyOptions.length > 0) {
           const shared = product.planType === "shared";
           const area = document.createElement("div");
           area.className = "vf-buy-area vf-proxy-buy-area";
@@ -506,9 +507,9 @@ document.body.insertAdjacentHTML("beforeend", `
     submit.disabled = true;
     submit.textContent = "Preparing secure checkout…";
     message.textContent = "";
-    const paymentMethod = form.querySelector('input[name="vf-payment-method"]:checked')?.value || "monnify";
+    const paymentMethod = form.querySelector('input[name="vf-payment-method"]:checked')?.value || "squad";
     if (paymentMethod === "wallet" && walletBalanceMinor != null && walletBalanceMinor < selected.estimate) {
-      message.textContent = "Your wallet balance is too low. Fund your wallet or choose Monnify.";
+      message.textContent = "Your wallet balance is too low. Fund your wallet or choose Squad.";
       submit.disabled = false;
       submit.textContent = "Continue to payment ↗";
       return;

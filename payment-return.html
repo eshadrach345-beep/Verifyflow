@@ -15,14 +15,14 @@
 <header class="vf-store-header"><div class="vf-topbar"><a class="brand vf-store-brand" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><a class="vf-account" href="/dashboard.html"><small>Account</small><strong>Dashboard</strong></a></div></header>
 <main class="payment-result"><section class="payment-result-card">
 <h1>Checking your payment</h1>
-<p id="payment-result-copy">We're confirming the transaction directly with Monnify. Please keep this page open.</p>
+<p id="payment-result-copy">We're confirming the transaction directly with the payment provider. Please keep this page open.</p>
 <div class="payment-result-status" id="payment-result-status" role="status" aria-live="polite">Verifying…</div>
 <div class="payment-result-links"><a href="/account.html">View your orders</a><a href="/dashboard.html">Return to marketplace</a></div>
 </section></main>
 <script>
 (() => {
  const query=new URLSearchParams(window.location.search);
- const reference=query.get("paymentReference")||query.get("paymentreference")||"";
+ const reference=query.get("paymentReference")||query.get("paymentreference")||query.get("transaction_ref")||query.get("TransactionRef")||"";
  const status=document.getElementById("payment-result-status");
  const copy=document.getElementById("payment-result-copy");
  async function verify(){
@@ -35,8 +35,8 @@
    const walletDeposit=reference.startsWith("VFWALLET_");
    status.textContent=state==="paid"?(walletDeposit?"Wallet funded successfully":"Payment verified"):state==="pending"?"Payment is still pending":state==="amount_mismatch"?"Payment needs manual review":"Payment status: "+state;
    copy.textContent=state==="paid"
-    ?(walletDeposit?"Monnify confirmed your deposit. Your VerifyFlow wallet has been credited and is ready to use for product purchases.":"Monnify confirmed your payment. Your order is being processed and its latest status will appear in your account.")
-    :state==="pending"?"Monnify has not confirmed payment yet. Refresh this page in a moment.":"Your payment needs attention. Your account will show the latest status.";
+    ?(walletDeposit?"Your payment provider confirmed your deposit. Your VerifyFlow wallet has been credited and is ready to use for product purchases.":"Your payment provider confirmed your payment. Your order is being processed and its latest status will appear in your account.")
+    :state==="pending"?"Your payment provider has not confirmed payment yet. Refresh this page in a moment.":"Your payment needs attention. Your account will show the latest status.";
    if(walletDeposit&&state==="paid"){
     const accountLink=document.querySelector('.payment-result-links a[href="/account.html"]');
     if(accountLink){accountLink.href="/account.html?panel=wallet";accountLink.textContent="Open my wallet";}
