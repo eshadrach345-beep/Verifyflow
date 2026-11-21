@@ -51,7 +51,7 @@
           '</article>';
       }).join("");
       host.insertAdjacentHTML("beforeend", '<p class="admin-foot">Set each supplier’s actual minimum deposit from its own dashboard. Funding suggestions use the supplier’s reported wallet balance and all pending supplier costs. If a balance cannot be verified, check it directly with the supplier before depositing. Saving a minimum deposit does not transfer money or place an order.</p>');
-      host.addEventListener("click", async event => {
+      if (!host.dataset.minimumDepositHandler) { host.dataset.minimumDepositHandler = "true"; host.addEventListener("click", async event => {
         const button = event.target.closest("[data-save-minimum]");
         if (!button) return;
         const provider = button.dataset.saveMinimum;
@@ -73,7 +73,7 @@
           const note = button.parentElement.querySelector("small");
           if (note) note.textContent = error.message || "Could not save supplier minimum.";
         }
-      }, { once: true });
+      }); }
     } catch (error) {
       host.innerHTML = '<div class="empty">' + esc(error.message || "Supplier report unavailable.") + '</div>';
     }
