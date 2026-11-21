@@ -278,10 +278,10 @@ module.exports = async function handler(req, res) {
     }
 
     const tax = calculateVat(quote.salePriceCents);
-    const checkoutAmount = getCheckoutAmount(tax.totalUsdMinor);
+    const checkoutAmount = getCheckoutAmount(tax.totalUsdMinor, billingCountry);
     const paymentCurrency = checkoutAmount.currency;
     const paymentAmountMinor = checkoutAmount.amountMinor;
-    const subtotalCheckoutAmount = getCheckoutAmount(quote.salePriceCents);
+    const subtotalCheckoutAmount = getCheckoutAmount(quote.salePriceCents, billingCountry);
     const subtotalPaymentMinor = subtotalCheckoutAmount.amountMinor;
     const vatPaymentMinor = paymentAmountMinor - subtotalPaymentMinor;
 
@@ -433,6 +433,7 @@ module.exports = async function handler(req, res) {
       SQUAD_CONFIG_MISSING: "Squad checkout is not fully configured yet.",
       CHECKOUT_EXCHANGE_RATE_MISSING: "Local NGN checkout is not configured yet. Please contact support.",
       CHECKOUT_EXCHANGE_RATE_INVALID: "The local checkout exchange rate is invalid. Please contact support.",
+      CHECKOUT_INTERNATIONAL_CURRENCY_DISABLED: "International USD checkout is not enabled yet. Please contact support or choose Nigeria if your billing address is in Nigeria.",
       SUPPLIER_NOT_CONFIGURED: "The supplier catalogue is temporarily unavailable.",
       SUPPLIER_PRICE_INVALID: "A current product price could not be confirmed.",
       INVALID_PRODUCT: "Please select a valid product from the catalogue.",
