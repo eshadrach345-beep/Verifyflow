@@ -15,7 +15,13 @@ function validCheckoutKey(value) {
   return typeof value === "string" && /^[A-Za-z0-9_-]{20,80}$/.test(value);
 }
 
-async function createWalletOrder({ user, checkoutKey, productType, selectedProvider, quote, tax, sandboxMode }) {
+function normalizeBillingCountry(value) {
+  const country = String(value || "").trim().replace(/\\s+/g, " ");
+  if (country.length < 2 || country.length > 80 || !/^[\\p{L}][\\p{L} .’'()-]{1,78}$/u.test(country)) return null;
+  return /^nigeria$/i.test(country) ? "Nigeria" : country;
+}
+
+async function createWalletOrder({ user, checkoutKey, productType, selectedProvider, quote, tax, sandboxMode, billingCountry }) {
   const pool = getPool();
   const client = await pool.connect();
   let orderId = null;
@@ -64,6 +70,7 @@ async function createWalletOrder({ user, checkoutKey, productType, selectedProvi
       platform: quote.productSnapshot?.platform || productType,
       ...(sandboxMode ? { sandboxTest: true, noFulfilment: true } : {}),
       checkout: {
+        billingCountry,
         productSnapshot: quote.productSnapshot,
         supplierInput: quote.supplierInput,
         supplierPriceCents: quote.supplierPriceCents,
@@ -132,6 +139,10 @@ module.exports = async function handler(req, res) {
   catch { return sendJson(res, 400, { ok: false, error: "Please submit a valid order." }); }
 
   const checkoutKey = String(body.checkoutKey || "");
+  const billingCountry = normalizeBillingCountry(body.billingCountry);
+  if (!billingCountry) {
+    return sendJson(res, 400, { ok: false, error: "Enter a valid country for your billing address before continuing." });
+  }
   if (!validCheckoutKey(checkoutKey)) {
     return sendJson(res, 400, { ok: false, error: "Refresh the product and try checkout again." });
   }
@@ -247,6 +258,7 @@ module.exports = async function handler(req, res) {
       try {
         const result = await createWalletOrder({
           user, checkoutKey, productType, selectedProvider, quote, tax: calculateVat(quote.salePriceCents),
+          billingCountry,
           sandboxMode: String(config.environment || "").toUpperCase() !== "LIVE"
         });
         return sendJson(res, 200, result);
