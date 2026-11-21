@@ -225,7 +225,7 @@ module.exports = async function handler(req, res) {
     if (!Object.hasOwn(fulfilmentSwitches, selectedProvider)) {
       return sendJson(res, 400, { ok: false, error: "Choose a supported supplier." });
     }
-    if (config.environment === "LIVE" &&
+    if (String(config.environment || "").toUpperCase() === "LIVE" &&
         (process.env.VERIFYFLOW_LIVE_ORDERS_ENABLED !== "true" || !fulfilmentSwitches[selectedProvider])) {
       return sendJson(res, 503, {
         ok: false,
