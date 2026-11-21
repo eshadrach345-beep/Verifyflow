@@ -6,6 +6,7 @@ const { getSquadConfig, initiateSquadPayment } = require("../../lib/squad");
 const { quoteProduct: quoteVoidmobProduct } = require("../../lib/voidmob");
 const { quoteProduct: quoteHeroSmsProduct } = require("../../lib/herosms");
 const { getCheckoutAmount } = require("../../lib/checkout-currency");
+const { calculateVat } = require("../../lib/vat");
 const { ensureWalletAccount, postWalletTransaction } = require("../../lib/wallet");
 const { enqueuePaidOrder, processFulfilmentForOrder } = require("../../lib/fulfilment");
 const { openCatalogProductToken } = require("../../lib/catalog-token");
@@ -14,7 +15,7 @@ function validCheckoutKey(value) {
   return typeof value === "string" && /^[A-Za-z0-9_-]{20,80}$/.test(value);
 }
 
-async function createWalletOrder({ user, checkoutKey, productType, selectedProvider, quote, sandboxMode }) {
+async function createWalletOrder({ user, checkoutKey, productType, selectedProvider, quote, tax, sandboxMode }) {
   const pool = getPool();
   const client = await pool.connect();
   let orderId = null;
@@ -47,7 +48,7 @@ async function createWalletOrder({ user, checkoutKey, productType, selectedProvi
       [user.id]
     );
     const balanceMinor = Number(wallet.rows[0]?.balance_minor || 0);
-    if (balanceMinor < quote.salePriceCents) {
+    if (balanceMinor < tax.totalUsdMinor) {
       await client.query("ROLLBACK");
       const error = new Error("Your wallet balance is too low. Add funds or choose Squad at checkout.");
       error.code = "WALLET_INSUFFICIENT_FUNDS";
@@ -67,8 +68,12 @@ async function createWalletOrder({ user, checkoutKey, productType, selectedProvi
         supplierInput: quote.supplierInput,
         supplierPriceCents: quote.supplierPriceCents,
         retailPriceCents: quote.salePriceCents,
+        retailTotalCents: tax.totalUsdMinor,
+        vatRate: tax.rate,
+        vatAmountMinor: tax.vatMinor,
+        vatCurrency: "USD",
         retailCurrency: "USD",
-        paymentAmountMinor: quote.salePriceCents,
+        paymentAmountMinor: tax.totalUsdMinor,
         currency: "USD",
         paymentMethod: "wallet",
         walletPaid: true,
@@ -77,28 +82,28 @@ async function createWalletOrder({ user, checkoutKey, productType, selectedProvi
     };
     await client.query(
       "INSERT INTO vf_orders (id, user_id, order_number, provider, product_type, product_name, status, currency, subtotal_minor, total_minor, idempotency_key, checkout_key, metadata) " +
-      "VALUES ($1, $2, $3, $4, $5, $6, 'paid', 'USD', $7, $7, $8, $9, $10::jsonb)",
+      "VALUES ($1, $2, $3, $4, $5, $6, 'paid', 'USD', $7, $8, $9, $10, $11::jsonb)",
       [orderId, user.id, orderNumber, quote.provider || selectedProvider, productType, quote.productName,
-        quote.salePriceCents, orderIdempotencyKey, checkoutKey, JSON.stringify(metadata)]
+        quote.salePriceCents, tax.totalUsdMinor, orderIdempotencyKey, checkoutKey, JSON.stringify(metadata)]
     );
     await client.query(
       "INSERT INTO vf_payments (order_id, payment_reference, currency, amount_minor, status) " +
-      "VALUES ($1, $2, 'USD', $3, 'paid')",
-      [orderId, walletReference, quote.salePriceCents]
+      "VALUES ($1, $2, 'USD', $3, 'paid', 'squad')",
+      [orderId, walletReference, tax.totalUsdMinor]
     );
     await postWalletTransaction(client, {
       userId: user.id,
-      amountMinor: -quote.salePriceCents,
+      amountMinor: -tax.totalUsdMinor,
       type: "purchase",
       referenceType: "wallet_order",
       referenceId: orderId,
       description: "Purchase: " + quote.productName,
-      metadata: { orderId, orderNumber, paymentReference: walletReference }
+      metadata: { orderId, orderNumber, paymentReference: walletReference, subtotalMinor: quote.salePriceCents, vatMinor: tax.vatMinor, vatRate: tax.rate }
     });
     await enqueuePaidOrder(client, orderId);
     await client.query(
       "INSERT INTO vf_order_events (order_id, event_type, message, details) VALUES ($1, 'wallet_payment_confirmed', 'Order paid from VerifyFlow wallet balance.', $2::jsonb)",
-      [orderId, JSON.stringify({ walletAmountMinor: quote.salePriceCents, currency: "USD" })]
+      [orderId, JSON.stringify({ walletAmountMinor: tax.totalUsdMinor, subtotalMinor: quote.salePriceCents, vatMinor: tax.vatMinor, vatRate: tax.rate, currency: "USD" })]
     );
     await client.query("COMMIT");
   } catch (error) {
@@ -241,7 +246,7 @@ module.exports = async function handler(req, res) {
     if (paymentMethod === "wallet") {
       try {
         const result = await createWalletOrder({
-          user, checkoutKey, productType, selectedProvider, quote,
+          user, checkoutKey, productType, selectedProvider, quote, tax: calculateVat(quote.salePriceCents),
           sandboxMode: String(config.environment || "").toUpperCase() !== "LIVE"
         });
         return sendJson(res, 200, result);
@@ -252,9 +257,13 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    const checkoutAmount = getCheckoutAmount(quote.salePriceCents);
+    const tax = calculateVat(quote.salePriceCents);
+    const checkoutAmount = getCheckoutAmount(tax.totalUsdMinor);
     const paymentCurrency = checkoutAmount.currency;
     const paymentAmountMinor = checkoutAmount.amountMinor;
+    const subtotalCheckoutAmount = getCheckoutAmount(quote.salePriceCents);
+    const subtotalPaymentMinor = subtotalCheckoutAmount.amountMinor;
+    const vatPaymentMinor = paymentAmountMinor - subtotalPaymentMinor;
 
     const pool = getPool();
     const existing = await pool.query(
@@ -294,6 +303,12 @@ module.exports = async function handler(req, res) {
         supplierInput: quote.supplierInput,
         supplierPriceCents: quote.supplierPriceCents,
         retailPriceCents: quote.salePriceCents,
+        retailTotalCents: tax.totalUsdMinor,
+        vatRate: tax.rate,
+        vatAmountMinor: tax.vatMinor,
+        vatCurrency: "USD",
+        vatPaymentMinor,
+        subtotalPaymentMinor,
         retailCurrency: "USD",
         paymentAmountMinor,
         currency: paymentCurrency,
@@ -307,8 +322,8 @@ module.exports = async function handler(req, res) {
       await client.query("BEGIN");
       await client.query(
         "INSERT INTO vf_orders (id, user_id, order_number, provider, product_type, product_name, status, currency, subtotal_minor, total_minor, idempotency_key, checkout_key, metadata) " +
-        "VALUES ($1, $2, $3, $4, $5, $6, 'awaiting_payment', $7, $8, $8, $9, $10, $11::jsonb)",
-        [orderId, user.id, orderNumber, quote.provider || selectedProvider, productType, quote.productName, paymentCurrency, paymentAmountMinor,
+        "VALUES ($1, $2, $3, $4, $5, $6, 'awaiting_payment', $7, $8, $9, $10, $11, $12::jsonb)",
+        [orderId, user.id, orderNumber, quote.provider || selectedProvider, productType, quote.productName, paymentCurrency, subtotalPaymentMinor, paymentAmountMinor,
           orderIdempotencyKey, checkoutKey, JSON.stringify(metadata)]
       );
       await client.query(
@@ -349,12 +364,12 @@ module.exports = async function handler(req, res) {
       );
       await pool.query(
         "INSERT INTO vf_order_events (order_id, event_type, message, details) VALUES ($1, 'checkout_created', $2, $3::jsonb)",
-        [orderId, "Secure " + paymentCurrency + " Squad checkout was created.", JSON.stringify({ paymentReference, amountMinor: paymentAmountMinor, currency: paymentCurrency, retailUsdMinor: quote.salePriceCents, usdNgnRate: checkoutAmount.usdNgnRate })]
+        [orderId, "Secure " + paymentCurrency + " Squad checkout was created.", JSON.stringify({ paymentReference, amountMinor: paymentAmountMinor, subtotalMinor: subtotalPaymentMinor, vatMinor: vatPaymentMinor, vatRate: tax.rate, currency: paymentCurrency, retailUsdMinor: quote.salePriceCents, retailUsdTotalMinor: tax.totalUsdMinor, vatUsdMinor: tax.vatMinor, usdNgnRate: checkoutAmount.usdNgnRate })]
       );
       return sendJson(res, 200, {
         ok: true, checkoutUrl, paymentReference,
         orderNumber, productName: quote.productName, amountMinor: paymentAmountMinor, currency: paymentCurrency,
-        usdAmountMinor: quote.salePriceCents, usdNgnRate: checkoutAmount.usdNgnRate,
+        usdAmountMinor: quote.salePriceCents, vatRate: tax.rate, vatAmountUsdMinor: tax.vatMinor, totalUsdAmountMinor: tax.totalUsdMinor, subtotalAmountMinor: subtotalPaymentMinor, vatAmountMinor: vatPaymentMinor, usdNgnRate: checkoutAmount.usdNgnRate,
         provider: paymentMethod,
         note: "Payment is verified against the amount and currency received from the selected gateway before supplier fulfilment begins."
       });
