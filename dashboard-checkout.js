@@ -15,8 +15,6 @@
   const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[char]));
-  const VAT_RATE_PERCENT = 7.5;
-  const vatFor = cents => Math.round(Number(cents) * VAT_RATE_PERCENT / 100);
   const money = cents => {
     try { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(cents) / 100); }
     catch { return "USD " + (Number(cents) / 100).toFixed(2); }
@@ -27,7 +25,7 @@ document.body.insertAdjacentHTML("beforeend", `
       <form id="vf-checkout-form">
         <div class="vf-checkout-head"><div><span class="catalog-eyebrow">SECURE CHECKOUT</span><h2 id="vf-checkout-title">Review your order</h2></div><button type="button" id="vf-checkout-close" aria-label="Close checkout">×</button></div>
         <p id="vf-checkout-product" class="vf-checkout-product"></p>
-        <div class="vf-checkout-price"><span>Product subtotal</span><strong id="vf-checkout-subtotal">—</strong></div><div class="vf-checkout-price"><span>VAT (7.5%)</span><strong id="vf-checkout-vat">—</strong></div><div class="vf-checkout-price"><span>Total payable</span><strong id="vf-checkout-price">—</strong></div>
+        <div class="vf-checkout-price"><span>Estimated total</span><strong id="vf-checkout-price">—</strong></div>
         <fieldset class="vf-payment-choice">
           <legend>How would you like to pay?</legend>
           <label><input type="radio" name="vf-payment-method" value="wallet"> <span>Pay from my VerifyFlow wallet <small id="vf-wallet-balance" class="vf-wallet-balance">Checking wallet balance…</small></span></label>
@@ -37,7 +35,7 @@ document.body.insertAdjacentHTML("beforeend", `
         <p class="vf-checkout-note">The final price is confirmed using a fresh supplier quote before payment.</p>
         <label id="vf-duration-wrap" class="catalog-duration" hidden>Rental period<select id="vf-duration-select"></select></label>
         <label id="vf-herosms-method-wrap" class="catalog-duration" hidden>Verification method<select id="vf-herosms-method-select"><option value="sms">SMS</option></select></label>
-        <p class="vf-checkout-note">Catalogue prices are shown in USD. Squad checkout supports card, bank, USSD and transfer. VerifyFlow adds 7.5% Nigerian VAT to taxable purchases. The VAT and total are shown above before you pay. Local Squad payments are converted to NGN using the configured rate.</p>
+        <p class="vf-checkout-note">Catalogue prices are shown in USD. Squad checkout supports card, bank, USSD and transfer. Local Squad payments are converted to NGN using the configured rate. Any applicable tax will be calculated once your billing location and product tax treatment are confirmed.</p>
         <p id="vf-checkout-message" class="vf-checkout-message" role="status" aria-live="polite"></p>
         <button id="vf-checkout-submit" class="vf-buy-button" type="submit">Continue to secure payment ↗</button>
       </form>
@@ -68,11 +66,9 @@ document.body.insertAdjacentHTML("beforeend", `
   }
 
   function renderEstimate(subtotal) {
-    const vat = vatFor(subtotal);
-    document.getElementById("vf-checkout-subtotal").textContent = money(subtotal);
-    document.getElementById("vf-checkout-vat").textContent = money(vat);
-    document.getElementById("vf-checkout-price").textContent = money(Number(subtotal) + vat);
-    return { vat, total: Number(subtotal) + vat };
+    const total = Number(subtotal);
+    document.getElementById("vf-checkout-price").textContent = money(total);
+    return { vat: 0, total };
   }
 
   function key() {
