@@ -504,7 +504,26 @@ document.body.insertAdjacentHTML("beforeend", `
       renderEstimate(chosen.price);
     }
   });
-  document.getElementById("vf-checkout-close").addEventListener("click", () => dialog.close());
+  function resetCheckoutAfterCancel() {
+    selected = null;
+    form.reset();
+    message.textContent = "";
+    submit.disabled = false;
+    submit.textContent = "Continue to secure payment ↗";
+    document.getElementById("vf-duration-wrap").hidden = true;
+    document.getElementById("vf-herosms-method-wrap").hidden = true;
+  }
+  document.getElementById("vf-checkout-close").addEventListener("click", () => {
+    dialog.close();
+    resetCheckoutAfterCancel();
+  });
+  // Mobile browsers may restore this page from the back-forward cache after
+  // the customer cancels at Squad. Clear the stale in-flight submit state.
+  window.addEventListener("pageshow", event => {
+    if (!event.persisted) return;
+    if (dialog.open) dialog.close();
+    resetCheckoutAfterCancel();
+  });
   document.getElementById("vf-herosms-method-select").addEventListener("change", event => {
     if (!selected) return;
     selected.verificationType = event.target.value;
