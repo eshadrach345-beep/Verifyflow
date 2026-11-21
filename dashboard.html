@@ -526,6 +526,8 @@
 .catalog-service-group>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:42px;padding:9px 11px;list-style:none;cursor:pointer;background:#f8fafc;font:700 12px Inter,Arial,sans-serif;color:#314158}
 .catalog-service-group>summary small{font:600 10px Inter,Arial,sans-serif;color:#8290a1}
 .catalog-service-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:8px}
+.catalog-marketing-more{grid-column:1/-1;justify-self:center;border:1px solid #c8d0d2;background:#fff;color:#263747;border-radius:22px;padding:10px 17px;font:700 12px Inter,Arial,sans-serif;cursor:pointer}
+.catalog-marketing-more:hover{background:#f3f6f7}
 .catalog-service-list .catalog-item{grid-column:auto!important}
 .catalog-service-list .catalog-compact{grid-template-columns:48px minmax(0,1fr)!important}
 .catalog-service-list .catalog-compact .catalog-item-visual{width:48px!important;min-height:72px!important}
@@ -674,6 +676,7 @@
  if(countryInput&&/^[a-z]{2}$/i.test(requestedCountry))countryInput.value=requestedCountry.toLowerCase();
  let active=categoryKeys.includes(requestedCategory)?requestedCategory:"all", catalogue=null, loading=false, reloadRequested=false, renderedCount=24;
  const PAGE_SIZE=24;
+ let marketingGroupSequence=0;
  const topSearch=document.getElementById("vf-dash-search");
  if(searchInput) searchInput.value=requestedSearch;
  if(topSearch) topSearch.value=requestedSearch;
@@ -949,7 +952,20 @@
   card.querySelector(".catalog-category-label")?.remove();
   return card.outerHTML;
  }
+ const marketingGroupData=new Map();
+ const MARKETING_PAGE_SIZE=20;
+ function renderMarketingGroup(groupId){
+  const group=marketingGroupData.get(String(groupId));
+  const container=grid?.querySelector('[data-marketing-list="'+groupId+'"]');
+  if(!group||!container)return;
+  const visible=group.items.slice(0,group.visibleCount);
+  container.innerHTML=visible.map(item=>compactProductCard("marketing",item)).join("")+
+   (visible.length<group.items.length
+    ?'<button type="button" class="catalog-marketing-more" data-marketing-more="'+groupId+'">Load more services ('+Math.min(MARKETING_PAGE_SIZE,group.items.length-visible.length)+' more)</button>'
+    :'');
+ }
  function renderMarketingHierarchy(rows){
+  marketingGroupData.clear();
   const platforms=new Map();
   rows.forEach(({item})=>{
    const platform=String(item.platform||"Other").trim()||"Other";
@@ -963,8 +979,9 @@
    const brand=logoFor(platform,"marketing");
    const count=[...groups.values()].reduce((sum,items)=>sum+items.length,0);
    const subgroups=[...groups.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([subcategory,items])=>{
-    const services=items.map(item=>compactProductCard("marketing",item)).join("");
-    return '<details class="catalog-service-group"><summary><span>'+esc(subcategory)+'</span><small>'+items.length+' '+(items.length===1?"service":"services")+'</small></summary><div class="catalog-service-list">'+services+'</div></details>';
+    const groupId=String(++marketingGroupSequence);
+    marketingGroupData.set(groupId,{items,visibleCount:MARKETING_PAGE_SIZE});
+    return '<details class="catalog-service-group" data-marketing-group="'+groupId+'"><summary><span>'+esc(subcategory)+'</span><small>'+items.length+' '+(items.length===1?"service":"services")+'</small></summary><div class="catalog-service-list" data-marketing-list="'+groupId+'"></div></details>';
    }).join("");
    return '<details class="catalog-platform-group"><summary><span class="catalog-platform-icon"><img src="'+esc(brand.url)+'" data-fallback="'+esc(brand.fallback)+'" alt="" loading="lazy" onerror="if(this.dataset.fallback&&this.src!==this.dataset.fallback){this.src=this.dataset.fallback}else{this.hidden=true}"></span><span class="catalog-platform-name">'+esc(platform)+'</span><small>'+count+' '+(count===1?"service":"services")+'</small><span class="catalog-chevron" aria-hidden="true">⌄</span></summary><div class="catalog-platform-content">'+subgroups+'</div></details>';
   }).join("");
@@ -1197,6 +1214,23 @@
  platformFilter?.addEventListener("change",()=>{updateMarketingFilters();renderedCount=PAGE_SIZE;render();});
  subcategoryFilter?.addEventListener("change",()=>{renderedCount=PAGE_SIZE;render();});
  if(loadMore)loadMore.addEventListener("click",()=>{renderedCount+=PAGE_SIZE;render();});
+ if(grid){
+  grid.addEventListener("toggle",event=>{
+   const group=event.target;
+   if(group instanceof HTMLDetailsElement&&group.open&&group.hasAttribute("data-marketing-group")){
+    renderMarketingGroup(group.getAttribute("data-marketing-group"));
+   }
+  },true);
+  grid.addEventListener("click",event=>{
+   const button=event.target.closest("[data-marketing-more]");
+   if(!button)return;
+   const groupId=button.getAttribute("data-marketing-more");
+   const group=marketingGroupData.get(groupId);
+   if(!group)return;
+   group.visibleCount=Math.min(group.items.length,group.visibleCount+MARKETING_PAGE_SIZE);
+   renderMarketingGroup(groupId);
+  });
+ }
  if(categoryToggle&&categoryMenu){
   const categoryBackdrop=document.getElementById("vf-category-backdrop");
   const categoryClose=document.getElementById("vf-category-close");
