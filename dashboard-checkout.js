@@ -372,7 +372,8 @@ document.body.insertAdjacentHTML("beforeend", `
       activateServiceCard(cardTile);
       return;
     }
-    if (button.disabled) return;
+    if (button.disabled || button.dataset.vfOpening === "true") return;
+    button.dataset.vfOpening = "true";
     await sessionReady;
     if (!signedIn) {
       const card = button.closest(".catalog-item");
@@ -386,7 +387,6 @@ document.body.insertAdjacentHTML("beforeend", `
       window.location.assign(accountUrl.toString());
       return;
     }
-    await refreshWalletBalance();
     const card = button.closest(".catalog-item");
     const productType = button.dataset.productType;
     let smmTargetUrl = "", smmQuantity = 0;
@@ -483,6 +483,9 @@ document.body.insertAdjacentHTML("beforeend", `
         });
     }
     dialog.showModal();
+    // Do not hold the checkout modal open while the wallet API responds.
+    refreshWalletBalance();
+    delete button.dataset.vfOpening;
   });
 
   grid.addEventListener("keydown", event => {
