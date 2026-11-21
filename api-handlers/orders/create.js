@@ -16,8 +16,8 @@ function validCheckoutKey(value) {
 }
 
 function normalizeBillingCountry(value) {
-  const country = String(value || "").trim().replace(/\\s+/g, " ");
-  if (country.length < 2 || country.length > 80 || !/^[\\p{L}][\\p{L} .’'()-]{1,78}$/u.test(country)) return null;
+  const country = String(value || "").trim().replace(/\s+/g, " ");
+  if (country.length < 2 || country.length > 80 || !/^[\p{L}][\p{L} .’'()-]{1,78}$/u.test(country)) return null;
   return /^nigeria$/i.test(country) ? "Nigeria" : country;
 }
 
