@@ -28,11 +28,20 @@ async function main() {
     assert.equal(ok.mode, "account_api");
     assert.equal(ok.accountKeyConfigured, true);
     assert.equal(ok.retailApiConfigured, true);
-    global.fetch = async () => new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
-    const bad = await readAccount();
-    assert.equal(bad.connected, false);
-    assert.equal(bad.retailApiConfigured, true);
-    assert.match(bad.message, /rejected/i);
+    global.fetch = async (input) => {
+      if (String(input).includes("partners-api.hero-sms.com")) {
+        return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+      }
+      assert.match(String(input), /hero-sms\\.com\\/stubs\\/handler_api\\.php/);
+      assert.match(String(input), /action=getBalance/);
+      assert.match(String(input), /api_key=retail-test-key/);
+      return new Response("ACCESS_BALANCE:8.42", { status: 200 });
+    };
+    const fallback = await readAccount();
+    assert.equal(fallback.connected, true);
+    assert.equal(fallback.balance, 8.42);
+    assert.equal(fallback.mode, "retail_compatibility_api");
+    assert.equal(fallback.accountKeyConfigured, false);
   } finally {
     global.fetch = oldFetch;
     if (oldKey === undefined) delete process.env.HEROSMS_API_KEY;
