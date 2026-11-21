@@ -434,3 +434,67 @@ body.vf-category-open{overflow:hidden!important}
  .catalog-item-copy{padding:11px!important}
  .catalog-item-detail{min-height:34px!important;-webkit-line-clamp:2!important}
 }
+
+
+/* Checkout contrast pass: clear payment choices on mobile and desktop */
+.vf-checkout-dialog{
+  background:#ffffff!important;
+  color:#172b3b!important;
+  border:1px solid #d8e1e8!important;
+}
+.vf-checkout-dialog .vf-checkout-head h2{color:#172b3b!important}
+.vf-checkout-dialog .vf-checkout-head .catalog-eyebrow{color:#087d70!important}
+.vf-checkout-dialog .vf-checkout-product{
+  background:#f2f7f8!important;border-color:#dce7e9!important;color:#243b4a!important
+}
+.vf-checkout-dialog .vf-billing-country{color:#243b4a!important}
+.vf-checkout-dialog .vf-billing-country input{
+  background:#f5f8fa!important;border:1px solid #aebdc8!important;color:#172b3b!important;
+  -webkit-text-fill-color:#172b3b!important;opacity:1!important
+}
+.vf-checkout-dialog .vf-checkout-price{
+  color:#405466!important;border-color:#dce4e9!important
+}
+.vf-checkout-dialog .vf-checkout-price strong{color:#087d70!important}
+.vf-checkout-dialog .vf-payment-choice{
+  background:#f7fafb!important;border:1px solid #cbd8df!important
+}
+.vf-checkout-dialog .vf-payment-choice legend{
+  color:#172b3b!important;font-weight:800!important
+}
+.vf-checkout-dialog .vf-payment-choice label{
+  color:#203747!important;font-weight:700!important;opacity:1!important
+}
+.vf-checkout-dialog .vf-payment-choice label small{
+  color:#536879!important;opacity:1!important
+}
+.vf-checkout-dialog .vf-payment-choice input[type="radio"]{
+  accent-color:#087d70!important;opacity:1!important
+}
+.vf-checkout-dialog .vf-wallet-balance{color:#087d70!important}
+.vf-checkout-dialog .account-text-link{
+  color:#087d70!important;font-weight:800!important;text-decoration:underline!important;
+  text-underline-offset:3px!important
+}
+.vf-checkout-dialog .vf-checkout-note{
+  color:#405466!important;font-weight:500!important
+}
+.vf-checkout-dialog #vf-checkout-submit{
+  color:#ffffff!important;background:linear-gradient(135deg,#087d70,#075b58)!important;
+  border:1px solid #075b58!important;opacity:1!important
+}
+.vf-checkout-dialog #vf-checkout-submit:disabled{
+  color:#ffffff!important;opacity:1!important;filter:none!important
+}
+.vf-checkout-dialog .vf-payment-choice label.is-unavailable{
+  color:#687987!important;opacity:1!important
+}
+.vf-checkout-dialog .vf-payment-choice label.is-unavailable small{
+  color:#687987!important
+}
+@media(max-width:600px){
+  .vf-checkout-dialog{padding:20px!important}
+  .vf-checkout-dialog .vf-payment-choice{padding:14px!important}
+  .vf-checkout-dialog .vf-payment-choice label{font-size:14px!important;line-height:1.55!important}
+  .vf-checkout-dialog .vf-checkout-note{font-size:13px!important;line-height:1.65!important}
+}
