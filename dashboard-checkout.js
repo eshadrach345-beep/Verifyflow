@@ -503,7 +503,7 @@ document.body.insertAdjacentHTML("beforeend", `
     const chosen = (selected.heroSmsMethods || []).find(method => method.type === selected.verificationType);
     if (chosen) {
       selected.estimate = Number(chosen.priceCents);
-      document.getElementById("vf-checkout-price").textContent = money(selected.estimate);
+      renderEstimate(selected.estimate);
     }
   });
 
