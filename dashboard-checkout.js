@@ -42,6 +42,7 @@ document.body.insertAdjacentHTML("beforeend", `
           <a href="/account.html?panel=wallet" class="account-text-link">Fund your wallet ↗</a>
         </fieldset>
         <p class="vf-checkout-note">The final price is confirmed using a fresh supplier quote before payment.</p>
+        <p class="vf-checkout-note">For billing addresses outside Nigeria, Squad's minimum payment is $10. If your order costs less than $10, the difference is credited to your USD VerifyFlow wallet after successful payment.</p>
         <label id="vf-duration-wrap" class="catalog-duration" hidden>Rental period<select id="vf-duration-select"></select></label>
         <label id="vf-herosms-method-wrap" class="catalog-duration" hidden>Verification method<select id="vf-herosms-method-select"><option value="sms">SMS</option></select></label>
         <p class="vf-checkout-note">Catalogue prices are shown in USD. Squad checkout supports card, bank, USSD and transfer. Local Squad payments are converted to NGN using the configured rate. Enter the country associated with your billing address. VerifyFlow currently collects no VAT until the applicable tax treatment is confirmed.</p>
