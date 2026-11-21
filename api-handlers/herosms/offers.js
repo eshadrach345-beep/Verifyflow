@@ -14,27 +14,64 @@ module.exports = async function handler(req, res) {
         !Number.isSafeInteger(Number(selection.countryId)) || Number(selection.countryId) < 0) {
       return sendJson(res, 400, { ok: false, error: "Refresh the catalogue and choose a valid HeroSMS SMS product." });
     }
-    // The signed catalogue token carries the supplier country ID. Avoid a
-    // second legacy catalogue lookup; method availability is read from retail v1.
-    const types = ["sms", "call", "voice"];
-    const results = await Promise.all(types.map(async type => {
+
+    // An unavailable method must not suppress the other methods that work.
+    const definitions = [
+      { type: "sms", label: "Text (SMS)" },
+      { type: "call", label: "Voice call" },
+      { type: "voice", label: "Voice + Text (All-in-One)" }
+    ];
+    const failures = [];
+    const results = await Promise.all(definitions.map(async method => {
       try {
-        const offer = await getVerificationOffer(selection.productId, Number(selection.countryId), type);
-        return {
-          type,
-          label: type === "sms" ? "Text (SMS)" : type === "call" ? "Voice call" : "Text + Voice (All-in-One)",
-          priceCents: retailPriceCents(offer.supplierPriceCents, "sms")
-        };
+        const offer = await getVerificationOffer(
+          selection.productId,
+          Number(selection.countryId),
+          method.type
+        );
+        const priceCents = retailPriceCents(offer.supplierPriceCents, "sms");
+        if (!Number.isSafeInteger(priceCents) || priceCents <= 0) {
+          failures.push({ type: method.type, code: "INVALID_OFFER_PRICE", status: 502 });
+          return null;
+        }
+        return { type: method.type, label: method.label, priceCents };
       } catch (error) {
-        if (error.code === "VERIFICATION_METHOD_UNAVAILABLE") return null;
-        throw error;
+        const status = Number(error.status) || 0;
+        const unavailable = error.code === "VERIFICATION_METHOD_UNAVAILABLE" ||
+          [400, 404, 409, 422].includes(status);
+        if (!unavailable) {
+          failures.push({
+            type: method.type,
+            code: String(error.code || "HEROSMS_OFFER_FAILED").slice(0, 80),
+            status: status || null
+          });
+        }
+        return null;
       }
     }));
+
     const methods = results.filter(Boolean);
-    if (!methods.length) return sendJson(res, 409, { ok: false, error: "No verification methods are currently available for this service." });
+    if (failures.length) {
+      console.warn("[herosms/offers] partial method lookup", JSON.stringify(failures));
+    }
+    if (!methods.length && failures.length) {
+      return sendJson(res, 503, {
+        ok: false,
+        error: "HeroSMS verification options are temporarily unavailable. Please refresh and try again."
+      });
+    }
+    if (!methods.length) {
+      return sendJson(res, 409, {
+        ok: false,
+        error: "No verification methods are currently available for this service."
+      });
+    }
     return sendJson(res, 200, { ok: true, methods });
   } catch (error) {
     console.error("[herosms/offers]", error.code || error.message);
-    return sendJson(res, 503, { ok: false, error: "HeroSMS verification options are temporarily unavailable. Please refresh and try again." });
+    return sendJson(res, 503, {
+      ok: false,
+      error: "HeroSMS verification options are temporarily unavailable. Please refresh and try again."
+    });
   }
 };

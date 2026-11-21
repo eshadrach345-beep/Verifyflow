@@ -29,6 +29,7 @@ const fulfilment = fs.readFileSync("lib/fulfilment.js", "utf8");
 const proxyCatalog = fs.readFileSync("api-handlers/catalog.js", "utf8");
 const proxySupplier = fs.readFileSync("lib/voidmob.js", "utf8");
 const accountPage = fs.readFileSync("account.html", "utf8");
+const herosmsOffers = fs.readFileSync("api-handlers/herosms/offers.js", "utf8");
 
 const categories = ["sms", "rentals", "dedicated", "esim", "proxies", "marketing"];
 
@@ -44,6 +45,12 @@ assert.ok(dashboard.includes('id="smm-platform-filter"') && dashboard.includes('
 assert.ok(dashboard.includes('active!=="marketing"||category!=="marketing"'), "SMM filters must not hide products when customers return to All products");
 assert.ok(dashboard.includes("const dedupeProducts=") && dashboard.includes("priceOf(item)>previous.price"),
   "The customer catalogue must remove duplicate listings while retaining the highest retail price");
+assert.ok(dashboard.includes('const preferHeroSms=category==="sms"&&itemHasMethods&&!previousHasMethods;'),
+  "SMS duplicate cleanup must preserve HeroSMS rows that offer multiple verification methods");
+assert.ok(herosmsOffers.includes('{ type: "voice", label: "Voice + Text (All-in-One)" }') &&
+  herosmsOffers.includes('{ type: "call", label: "Voice call" }') &&
+  herosmsOffers.includes("Promise.all(definitions.map") && herosmsOffers.includes("VERIFICATION_METHOD_UNAVAILABLE"),
+  "SMS, voice and voice-plus-text offers must load independently");
 assert.ok(dashboard.includes('data-vf-card-open') && checkout.includes('event.target.closest("[data-vf-card-open]")'),
   "Every product card must have a working Choose options action");
 assert.ok(dashboard.includes('id="vf-category-backdrop"') && dashboard.includes('role="dialog"') &&
@@ -269,6 +276,17 @@ assert.ok(sitemap.includes("<loc>https://verifyflow.us.ci/</loc>"));
 assert.ok(sitemap.includes("<loc>https://verifyflow.us.ci/dashboard.html</loc>"));
 
 assert.ok(dashboard.includes("function compactProductCard(category,item)"), "Customer catalogue must render compact icon-led product rows");
+assert.ok(dashboard.includes("CATALOG_CACHE_TTL=12*60*60*1000") && dashboard.includes("function showCatalogueSkeleton()"),
+  "Cold catalogue visits must show immediate placeholders and reuse saved listings for longer");
+assert.ok(dashboard.includes(".catalog-compact .catalog-price-row{background:#edf6f4!important") &&
+  dashboard.includes("catalog-price-row strong{display:block!important;visibility:visible!important"),
+  "Retail prices must remain prominent in compact product rows");
+assert.ok([home,dashboard,accountPage].every(page => page.includes('class="brand-app-icon"') && page.includes('href="/verifyflow-icon.svg"')),
+  "Homepage, marketplace and account pages must use the icon-only brand and favicon");
+assert.ok(proxyCatalog.includes("public, s-maxage=300, stale-while-revalidate=3600"),
+  "The public catalogue must use a longer CDN cache window");
+assert.ok(![home,dashboard,accountPage,styles].some(page => /#(?:ffd814|f7ca00|e2ba00|fff4d9|fff4d6)/i.test(page)),
+  "Customer-facing pages must not use the eye-straining yellow accents");
 assert.ok(dashboard.includes("function renderMarketingHierarchy(rows)"), "SMM catalogue must group services by platform and subcategory");
 assert.ok(dashboard.includes('class="catalog-platform-group"') && dashboard.includes('class="catalog-service-group"'), "SMM platform and service groups must be expandable dropdowns");
 assert.ok(dashboard.includes('x.description||""'), "SMM services must display their actual supplier description when available");
