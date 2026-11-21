@@ -18,12 +18,12 @@
 .account-loading strong,.account-error strong{display:block;font-size:18px;margin-bottom:7px;color:#0f1111}
 .account-hero{display:flex;align-items:center;justify-content:space-between;gap:22px;background:linear-gradient(110deg,#131921,#263c54 70%,#174b60);color:#fff;border-radius:12px;padding:26px 30px;margin-bottom:18px;box-shadow:0 5px 16px rgba(15,17,17,.10)}
 .account-hero-main{display:flex;align-items:center;gap:16px;min-width:0}
-.account-avatar{width:58px;height:58px;flex:0 0 58px;display:grid;place-items:center;border-radius:16px;background:#8de0cc;color:#111;font-size:23px;font-weight:900}
+.account-avatar{width:58px;height:58px;flex:0 0 58px;display:grid;place-items:center;border-radius:16px;background:#ffd814;color:#111;font-size:23px;font-weight:900}
 .account-hero h1{font-size:28px;line-height:1.2;letter-spacing:-.7px;margin:0 0 6px;color:#fff}
 .account-hero p{font-size:14px;color:#d7e0e8;margin:0;overflow-wrap:anywhere}
 .account-hero-actions{display:flex;align-items:center;gap:10px;flex:0 0 auto}
 .account-dashboard-link,.account-signout{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 16px;border-radius:22px;font:700 13px Inter,Arial;text-decoration:none;cursor:pointer}
-.account-dashboard-link{background:#8de0cc;color:#111;border:1px solid #5fcbb2}
+.account-dashboard-link{background:#ffd814;color:#111;border:1px solid #e2ba00}
 .account-signout{background:transparent;color:#fff;border:1px solid #8292a3}
 .account-nav{display:flex;gap:8px;overflow-x:auto;padding:7px;background:#fff;border:1px solid #d5d9d9;border-radius:10px;margin-bottom:18px}
 .account-nav button{flex:0 0 auto;border:1px solid transparent;background:transparent;color:#39434b;border-radius:22px;padding:11px 17px;font:700 13px Inter,Arial;cursor:pointer}
@@ -62,7 +62,7 @@
 .profile-field input[readonly]{background:#f4f6f6;color:#647078}
 .profile-field small{font-size:11px;color:#77838a;line-height:1.45}
 .profile-actions{grid-column:1/-1;display:flex;align-items:center;gap:14px;margin-top:3px}
-.profile-save,.auth-submit{min-height:46px;border:1px solid #5fcbb2;border-radius:24px;background:#8de0cc;color:#111;font:800 14px Inter,Arial;cursor:pointer;padding:0 22px}
+.profile-save,.auth-submit{min-height:46px;border:1px solid #e2ba00;border-radius:24px;background:#ffd814;color:#111;font:800 14px Inter,Arial;cursor:pointer;padding:0 22px}
 .profile-save:disabled,.auth-submit:disabled{opacity:.65;cursor:wait}
 .profile-message{font-size:13px;color:#237044;margin:0}
 .profile-message.error{color:#b42318}
@@ -75,14 +75,14 @@
 .order-status{display:inline-flex;padding:6px 10px;border-radius:20px;background:#eef3f4;color:#45545b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;margin-top:10px}
 .order-status.completed,.order-status.paid{background:#e7f5ec;color:#21653c}
 .order-status.failed,.order-status.cancelled,.order-status.refunded{background:#fff0ee;color:#a33a2e}
-.order-status.processing,.order-status.awaiting_payment{background:#eaf7f4;color:#8a6218}
+.order-status.processing,.order-status.awaiting_payment{background:#fff6df;color:#8a6218}
 .orders-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:16px}
 .auth-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);background:#fff;border:1px solid #d5d9d9;border-radius:13px;overflow:hidden;box-shadow:0 8px 25px rgba(15,17,17,.08)}
 .auth-aside{padding:42px;background:linear-gradient(145deg,#111d37,#1c3151 58%,#174b60);color:#fff;display:flex;flex-direction:column;justify-content:space-between;min-height:500px}
 .auth-aside h1{font-size:36px;line-height:1.1;letter-spacing:-1.2px;color:#fff;margin:56px 0 14px}
 .auth-aside p{font-size:14px;line-height:1.7;color:#d5e0ef;margin:0}
 .auth-brand{font-size:21px;font-weight:800;color:#fff}
-.auth-brand span{color:#8de0cc}
+.auth-brand span{color:#ffd814}
 .auth-main{padding:38px 42px}
 .auth-main h2{font-size:27px;margin:0 0 7px;color:#0f1111}
 .auth-lead{font-size:14px;color:#66727b;line-height:1.6;margin:0 0 20px}
@@ -213,7 +213,7 @@
 .wallet-balance-card .account-card-intro{color:#d6e3e7}
 .wallet-balance-amount{font:800 clamp(34px,5vw,48px)/1.1 Inter,Arial,sans-serif;letter-spacing:-1.5px;color:#fff;margin:18px 0 10px}
 .wallet-message{font:600 13px/1.5 Inter,Arial,sans-serif;color:#d6e3e7;margin:0 0 13px}
-.wallet-balance-card .account-text-link{color:#8de0cc}
+.wallet-balance-card .account-text-link{color:#ffe066}
 .wallet-fund-form{grid-template-columns:1fr;gap:13px}
 .wallet-fund-form .profile-actions{grid-column:1}
 .wallet-history-card{margin-top:16px}
@@ -234,14 +234,12 @@
 .account-welcome-toast[hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){.account-welcome-toast{transition:none}}
 </style>
-  <link rel="icon" type="image/svg+xml" href="/verifyflow-icon.svg">
-  <link rel="apple-touch-icon" href="/verifyflow-icon.svg">
 </head>
 <body>
 <div class="announcement">Your VerifyFlow account <span class="announce-divider">/</span> Profile, orders and activity</div>
 <header class="vf-store-header">
  <div class="vf-topbar">
-  <a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><img class="brand-app-icon" src="/verifyflow-icon.svg" alt="" width="44" height="44"></a>
+  <a class="brand vf-store-brand" href="/" aria-label="VerifyFlow home"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a>
   <a class="vf-location" href="/#services"><small>Explore</small><strong>All services</strong></a>
   <form class="vf-search" action="/#services" role="search"><label class="sr-only" for="account-search">Search services</label><input id="account-search" type="search" placeholder="Search SMS, eSIM, numbers, proxies..."><button type="submit" aria-label="Search services">⌕</button></form>
   <a class="vf-account" href="/dashboard.html"><small>Your space</small><strong>Dashboard</strong></a>
@@ -360,7 +358,7 @@
   </section>
  </section>
 </div></main>
-<footer class="site-footer"><div class="footer-main"><a class="brand brand-footer" href="/" aria-label="VerifyFlow home"><img class="brand-app-icon" src="/verifyflow-icon.svg" alt="" width="32" height="32"></a><p>One flow. Every connection.</p><div class="footer-links"><a href="/faq.html">FAQ</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/acceptable-use.html">Acceptable use</a></div></div><div class="footer-bottom"><span>© 2026 VerifyFlow. All rights reserved.</span><span>Designed for a world that never stands still.</span></div></footer>
+<footer class="site-footer"><div class="footer-main"><a class="brand brand-footer" href="/"><span class="brand-symbol">V</span><span>verify<span class="brand-light">flow</span></span></a><p>One flow. Every connection.</p><div class="footer-links"><a href="/faq.html">FAQ</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/acceptable-use.html">Acceptable use</a></div></div><div class="footer-bottom"><span>© 2026 VerifyFlow. All rights reserved.</span><span>Designed for a world that never stands still.</span></div></footer>
 <script>
 (() => {
  const loading=document.getElementById("account-loading");

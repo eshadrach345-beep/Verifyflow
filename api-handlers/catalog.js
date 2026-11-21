@@ -331,5 +331,5 @@ module.exports = async function handler(req, res) {
       proxies: proxyItems.length,
       dedicated: dedicatedItems.length
     }
-  }, "public, s-maxage=300, stale-while-revalidate=3600");
+  }, "public, s-maxage=30, stale-while-revalidate=120");
 };
