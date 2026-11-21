@@ -466,7 +466,7 @@ document.body.insertAdjacentHTML("beforeend", `
           ).join("");
           selected.verificationType = methodSelect.value;
           selected.estimate = Number(data.methods[0].priceCents);
-          document.getElementById("vf-checkout-price").textContent = money(selected.estimate);
+          renderEstimate(selected.estimate);
           message.textContent = "";
         })
         .catch(error => {
