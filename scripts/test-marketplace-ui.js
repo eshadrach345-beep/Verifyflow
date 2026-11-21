@@ -103,6 +103,13 @@ assert.ok(checkout.includes('visibleRows(category)'), "Checkout must search with
 
 assert.ok(dashboard.includes('id="catalog-country"') && dashboard.includes("populateCountryOptions(data.countries)"),
   "Country selector must be populated from the supported country catalogue");
+assert.ok(dashboard.includes('id="catalog-service-filter"') && dashboard.includes("updateCategoryFilters()"),
+  "Each connectivity category must expose a category-specific service dropdown");
+assert.ok(dashboard.includes('id="catalog-country-filter"') && dashboard.includes("countryMatches"),
+  "eSIM, proxy and dedicated-number categories must expose country/coverage filtering");
+assert.ok(dashboard.includes('catalog-icon-no-tile') && dashboard.includes("background:transparent!important") &&
+  dashboard.includes(".catalog-compact .catalog-art-icon"),
+  "Service logos must render without a white tile, frame, padding or shadow");
 assert.ok(dashboard.includes('"whatsapp","telegram","gmail"') && dashboard.includes('["sms","rentals"].includes(category)'),
   "Long-term rentals and SMS products must sort with popular services first");
 assert.ok(checkout.includes("data-rental-selected-price") && dashboard.includes("Choose your rental period"), "Rental product cards must explain period selection");

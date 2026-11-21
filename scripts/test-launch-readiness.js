@@ -47,6 +47,8 @@ assert.equal(get(complete, "database").status, "ready");
 assert.equal(get(complete, "squad_credentials").status, "review");
 assert.equal(get(complete, "squad_webhook").status, "review");
 assert.equal(get(complete, "schema").status, "ready");
+assert.ok(REQUIRED_MIGRATIONS.includes("010_smm_categories"), "Launch readiness must require the SMM category migration");
+assert.ok(REQUIRED_MIGRATIONS.includes("011_squad_payment_provider"), "Launch readiness must require the Squad payment migration");
 assert.equal(get(complete, "email_security").status, "needs_action");
 assert.equal(get(complete, "peakerr").required, false);
 assert.equal(get(complete, "justanotherpanel").required, false);
